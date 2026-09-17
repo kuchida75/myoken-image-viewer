@@ -1,0 +1,32 @@
+[
+  {
+    "Id": "realesrgan", "File": "realesrgan-x4plus-128.onnx",
+    "Checkpoint": "RealESRGAN_x4plus.pth",
+    "CheckpointUrl": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth",
+    "CheckpointSHA256": "4FA0D38905F75AC06EB49A7951B426670021BE3018265FD191D2125DF9D682F1",
+    "Project": "https://github.com/xinntao/Real-ESRGAN",
+    "License": "BSD-3-Clause",
+    "SHA256": "33B076CEBC9CCBA5D9C7EB0854B1048C5819785803D7D435B490079D7464C15B"
+  },
+  {
+    "Id": "realhat", "File": "real-hat-gan-x4-128.onnx",
+    "Checkpoint": "Real_HAT_GAN_SRx4.pth",
+    "CheckpointUrl": "https://huggingface.co/hfmaster/models-moved/resolve/main/upscalers/Real_HAT_GAN_SRx4.pth",
+    "CheckpointSHA256": "F5B1E3BBBB05147CA2BEEFCC715279CB647D7976CBDA67D62EA7E6E20D5FFCC7",
+    "Project": "https://github.com/XPixelGroup/HAT",
+    "License": "Apache-2.0",
+    "SHA256": "1338A08B9F0BD39CBD18DAD519DB67E3174D4CB57644116FA922A69A93EBA1F1",
+    "Provenance": "Real_HAT_GAN_SRx4 checkpoint mirrored by hfmaster/models-moved; original release linked by XPixelGroup/HAT via Google Drive/Baidu. Not the sharper variant."
+  },
+  {
+    "Id": "swinir", "File": "swinir-m-realworld-x4-128.onnx",
+    "Checkpoint": "003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x4_GAN.pth",
+    "CheckpointUrl": "https://github.com/JingyunLiang/SwinIR/releases/download/v0.0/003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x4_GAN.pth",
+    "CheckpointSHA256": "B9AFB61E65E04EB7F8ABA5095D070BBE9AF28DF76ACD0C9405AEB33B814BCFC6",
+    "CheckpointKey": "params_ema", "Architecture": "SwinIR",
+    "Project": "https://github.com/JingyunLiang/SwinIR",
+    "License": "Apache-2.0",
+    "SHA256": "0577D742857E6DE7613EDF28C12BED7F517D5CF6CEEACECED20998FF718FF403",
+    "Provenance": "Official SwinIR v0.0 release, medium real-world 4x GAN model (DFO), using EMA weights. Not SwinIR-L, lightweight or classical SR."
+  }
+]

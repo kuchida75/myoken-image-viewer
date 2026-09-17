@@ -1,0 +1,14 @@
+Zen Image Viewer
+Copyright 2026 kuchida75 and contributors
+
+Original project code and documentation are licensed under the Apache License,
+Version 2.0. See LICENSE.
+
+Third-party software, model weights, codec configuration resources and test
+fixtures retain their respective licenses and notices. See THIRD_PARTY_NOTICES.md,
+src/ZonerInspiredViewer/Dependencies/Licenses,
+src/ZonerInspiredViewer/Dependencies/GpuRuntime/*-LICENSE.txt, and tools/Fixtures.
+
+This project is not affiliated with or endorsed by proprietary photo-viewer
+vendors. Product names in historical documentation identify design references
+or compatibility details only.

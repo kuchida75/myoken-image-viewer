@@ -1,0 +1,18 @@
+[
+  {
+    "File": "magick.net-q8-x64.14.16.0.nupkg",
+    "Url": "https://api.nuget.org/v3-flatcontainer/magick.net-q8-x64/14.16.0/magick.net-q8-x64.14.16.0.nupkg",
+    "SHA256": "C8674791268C108C0DE9B7E9CD7DF9C35A00D0BD3D50AB1190AA38CDB38EE793",
+    "Entries": {
+      "lib/netstandard20/Magick.NET-Q8-x64.dll": "Magick.NET-Q8-x64.dll",
+      "runtimes/win-x64/native/Magick.Native-Q8-x64.dll": "Magick.Native-Q8-x64.dll",
+      "Notice.txt": "Licenses/Magick.NET-notices.txt"
+    }
+  },
+  {
+    "File": "magick.net.core.14.16.0.nupkg",
+    "Url": "https://api.nuget.org/v3-flatcontainer/magick.net.core/14.16.0/magick.net.core.14.16.0.nupkg",
+    "SHA256": "B34D4E9472B7E7961461D1B62C08873143BF56DCED2D82C01B415525C4B3F244",
+    "Entries": { "lib/netstandard20/Magick.NET.Core.dll": "Magick.NET.Core.dll" }
+  }
+]

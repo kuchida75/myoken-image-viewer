@@ -1,0 +1,1164 @@
+[
+  {
+    "Version": "0.2.1",
+    "StartedUtc": "2026-09-08T11:57:40.8111691Z",
+    "CompletedUtc": "2026-09-08T11:57:42.0221299Z",
+    "Result": "Built",
+    "Note": "Add favorite aliases and descriptions, recycle-and-advance behavior, and versioned build journal."
+  },
+  {
+    "Version": "0.2.2",
+    "StartedUtc": "2026-09-08T12:00:45.790989Z",
+    "CompletedUtc": "2026-09-08T12:00:47.0057816Z",
+    "Result": "Built",
+    "Note": "Add regression coverage for favorite editing, version metadata, next/previous/empty-folder recycling, and restored tabs."
+  },
+  {
+    "Version": "0.2.3",
+    "StartedUtc": "2026-09-08T12:01:55.1805816Z",
+    "CompletedUtc": "2026-09-08T12:03:09.0730701Z",
+    "Result": "Failed",
+    "Note": "MSBuild validation found a missing System.Xml project reference; fixed in the following build."
+  },
+  {
+    "Version": "0.2.4",
+    "StartedUtc": "2026-09-08T12:03:10.0353431Z",
+    "CompletedUtc": "2026-09-08T12:03:10.751202Z",
+    "Result": "Built",
+    "Note": "MSBuild compilation of current source; see CHANGELOG.md."
+  },
+  {
+    "Version": "0.2.5",
+    "StartedUtc": "2026-09-08T12:04:07.6580844Z",
+    "CompletedUtc": "2026-09-08T12:04:08.8159398Z",
+    "Result": "Built",
+    "Note": "Polish favorite editor layout, verify MSBuild versioning, and document aliases, recycle navigation, and build tracking."
+  },
+  {
+    "Version": "0.2.6",
+    "StartedUtc": "2026-09-08T12:06:37.6406755Z",
+    "CompletedUtc": "2026-09-08T12:06:38.8332822Z",
+    "Result": "Built",
+    "Note": "Correct light-theme screenshot validation and prepare release; full regression suite passed on 0.2.5."
+  },
+  {
+    "Version": "0.2.7",
+    "StartedUtc": "2026-09-08T12:43:21.3318376Z",
+    "CompletedUtc": "2026-09-08T12:43:22.5637638Z",
+    "Result": "Built",
+    "Note": "Add persistent pinned tabs, independent multi-instance session slots, shared preference merging and concurrent cache/storage regression checks."
+  },
+  {
+    "Version": "0.2.8",
+    "StartedUtc": "2026-09-08T12:44:45.7664708Z",
+    "CompletedUtc": "2026-09-08T12:44:46.9150324Z",
+    "Result": "Built",
+    "Note": "Shorten multi-instance test paths for legacy Windows limits and capture storage-worker failure details."
+  },
+  {
+    "Version": "0.2.9",
+    "StartedUtc": "2026-09-08T12:47:44.9861817Z",
+    "CompletedUtc": "2026-09-08T12:47:46.171974Z",
+    "Result": "Built",
+    "Note": "Finalize pinned-tab and multi-instance release documentation; correct theme-toggle screenshots and verify repaired shared-cache files release handles."
+  },
+  {
+    "Version": "0.2.10",
+    "StartedUtc": "2026-09-08T17:11:39.3703528Z",
+    "CompletedUtc": "2026-09-08T17:11:40.6334726Z",
+    "Result": "Built",
+    "Note": "Add Home/End image navigation, circular next/previous navigation and edge preloading, plus temporary H-key compact layout with normal-mode startup."
+  },
+  {
+    "Version": "0.2.11",
+    "StartedUtc": "2026-09-08T17:12:51.1468157Z",
+    "CompletedUtc": "2026-09-08T17:12:52.2515167Z",
+    "Result": "Built",
+    "Note": "Give clicked images keyboard focus for Home/End/H, release focus from hidden compact controls, and strengthen focus regression checks."
+  },
+  {
+    "Version": "0.2.12",
+    "StartedUtc": "2026-09-08T17:31:19.5462231Z",
+    "CompletedUtc": "2026-09-08T17:31:20.8977314Z",
+    "Result": "Built",
+    "Note": "Add independent J/arrow folder tree, sticky window-wide Quick Enhance, versioned JSON backup/import with recovery snapshots and missing-image tab cleanup."
+  },
+  {
+    "Version": "0.2.13",
+    "StartedUtc": "2026-09-08T23:19:18.3943018Z",
+    "CompletedUtc": "2026-09-08T23:19:19.6372703Z",
+    "Result": "Built",
+    "Note": "Finalize folder-tree rail theme and splitter behavior; strengthen backup path/numeric/size/fallback validation and document global enhancement and JSON backup workflows."
+  },
+  {
+    "Version": "0.2.14",
+    "StartedUtc": "2026-09-08T23:34:49.2268028Z",
+    "CompletedUtc": "2026-09-08T23:34:50.5014625Z",
+    "Result": "Built",
+    "Note": "Thumbnail keyboard navigation, blue active selection, browser paging and return-to-browser focus."
+  },
+  {
+    "Version": "0.2.15",
+    "StartedUtc": "2026-09-08T23:35:45.5403092Z",
+    "CompletedUtc": "2026-09-08T23:35:46.7596199Z",
+    "Result": "Built",
+    "Note": "Add exact viewport diagnostics to thumbnail visibility regression checks."
+  },
+  {
+    "Version": "0.2.16",
+    "StartedUtc": "2026-09-08T23:36:30.9903155Z",
+    "CompletedUtc": "2026-09-08T23:36:32.1845756Z",
+    "Result": "Built",
+    "Note": "Wait for debounced thumbnail layout before verifying resized-grid row movement."
+  },
+  {
+    "Version": "0.2.17",
+    "StartedUtc": "2026-09-08T23:37:10.1319498Z",
+    "CompletedUtc": "2026-09-08T23:37:11.3170386Z",
+    "Result": "Built",
+    "Note": "Isolate 100k thumbnail fixture from pending search debounce; improve selection diagnostics."
+  },
+  {
+    "Version": "0.2.18",
+    "StartedUtc": "2026-09-09T09:47:51.9985979Z",
+    "CompletedUtc": "2026-09-09T09:47:52.5077181Z",
+    "Result": "Failed",
+    "Note": "Advanced Quick Enhance with local person/subject segmentation, regional tone/vibrance shader, skin protection and persisted mode."
+  },
+  {
+    "Version": "0.2.19",
+    "StartedUtc": "2026-09-09T09:48:50.6737238Z",
+    "CompletedUtc": "2026-09-09T09:48:51.0939176Z",
+    "Result": "Failed",
+    "Note": "Optimize Advanced shader for WPF PS 2.0 compatibility and preserve hue during regional adjustments."
+  },
+  {
+    "Version": "0.2.20",
+    "StartedUtc": "2026-09-09T09:49:26.5700877Z",
+    "CompletedUtc": "2026-09-09T09:49:26.9852671Z",
+    "Result": "Failed",
+    "Note": "Precompute skin-aware vibrance map to fit Advanced rendering in the PS 2.0 shader budget."
+  },
+  {
+    "Version": "0.2.21",
+    "StartedUtc": "2026-09-09T09:49:46.9717956Z",
+    "CompletedUtc": "2026-09-09T09:49:47.4364997Z",
+    "Result": "Failed",
+    "Note": "Remove redundant shader clamps after hue-preserving gamut bounds."
+  },
+  {
+    "Version": "0.2.22",
+    "StartedUtc": "2026-09-09T09:50:08.3785944Z",
+    "CompletedUtc": "2026-09-09T09:50:09.7870702Z",
+    "Result": "Built",
+    "Note": "Fold sharpening normalization into shader constants for PS 2.0 compatibility."
+  },
+  {
+    "Version": "0.2.23",
+    "StartedUtc": "2026-09-09T09:54:05.9537132Z",
+    "CompletedUtc": "2026-09-09T09:54:07.3054521Z",
+    "Result": "Built",
+    "Note": "Advanced enhancement regression fixtures for regional tone, skin hue, alpha, local models, GPU fallback and session/backup behavior."
+  },
+  {
+    "Version": "0.2.24",
+    "StartedUtc": "2026-09-09T09:59:07.2334976Z",
+    "CompletedUtc": "2026-09-09T09:59:08.6750442Z",
+    "Result": "Built",
+    "Note": "Harden Advanced cancellation/model failures, protect dropdown keys, disable ORT telemetry, and document offline runtime dependencies and limitations."
+  },
+  {
+    "Version": "0.2.25",
+    "StartedUtc": "2026-09-09T09:59:46.6247127Z",
+    "CompletedUtc": "2026-09-09T09:59:48.0743644Z",
+    "Result": "Built",
+    "Note": "Return test focus to image canvas after verifying Advanced mode dropdown keyboard guards."
+  },
+  {
+    "Version": "0.2.26",
+    "StartedUtc": "2026-09-09T10:46:32.685124Z",
+    "CompletedUtc": "2026-09-09T10:46:34.1171464Z",
+    "Result": "Built",
+    "Note": "Add embedded Help with shortcuts and individual version history; recursive Advanced Search with parallel persistent indexing, virtualized results and live background refresh."
+  },
+  {
+    "Version": "0.2.27",
+    "StartedUtc": "2026-09-09T10:49:42.3718785Z",
+    "CompletedUtc": "2026-09-09T10:49:43.776091Z",
+    "Result": "Built",
+    "Note": "Polish Help version dropdown and dark/light search layouts; coalesce watcher events and test junction-cycle exclusion, mid-scan cancellation and concurrent cached queries."
+  },
+  {
+    "Version": "0.2.28",
+    "StartedUtc": "2026-09-09T16:01:09.2971297Z",
+    "CompletedUtc": "2026-09-09T16:01:10.6308935Z",
+    "Result": "Failed",
+    "Note": "Add experimental T-key thumbnail minimap with drag-to-scroll, exact-row clicks, bounded cached previews, responsive dark/light layout and session/backup persistence."
+  },
+  {
+    "Version": "0.2.29",
+    "StartedUtc": "2026-09-09T16:01:32.4394087Z",
+    "CompletedUtc": "2026-09-09T16:01:33.9146231Z",
+    "Result": "Built",
+    "Note": "Compile minimap geometry and UI regressions using legacy C# variable-scope rules; retain experimental minimap implementation and documentation."
+  },
+  {
+    "Version": "0.2.30",
+    "StartedUtc": "2026-09-09T16:02:48.2525649Z",
+    "CompletedUtc": "2026-09-09T16:02:49.7669157Z",
+    "Result": "Built",
+    "Note": "Correct isolated minimap pixel capture for WPF column offsets and retain full-window placement checks."
+  },
+  {
+    "Version": "0.2.31",
+    "StartedUtc": "2026-09-09T16:06:32.0541513Z",
+    "CompletedUtc": "2026-09-09T16:06:33.5582092Z",
+    "Result": "Built",
+    "Note": "Verify settled minimap previews after 100k-item scrubbing and image pixels outside the highlighted viewport band."
+  },
+  {
+    "Version": "0.2.32",
+    "StartedUtc": "2026-09-09T16:35:04.4015865Z",
+    "CompletedUtc": "2026-09-09T16:35:04.885313Z",
+    "Result": "Failed",
+    "Note": "Add automatic subject-adaptive sharpening to Advanced Quick Enhance using native-resolution focus/noise samples and regional GPU sharpening with skin and halo protection."
+  },
+  {
+    "Version": "0.2.33",
+    "StartedUtc": "2026-09-09T17:37:12.3506424Z",
+    "CompletedUtc": "2026-09-09T17:37:13.9260098Z",
+    "Result": "Built",
+    "Note": "Add automatic native-resolution subject-adaptive sharpening to Advanced Quick Enhance; bake lookup scaling to retain safeguards within the WPF shader instruction budget."
+  },
+  {
+    "Version": "0.2.34",
+    "StartedUtc": "2026-09-09T21:02:36.5225249Z",
+    "CompletedUtc": "2026-09-09T21:02:38.244297Z",
+    "Result": "Built",
+    "Note": "Centralize viewer settings in Configure; add minimap chevron, saved custom pinned-tab color, adaptive uniform tab widths and background system VRAM telemetry."
+  },
+  {
+    "Version": "0.2.35",
+    "StartedUtc": "2026-09-09T21:03:39.6854423Z",
+    "CompletedUtc": "2026-09-09T21:03:41.2794792Z",
+    "Result": "Built",
+    "Note": "Use DPI-aware tab text measurement and include regression source-line diagnostics while verifying the new Configure and GPU memory UI."
+  },
+  {
+    "Version": "0.2.36",
+    "StartedUtc": "2026-09-09T21:04:19.8260795Z",
+    "CompletedUtc": "2026-09-09T21:04:21.407168Z",
+    "Result": "Built",
+    "Note": "Wait for WPF resource propagation before asserting custom tab colors in isolated UI regressions."
+  },
+  {
+    "Version": "0.2.37",
+    "StartedUtc": "2026-09-09T21:04:58.2416289Z",
+    "CompletedUtc": "2026-09-09T21:04:59.8155173Z",
+    "Result": "Built",
+    "Note": "Improve isolated regression diagnostics with full source-line symbols and explicit configuration test phases."
+  },
+  {
+    "Version": "0.2.38",
+    "StartedUtc": "2026-09-09T21:05:40.3826804Z",
+    "CompletedUtc": "2026-09-09T21:05:41.9393897Z",
+    "Result": "Built",
+    "Note": "Reacquire tab header resources after pin/unpin rebuilds in color consistency tests; preserve shared live window palette behavior."
+  },
+  {
+    "Version": "0.2.39",
+    "StartedUtc": "2026-09-09T21:10:29.8773463Z",
+    "CompletedUtc": "2026-09-09T21:10:31.4562144Z",
+    "Result": "Built",
+    "Note": "Polish Configure alignment, themed background and binary minimap control; retain verified settings persistence, uniform pinned tabs and real system GPU memory accounting."
+  },
+  {
+    "Version": "0.2.40",
+    "StartedUtc": "2026-09-09T21:36:12.0684738Z",
+    "CompletedUtc": "2026-09-09T21:36:13.3286912Z",
+    "Result": "Failed",
+    "Note": "Add monitor-height toggle, Configure slideshow playback, freely reorderable tabs and persistent favorite ordering"
+  },
+  {
+    "Version": "0.2.41",
+    "StartedUtc": "2026-09-09T21:36:39.3066732Z",
+    "CompletedUtc": "2026-09-09T21:36:40.8778413Z",
+    "Result": "Built",
+    "Note": "Correct WPF drag-cancellation fixture construction; compile height/reorder and Configure playback checks"
+  },
+  {
+    "Version": "0.2.42",
+    "StartedUtc": "2026-09-09T21:37:50.3186067Z",
+    "CompletedUtc": "2026-09-09T21:37:51.8651495Z",
+    "Result": "Built",
+    "Note": "Ensure synthetic drag fixture activates and lays out its isolated window; improve capture diagnostics"
+  },
+  {
+    "Version": "0.2.43",
+    "StartedUtc": "2026-09-09T21:38:23.9322462Z",
+    "CompletedUtc": "2026-09-09T21:38:25.5205672Z",
+    "Result": "Built",
+    "Note": "Guard WPF synchronous mouse-move re-entry while acquiring reorder capture"
+  },
+  {
+    "Version": "0.2.44",
+    "StartedUtc": "2026-09-09T21:40:16.1833638Z",
+    "CompletedUtc": "2026-09-09T21:40:17.7576059Z",
+    "Result": "Built",
+    "Note": "Verify routed ordering drops and insertion-marker pixels; document height and reorder checks"
+  },
+  {
+    "Version": "0.2.45",
+    "StartedUtc": "2026-09-09T21:40:55.3162061Z",
+    "CompletedUtc": "2026-09-09T21:40:56.896114Z",
+    "Result": "Built",
+    "Note": "Capture insertion-marker pixels independently of its adorner-layer offset after layout/render"
+  },
+  {
+    "Version": "0.2.46",
+    "StartedUtc": "2026-09-09T22:02:24.001906Z",
+    "CompletedUtc": "2026-09-09T22:02:25.1480253Z",
+    "Result": "Failed",
+    "Note": "Add Configure image tools: cancellable thumbnail rebuilding, scaled-decode fallback, and backed-up JPEG/PNG rotation saving with explicit auto-save"
+  },
+  {
+    "Version": "0.2.47",
+    "StartedUtc": "2026-09-09T22:03:48.5490452Z",
+    "CompletedUtc": "2026-09-09T22:03:50.2179018Z",
+    "Result": "Built",
+    "Note": "Document Image tools and safe rotation-save limitations; correct test metadata type qualification"
+  },
+  {
+    "Version": "0.2.48",
+    "StartedUtc": "2026-09-09T22:05:12.0282895Z",
+    "CompletedUtc": "2026-09-09T22:05:13.6628382Z",
+    "Result": "Built",
+    "Note": "Dispatch thumbnail/rotation completion explicitly to WPF UI thread; surface save failures in main viewer footer"
+  },
+  {
+    "Version": "0.2.49",
+    "StartedUtc": "2026-09-09T22:18:16.8443834Z",
+    "CompletedUtc": "2026-09-09T22:18:18.4399385Z",
+    "Result": "Built",
+    "Note": "Harden image container refusal and thumbnail failure reporting; verify bounded preview refresh and animated-file protection"
+  },
+  {
+    "Version": "0.2.50",
+    "StartedUtc": "2026-09-09T22:21:33.5801659Z",
+    "CompletedUtc": "2026-09-09T22:21:35.1627298Z",
+    "Result": "Built",
+    "Note": "Preserve normal viewer geometry during view-only rotation; retain Configure status and explicit save/error feedback"
+  },
+  {
+    "Version": "0.2.51",
+    "StartedUtc": "2026-09-09T22:40:51.0532174Z",
+    "CompletedUtc": "2026-09-09T22:40:51.9520678Z",
+    "Result": "Failed",
+    "Note": "Usable toolbar icons, structured Help, bundled modern image codecs and active-tab GIF playback."
+  },
+  {
+    "Version": "0.2.52",
+    "StartedUtc": "2026-09-09T22:43:22.7763219Z",
+    "CompletedUtc": "2026-09-09T22:43:24.4506503Z",
+    "Result": "Built",
+    "Note": "Correct codec API integration; add real-format and accessible Help/toolbar regression checks."
+  },
+  {
+    "Version": "0.2.53",
+    "StartedUtc": "2026-09-09T22:44:22.3602901Z",
+    "CompletedUtc": "2026-09-09T22:44:24.0602296Z",
+    "Result": "Built",
+    "Note": "Bundle required codec configuration resources for standalone startup."
+  },
+  {
+    "Version": "0.2.54",
+    "StartedUtc": "2026-09-09T22:45:16.6338457Z",
+    "CompletedUtc": "2026-09-09T22:45:18.3022873Z",
+    "Result": "Built",
+    "Note": "Keep pseudo-image coders disabled in tests; clarify new/close-tab controls."
+  },
+  {
+    "Version": "0.2.55",
+    "StartedUtc": "2026-09-09T22:46:31.1205023Z",
+    "CompletedUtc": "2026-09-09T22:46:32.844962Z",
+    "Result": "Built",
+    "Note": "Preserve GIF canvas geometry, improve panel controls and use supported AVIF fixture quality."
+  },
+  {
+    "Version": "0.2.56",
+    "StartedUtc": "2026-09-09T22:47:30.1492099Z",
+    "CompletedUtc": "2026-09-09T22:47:31.9244687Z",
+    "Result": "Built",
+    "Note": "Correct multi-frame GIF reading and test logical-canvas metadata."
+  },
+  {
+    "Version": "0.2.57",
+    "StartedUtc": "2026-09-09T22:49:36.5566256Z",
+    "CompletedUtc": "2026-09-09T22:49:38.1813366Z",
+    "Result": "Built",
+    "Note": "Fix Help shortcut-table reflow and padding; verify readable columns at narrow and wide sizes."
+  },
+  {
+    "Version": "0.2.58",
+    "StartedUtc": "2026-09-09T22:54:36.5816806Z",
+    "CompletedUtc": "2026-09-09T22:54:38.2024462Z",
+    "Result": "Built",
+    "Note": "Clarify file-action descriptions and bundled files; verify GIF disposal/finite loops and modern EXIF/ICC/alpha."
+  },
+  {
+    "Version": "0.2.59",
+    "StartedUtc": "2026-09-09T22:55:35.3121692Z",
+    "CompletedUtc": "2026-09-09T22:55:36.9507108Z",
+    "Result": "Built",
+    "Note": "Read modern EXIF profiles when a codec omits them from header-only metadata."
+  },
+  {
+    "Version": "0.2.60",
+    "StartedUtc": "2026-09-09T23:21:12.1337836Z",
+    "CompletedUtc": "2026-09-09T23:21:13.9110781Z",
+    "Result": "Built",
+    "Note": "Add a passive top-right zoom factor overlay that disappears one second after zoom changes, with input/timing/layout tests."
+  },
+  {
+    "Version": "0.2.61",
+    "StartedUtc": "2026-09-09T23:22:21.8792895Z",
+    "CompletedUtc": "2026-09-09T23:22:23.6097444Z",
+    "Result": "Built",
+    "Note": "Verify zoom overlay timing and tab restore with correctly initialized saved zoom; refresh screenshot layout."
+  },
+  {
+    "Version": "0.2.62",
+    "StartedUtc": "2026-09-10T10:39:33.1458883Z",
+    "CompletedUtc": "2026-09-10T10:39:34.627864Z",
+    "Result": "Failed",
+    "Note": "Add persistent I-key image metadata overlay, live file revision updates, native/header bit depth, Configure and session/backup support, plus regression checks."
+  },
+  {
+    "Version": "0.2.63",
+    "StartedUtc": "2026-09-10T10:39:49.9559433Z",
+    "CompletedUtc": "2026-09-10T10:39:51.8457772Z",
+    "Result": "Built",
+    "Note": "Resolve regression metadata type ambiguity; build and verify persistent metadata overlay."
+  },
+  {
+    "Version": "0.2.64",
+    "StartedUtc": "2026-09-10T10:59:41.9134817Z",
+    "CompletedUtc": "2026-09-10T10:59:43.7134883Z",
+    "Result": "Built",
+    "Note": "Add original fading toolbar background themes, live Configure preview, preset/custom colors, intensity and session/backup persistence with contrast/layout tests."
+  },
+  {
+    "Version": "0.2.65",
+    "StartedUtc": "2026-09-10T11:01:06.1860654Z",
+    "CompletedUtc": "2026-09-10T11:01:07.9836831Z",
+    "Result": "Built",
+    "Note": "Finalize fading toolbar backgrounds; use DPI-aware label measurement and capture a toolbar-only preview before full regression verification."
+  },
+  {
+    "Version": "0.2.66",
+    "StartedUtc": "2026-09-10T11:09:32.614598Z",
+    "CompletedUtc": "2026-09-10T11:09:34.4863978Z",
+    "Result": "Built",
+    "Note": "Base shared tab widths on the narrowest measured title, retaining bounds and overflow; cover lifecycle, rename, folders and session restore."
+  },
+  {
+    "Version": "0.2.67",
+    "StartedUtc": "2026-09-10T17:01:19.4869255Z",
+    "CompletedUtc": "2026-09-10T17:01:21.242551Z",
+    "Result": "Built",
+    "Note": "Persistent translucent slideshow controls and per-window shortcut rebinding, conflict validation, session backup support and regression coverage."
+  },
+  {
+    "Version": "0.2.68",
+    "StartedUtc": "2026-09-10T17:03:22.1380458Z",
+    "CompletedUtc": "2026-09-10T17:03:23.8142095Z",
+    "Result": "Built",
+    "Note": "Refine shortcut text-entry guards and dynamic hints, stable slideshow icons, and formatted Help assertions."
+  },
+  {
+    "Version": "0.2.69",
+    "StartedUtc": "2026-09-10T17:05:19.8824612Z",
+    "CompletedUtc": "2026-09-10T17:05:21.5997727Z",
+    "Result": "Built",
+    "Note": "Readable shortcut key labels and regression alignment for dynamic metadata tooltips; verify global letter bindings preserve typing."
+  },
+  {
+    "Version": "0.2.70",
+    "StartedUtc": "2026-09-10T17:09:23.2272995Z",
+    "CompletedUtc": "2026-09-10T17:09:24.9286657Z",
+    "Result": "Built",
+    "Note": "Preserve dedicated Browser Back/Forward keys in text fields; retain normal editing protection and add explicit regression assertion."
+  },
+  {
+    "Version": "0.2.71",
+    "StartedUtc": "2026-09-10T22:16:47.354659Z",
+    "CompletedUtc": "2026-09-10T22:16:49.2047225Z",
+    "Result": "Built",
+    "Note": "Normal-width active tab with narrowest-title inactive tabs; right-aligned responsive search group; layout and lifecycle regressions."
+  },
+  {
+    "Version": "0.2.72",
+    "StartedUtc": "2026-09-10T22:33:32.8042034Z",
+    "CompletedUtc": "2026-09-10T22:33:34.5785937Z",
+    "Result": "Built",
+    "Note": "Default and reset background: Crosshatch, Teal, 100 percent intensity; preserve saved preferences and verify default/reset/restore behavior."
+  },
+  {
+    "Version": "0.2.73",
+    "StartedUtc": "2026-09-11T09:20:42.3646388Z",
+    "CompletedUtc": "2026-09-11T09:20:44.2768354Z",
+    "Result": "Built",
+    "Note": "Add draggable image pan navigator, P shortcut and saved toggle; coordinate overlays, rotation, GIF frames and slideshow timing"
+  },
+  {
+    "Version": "0.2.74",
+    "StartedUtc": "2026-09-11T09:22:20.50592Z",
+    "CompletedUtc": "2026-09-11T09:22:22.1910929Z",
+    "Result": "Built",
+    "Note": "Keep metadata readable in minimum-size windows by adapting navigator height and reserving only overlapping overlay space"
+  },
+  {
+    "Version": "0.2.75",
+    "StartedUtc": "2026-09-11T09:23:26.451205Z",
+    "CompletedUtc": "2026-09-11T09:23:28.1590941Z",
+    "Result": "Built",
+    "Note": "Verify navigator in fullscreen with monitor-independent zoom and with the optional metadata sidebar"
+  },
+  {
+    "Version": "0.2.76",
+    "StartedUtc": "2026-09-11T09:24:35.8255355Z",
+    "CompletedUtc": "2026-09-11T09:24:37.5460251Z",
+    "Result": "Built",
+    "Note": "Correct navigator regression to reopen the image from its retained browser-mode tab before session checks"
+  },
+  {
+    "Version": "0.2.77",
+    "StartedUtc": "2026-09-11T09:38:33.4444991Z",
+    "CompletedUtc": "2026-09-11T09:38:34.0698912Z",
+    "Result": "Failed",
+    "Note": "Add live manual Enhance overlay, ten numeric sliders, GPU tone/vibrance/sharpening, per-tab persistence and Info stacking"
+  },
+  {
+    "Version": "0.2.78",
+    "StartedUtc": "2026-09-11T09:42:01.5534879Z",
+    "CompletedUtc": "2026-09-11T09:42:02.1391035Z",
+    "Result": "Failed",
+    "Note": "Optimize manual adjustment shader for PS2 and add live pixel, slider, Info stacking, focus, session and backup tests"
+  },
+  {
+    "Version": "0.2.79",
+    "StartedUtc": "2026-09-11T09:42:22.2305779Z",
+    "CompletedUtc": "2026-09-11T09:42:24.3961454Z",
+    "Result": "Built",
+    "Note": "Complete PS2 manual shader optimization while keeping output bounded and sharpening alpha-aware"
+  },
+  {
+    "Version": "0.2.80",
+    "StartedUtc": "2026-09-11T09:45:34.3308848Z",
+    "CompletedUtc": "2026-09-11T09:45:36.6394435Z",
+    "Result": "Built",
+    "Note": "Verify Enhance thumb dragging, alpha preservation, GIF frames, fullscreen and rebindable panel control; document focused tests"
+  },
+  {
+    "Version": "0.2.81",
+    "StartedUtc": "2026-09-11T09:46:10.8187817Z",
+    "CompletedUtc": "2026-09-11T09:46:13.1055746Z",
+    "Result": "Built",
+    "Note": "Correct transparency regression to inspect raw premultiplied render pixels"
+  },
+  {
+    "Version": "0.2.82",
+    "StartedUtc": "2026-09-11T14:35:36.2169245Z",
+    "CompletedUtc": "2026-09-11T14:35:38.2107507Z",
+    "Result": "Built",
+    "Note": "Add Enhance Save and Save As with full-resolution tiled rendering, original backups, verified atomic writes and baked-image session protection"
+  },
+  {
+    "Version": "0.2.83",
+    "StartedUtc": "2026-09-11T14:36:58.9743735Z",
+    "CompletedUtc": "2026-09-11T14:37:00.7230801Z",
+    "Result": "Built",
+    "Note": "Add explicit tile-join verification with bounded WPF shader sampling tolerance"
+  },
+  {
+    "Version": "0.2.84",
+    "StartedUtc": "2026-09-11T14:42:46.1395232Z",
+    "CompletedUtc": "2026-09-11T14:42:47.9677002Z",
+    "Result": "Built",
+    "Note": "Verify Enhance saves with Advanced regions, alpha, destination backups and UI failure recovery"
+  },
+  {
+    "Version": "0.2.85",
+    "StartedUtc": "2026-09-11T14:43:25.6212382Z",
+    "CompletedUtc": "2026-09-11T14:43:27.4272743Z",
+    "Result": "Built",
+    "Note": "Fix Advanced Enhance shader cloning for full-resolution saves"
+  },
+  {
+    "Version": "0.2.86",
+    "StartedUtc": "2026-09-11T14:44:35.6243869Z",
+    "CompletedUtc": "2026-09-11T14:44:37.463644Z",
+    "Result": "Built",
+    "Note": "Isolate transparency encoding round-trip verification"
+  },
+  {
+    "Version": "0.2.87",
+    "StartedUtc": "2026-09-11T23:20:37.0053759Z",
+    "CompletedUtc": "2026-09-11T23:20:39.07604Z",
+    "Result": "Built",
+    "Note": "Add persistent opt-out for Enhance Save and Save As overwrite confirmations"
+  },
+  {
+    "Version": "0.2.88",
+    "StartedUtc": "2026-09-16T10:57:54.2142421Z",
+    "CompletedUtc": "2026-09-16T10:57:56.1308459Z",
+    "Result": "Failed",
+    "Note": "Reproduce unchecked overwrite setting being ignored after native checkbox toggle"
+  },
+  {
+    "Version": "0.2.89",
+    "StartedUtc": "2026-09-16T10:58:26.7965681Z",
+    "CompletedUtc": "2026-09-16T10:58:28.2205351Z",
+    "Result": "Failed",
+    "Note": "Add test-only WPF accessibility references for overwrite preference regression"
+  },
+  {
+    "Version": "0.2.90",
+    "StartedUtc": "2026-09-16T10:58:46.2197429Z",
+    "CompletedUtc": "2026-09-16T10:58:48.5423211Z",
+    "Result": "Built",
+    "Note": "Correct test reference argument grouping for native checkbox regression"
+  },
+  {
+    "Version": "0.2.91",
+    "StartedUtc": "2026-09-16T10:59:57.1311754Z",
+    "CompletedUtc": "2026-09-16T10:59:59.3948449Z",
+    "Result": "Built",
+    "Note": "Fix unchecked Enhance overwrite preference staying enabled by handling checked-state changes directly"
+  },
+  {
+    "Version": "0.2.92",
+    "StartedUtc": "2026-09-16T11:14:58.5411107Z",
+    "CompletedUtc": "2026-09-16T11:15:00.7833223Z",
+    "Result": "Built",
+    "Note": "Add bottom image path/metadata status and fix natural numeric Name sorting"
+  },
+  {
+    "Version": "0.2.93",
+    "StartedUtc": "2026-09-16T16:03:48.3835151Z",
+    "CompletedUtc": "2026-09-16T16:03:50.5514305Z",
+    "Result": "Built",
+    "Note": "Add focused-key regression reproducing navigation loss after rotation and Enhance saves."
+  },
+  {
+    "Version": "0.2.94",
+    "StartedUtc": "2026-09-16T16:05:45.7563763Z",
+    "CompletedUtc": "2026-09-16T16:05:47.7529519Z",
+    "Result": "Built",
+    "Note": "Restore image keyboard focus after rotation and Enhance saving; preserve slider input and background-window focus."
+  },
+  {
+    "Version": "0.2.95",
+    "StartedUtc": "2026-09-16T16:27:22.8444957Z",
+    "CompletedUtc": "2026-09-16T16:27:24.8884214Z",
+    "Result": "Built",
+    "Note": "Add E Enhance shortcut, folder rename/move/recycle actions, and persistent five-entry shared search history."
+  },
+  {
+    "Version": "0.2.96",
+    "StartedUtc": "2026-09-16T16:28:52.9444357Z",
+    "CompletedUtc": "2026-09-16T16:28:54.9363961Z",
+    "Result": "Built",
+    "Note": "Set Enhance keyboard focus after overlay layout settles; verify folder operations and search history."
+  },
+  {
+    "Version": "0.2.97",
+    "StartedUtc": "2026-09-16T16:30:44.2285228Z",
+    "CompletedUtc": "2026-09-16T16:30:46.2355335Z",
+    "Result": "Built",
+    "Note": "Complete folder selection regression coverage and document E Enhance, folder actions and five-entry search history."
+  },
+  {
+    "Version": "0.2.98",
+    "StartedUtc": "2026-09-16T16:31:51.5284217Z",
+    "CompletedUtc": "2026-09-16T16:31:53.5295863Z",
+    "Result": "Built",
+    "Note": "Retain search history across view transitions and complete mixed folder recycle regression coverage."
+  },
+  {
+    "Version": "0.2.99",
+    "StartedUtc": "2026-09-16T16:46:40.7069087Z",
+    "CompletedUtc": "2026-09-16T16:46:42.746925Z",
+    "Result": "Built",
+    "Note": "Polish search-history dropdown rows for dark/light themes; feature and full regression checks passed in prior build."
+  },
+  {
+    "Version": "0.2.100",
+    "StartedUtc": "2026-09-16T16:48:41.8232964Z",
+    "CompletedUtc": "2026-09-16T16:48:43.8096395Z",
+    "Result": "Built",
+    "Note": "Finalize themed history dropdown and indexed bulk-recycle state cleanup with 100k-path verification."
+  },
+  {
+    "Version": "0.2.101",
+    "StartedUtc": "2026-09-16T17:00:59.5848275Z",
+    "CompletedUtc": "2026-09-16T17:01:00.5838004Z",
+    "Result": "Failed",
+    "Note": "Add profile reset with optional cache clearing and configurable wheel preview strip"
+  },
+  {
+    "Version": "0.2.102",
+    "StartedUtc": "2026-09-16T17:04:17.5450231Z",
+    "CompletedUtc": "2026-09-16T17:04:19.5379358Z",
+    "Result": "Built",
+    "Note": "Complete reset recovery/cache safety and wheel thumbnail strip with focused regression checks"
+  },
+  {
+    "Version": "0.2.103",
+    "StartedUtc": "2026-09-16T17:06:08.9847915Z",
+    "CompletedUtc": "2026-09-16T17:06:10.9719338Z",
+    "Result": "Built",
+    "Note": "Reserve preview edge space in compact frames alongside existing image overlays"
+  },
+  {
+    "Version": "0.2.104",
+    "StartedUtc": "2026-09-16T17:11:28.0075903Z",
+    "CompletedUtc": "2026-09-16T17:11:30.0873101Z",
+    "Result": "Built",
+    "Note": "Verify reset recovery import/cancel and concurrent cache clearing; harden preview shutdown and maintenance paths"
+  },
+  {
+    "Version": "0.2.105",
+    "StartedUtc": "2026-09-16T17:27:36.9654832Z",
+    "CompletedUtc": "2026-09-16T17:27:38.938216Z",
+    "Result": "Built",
+    "Note": "Add explicit DirectML GPU selection, integrated-GPU thumbnail resizing with CPU/Auto fallback, and per-adapter memory readings"
+  },
+  {
+    "Version": "0.2.106",
+    "StartedUtc": "2026-09-16T17:29:55.5010753Z",
+    "CompletedUtc": "2026-09-16T17:29:57.477943Z",
+    "Result": "Built",
+    "Note": "Add real dual-adapter shader pixel, DirectML selection, memory limit, automatic comparison and settings regression checks"
+  },
+  {
+    "Version": "0.2.107",
+    "StartedUtc": "2026-09-16T17:33:48.901239Z",
+    "CompletedUtc": "2026-09-16T17:33:50.8809636Z",
+    "Result": "Built",
+    "Note": "Harden live GPU mode changes and telemetry failures; document GPU boundaries and add concurrent dual-GPU checks"
+  },
+  {
+    "Version": "0.2.108",
+    "StartedUtc": "2026-09-16T17:36:32.787492Z",
+    "CompletedUtc": "2026-09-16T17:36:34.7784428Z",
+    "Result": "Built",
+    "Note": "Keep image controls usable with per-GPU status in short windows using adaptive overlay columns"
+  },
+  {
+    "Version": "0.2.109",
+    "StartedUtc": "2026-09-16T17:43:39.8047094Z",
+    "CompletedUtc": "2026-09-16T17:43:41.7792228Z",
+    "Result": "Built",
+    "Note": "Finalize dual-GPU processing, per-adapter memory telemetry and responsive status readouts"
+  },
+  {
+    "Version": "0.2.110",
+    "StartedUtc": "2026-09-16T17:50:35.804167Z",
+    "CompletedUtc": "2026-09-16T17:50:37.766556Z",
+    "Result": "Built",
+    "Note": "Resizable wheel-preview carousel with tapered opacity, DPI-aware thumbnail cache and persisted status-bar size slider"
+  },
+  {
+    "Version": "0.2.111",
+    "StartedUtc": "2026-09-16T18:01:56.0110867Z",
+    "CompletedUtc": "2026-09-16T18:01:58.2204153Z",
+    "Result": "Built",
+    "Note": "Number GPUs and emphasize live dedicated/shared memory values with theme-aware colors and stable readout slots"
+  },
+  {
+    "Version": "0.2.112",
+    "StartedUtc": "2026-09-16T18:08:47.9953747Z",
+    "CompletedUtc": "2026-09-16T18:08:50.2060188Z",
+    "Result": "Built",
+    "Note": "Transparent floating wheel carousel with tighter thumbnail spacing and preserved selection highlight"
+  },
+  {
+    "Version": "0.2.113",
+    "StartedUtc": "2026-09-16T18:41:00.2680381Z",
+    "CompletedUtc": "2026-09-16T18:41:02.6410425Z",
+    "Result": "Built",
+    "Note": "Visual OS-layout-aware keyboard with binding tooltips, double-click editor and default reset"
+  },
+  {
+    "Version": "0.2.114",
+    "StartedUtc": "2026-09-16T18:44:02.0771109Z",
+    "CompletedUtc": "2026-09-16T18:44:04.396823Z",
+    "Result": "Built",
+    "Note": "Polish visual keyboard geometry, layout refresh and integration checks with existing shortcut editor"
+  },
+  {
+    "Version": "0.2.115",
+    "StartedUtc": "2026-09-16T19:15:17.274288Z",
+    "CompletedUtc": "2026-09-16T19:15:19.6971132Z",
+    "Result": "Built",
+    "Note": "Make side thumbnail strips layout-independent floating overlays; verify unchanged image viewport, zoom, pan and pixels."
+  },
+  {
+    "Version": "0.2.116",
+    "StartedUtc": "2026-09-16T19:42:59.1606841Z",
+    "CompletedUtc": "2026-09-16T19:43:01.6565947Z",
+    "Result": "Built",
+    "Note": "Add local tiled AI super-resolution, fractional scales, subject/skin-aware detail, Enhance integration, comparison and safe copy export."
+  },
+  {
+    "Version": "0.2.117",
+    "StartedUtc": "2026-09-16T19:44:39.9138001Z",
+    "CompletedUtc": "2026-09-16T19:44:42.3683644Z",
+    "Result": "Built",
+    "Note": "Add high-frequency AI test fixture and viewer-to-export integration coverage for super-resolution."
+  },
+  {
+    "Version": "0.2.118",
+    "StartedUtc": "2026-09-16T19:45:42.9514449Z",
+    "CompletedUtc": "2026-09-16T19:45:44.1197069Z",
+    "Result": "Failed",
+    "Note": "Marshal AI preview/save completion explicitly to the UI thread; retain responsive cancellation."
+  },
+  {
+    "Version": "0.2.119",
+    "StartedUtc": "2026-09-16T19:45:58.5508167Z",
+    "CompletedUtc": "2026-09-16T19:46:00.9778205Z",
+    "Result": "Built",
+    "Note": "Complete dispatcher-safe AI upscale work with C# 5 compatible cleanup."
+  },
+  {
+    "Version": "0.2.120",
+    "StartedUtc": "2026-09-16T19:48:56.8192265Z",
+    "CompletedUtc": "2026-09-16T19:48:59.1305338Z",
+    "Result": "Built",
+    "Note": "Validate AI tile joins, model integrity, cancellation/close and backup restore; keep toolbar compact."
+  },
+  {
+    "Version": "0.2.121",
+    "StartedUtc": "2026-09-16T20:21:25.6574658Z",
+    "CompletedUtc": "2026-09-16T20:21:28.1022641Z",
+    "Result": "Built",
+    "Note": "Add S and labeled automatic AI upscale action with view-only apply/restore, size detection and responsive toolbar."
+  },
+  {
+    "Version": "0.2.122",
+    "StartedUtc": "2026-09-16T20:23:31.8444845Z",
+    "CompletedUtc": "2026-09-16T20:23:34.3965784Z",
+    "Result": "Built",
+    "Note": "Verify inline AI export/close cleanup, original preservation and shortcut/toolbar behavior."
+  },
+  {
+    "Version": "0.2.123",
+    "StartedUtc": "2026-09-16T20:42:21.4387542Z",
+    "CompletedUtc": "2026-09-16T20:42:23.8970545Z",
+    "Result": "Built",
+    "Note": "Add bottom status-bar AI upscale slider with original-based fractional scaling, debounce, cancellation and keyboard controls."
+  },
+  {
+    "Version": "0.2.124",
+    "StartedUtc": "2026-09-16T22:03:18.7320283Z",
+    "CompletedUtc": "2026-09-16T22:03:21.4613571Z",
+    "Result": "Built",
+    "Note": "Add persistent AI upscale model split-button with bundled Real-ESRGAN/Real-HAT ONNX inference and optional local SUPIR setup."
+  },
+  {
+    "Version": "0.2.125",
+    "StartedUtc": "2026-09-16T22:12:28.2817417Z",
+    "CompletedUtc": "2026-09-16T22:12:31.08539Z",
+    "Result": "Built",
+    "Note": "Verify model-switch persistence, overlapping Real-ESRGAN/Real-HAT tiles and cancellation; finalize optional SUPIR shutdown handling and help."
+  },
+  {
+    "Version": "0.2.126",
+    "StartedUtc": "2026-09-16T22:17:03.5131752Z",
+    "CompletedUtc": "2026-09-16T22:17:06.329292Z",
+    "Result": "Built",
+    "Note": "Complete model checks in the full regression suite; distinguish desktop activation changes from actual scale-slider focus loss."
+  },
+  {
+    "Version": "0.2.127",
+    "StartedUtc": "2026-09-16T22:37:24.3970707Z",
+    "CompletedUtc": "2026-09-16T22:37:26.9638014Z",
+    "Result": "Built",
+    "Note": "Color-code AI upscale progress, success, bypass and errors; keep split-button active fill visible on hover; test dark/light state transitions and contrast."
+  },
+  {
+    "Version": "0.2.128",
+    "StartedUtc": "2026-09-16T22:54:02.6965888Z",
+    "CompletedUtc": "2026-09-16T22:54:04.9769002Z",
+    "Result": "Built",
+    "Note": "Bundle SwinIR-M Real-World x4 as an additional AI model with official EMA weights, ONNX export provenance, and CPU/RTX/menu/persistence tests."
+  },
+  {
+    "Version": "0.2.129",
+    "StartedUtc": "2026-09-16T23:10:10.9180289Z",
+    "CompletedUtc": "2026-09-16T23:10:13.9636799Z",
+    "Result": "Built",
+    "Note": "Add current-image print preview, page layout, installed printer settings, async print submission and Ctrl+P."
+  },
+  {
+    "Version": "0.2.130",
+    "StartedUtc": "2026-09-16T23:13:34.0597004Z",
+    "CompletedUtc": "2026-09-16T23:13:37.1610034Z",
+    "Result": "Built",
+    "Note": "Verify print preview, full-resolution adjusted snapshot, one-page XPS output, driver page validation, Ctrl+P and responsive layouts."
+  },
+  {
+    "Version": "0.2.131",
+    "StartedUtc": "2026-09-16T23:14:48.3520381Z",
+    "CompletedUtc": "2026-09-16T23:14:51.4146226Z",
+    "Result": "Built",
+    "Note": "Document printing workflow and limits; add full print-preview/XPS/driver regression coverage and floating-point-tolerant geometry assertions."
+  },
+  {
+    "Version": "0.2.132",
+    "StartedUtc": "2026-09-16T23:15:25.793621Z",
+    "CompletedUtc": "2026-09-16T23:15:28.8492339Z",
+    "Result": "Built",
+    "Note": "Use subpixel tolerance for millimeter and serialized XPS page geometry tests."
+  },
+  {
+    "Version": "0.2.133",
+    "StartedUtc": "2026-09-16T23:17:48.0305287Z",
+    "CompletedUtc": "2026-09-16T23:17:50.8823801Z",
+    "Result": "Built",
+    "Note": "Keep selected printer on refresh, recover cleanly from invalid margins/copies, and test live PDF-driver preview readiness without submitting jobs."
+  },
+  {
+    "Version": "0.2.134",
+    "StartedUtc": "2026-09-16T23:19:25.3294987Z",
+    "CompletedUtc": "2026-09-16T23:19:28.3588529Z",
+    "Result": "Built",
+    "Note": "Marshal all asynchronous print rendering and printer-setting completions explicitly to the viewer UI thread."
+  },
+  {
+    "Version": "0.2.135",
+    "StartedUtc": "2026-09-16T23:47:16.8266545Z",
+    "CompletedUtc": "2026-09-16T23:47:19.2215972Z",
+    "Result": "Built",
+    "Note": "Add toolbar zoom lock, fit width/height and original-size controls with session persistence and regression coverage"
+  },
+  {
+    "Version": "0.2.136",
+    "StartedUtc": "2026-09-16T23:48:20.0033841Z",
+    "CompletedUtc": "2026-09-16T23:48:22.3736637Z",
+    "Result": "Built",
+    "Note": "Refine zoom-control centering tests for intentional single-axis overflow"
+  },
+  {
+    "Version": "0.2.137",
+    "StartedUtc": "2026-09-16T23:50:03.0893898Z",
+    "CompletedUtc": "2026-09-16T23:50:05.4578879Z",
+    "Result": "Built",
+    "Note": "Polish fit-axis icon distinction, validate backup round-trips and wide-toolbar wrapping checks"
+  },
+  {
+    "Version": "0.2.138",
+    "StartedUtc": "2026-09-17T11:04:23.7450873Z",
+    "CompletedUtc": "2026-09-17T11:04:26.3846422Z",
+    "Result": "Built",
+    "Note": "Add native shared-texture GPU renderer, nvJPEG runtime path and DXGI-budgeted texture cache foundation"
+  },
+  {
+    "Version": "0.2.139",
+    "StartedUtc": "2026-09-17T11:10:55.9458321Z",
+    "CompletedUtc": "2026-09-17T11:10:58.4106357Z",
+    "Result": "Built",
+    "Note": "Integrate GPU image presentation, preloading, resident cache controls and persisted rendering preferences"
+  },
+  {
+    "Version": "0.2.140",
+    "StartedUtc": "2026-09-17T11:16:07.3112705Z",
+    "CompletedUtc": "2026-09-17T11:16:09.8073202Z",
+    "Result": "Built",
+    "Note": "Add GPU cache pressure/lifetime and integrated rendering regression tests; harden texture lease cleanup"
+  },
+  {
+    "Version": "0.2.141",
+    "StartedUtc": "2026-09-17T11:17:55.1579413Z",
+    "CompletedUtc": "2026-09-17T11:17:57.6659313Z",
+    "Result": "Built",
+    "Note": "Instrument resident-cache navigation checks to diagnose cache reuse across renderer toggles"
+  },
+  {
+    "Version": "0.2.142",
+    "StartedUtc": "2026-09-17T11:20:18.4645842Z",
+    "CompletedUtc": "2026-09-17T11:20:20.9288022Z",
+    "Result": "Built",
+    "Note": "Reuse GPU textures for equivalent concurrent file decodes while keeping AI and color-policy variants distinct"
+  },
+  {
+    "Version": "0.2.143",
+    "StartedUtc": "2026-09-17T11:30:33.1173948Z",
+    "CompletedUtc": "2026-09-17T11:30:35.5589442Z",
+    "Result": "Built",
+    "Note": "GPU-resident D3D11/WPF image pipeline, bundled nvJPEG decoding, live DXGI pressure-aware LRU eviction, configurable adapter and VRAM allowance, safe fallback and regression coverage."
+  },
+  {
+    "Version": "0.2.144",
+    "StartedUtc": "2026-09-17T11:31:32.6388892Z",
+    "CompletedUtc": "2026-09-17T11:31:35.093489Z",
+    "Result": "Built",
+    "Note": "Finalize GPU cache reset/generation safety, decoded-image identity promotion, edited-image isolation and restart coverage."
+  },
+  {
+    "Version": "0.2.145",
+    "StartedUtc": "2026-09-17T11:37:14.4258879Z",
+    "CompletedUtc": "2026-09-17T11:37:16.8323771Z",
+    "Result": "Built",
+    "Note": "Preserve image navigation during watcher/post-save folder refresh; extend final GPU compatibility and cancellation regression checks."
+  },
+  {
+    "Version": "0.2.146",
+    "StartedUtc": "2026-09-17T11:52:23.3224351Z",
+    "CompletedUtc": "2026-09-17T11:52:25.9157834Z",
+    "Result": "Built",
+    "Note": "Workflow-oriented toolbar, folder breadcrumbs/address entry, file utilities, searchable sidebar settings and collapsible performance diagnostics."
+  },
+  {
+    "Version": "0.2.147",
+    "StartedUtc": "2026-09-17T11:55:34.5341403Z",
+    "CompletedUtc": "2026-09-17T11:55:36.4891231Z",
+    "Result": "Failed",
+    "Note": "Add native workflow, responsive layout, folder address, searchable settings, shortcut migration and session regression tests."
+  },
+  {
+    "Version": "0.2.148",
+    "StartedUtc": "2026-09-17T11:56:05.3711716Z",
+    "CompletedUtc": "2026-09-17T11:56:07.8331622Z",
+    "Result": "Built",
+    "Note": "Compile redesigned workflow regression harness and native screenshots."
+  },
+  {
+    "Version": "0.2.149",
+    "StartedUtc": "2026-09-17T11:58:06.4540183Z",
+    "CompletedUtc": "2026-09-17T11:58:08.9426604Z",
+    "Result": "Built",
+    "Note": "Keep File actions on global row, align settings controls, and preserve path-entry focus when returning from image mode."
+  },
+  {
+    "Version": "0.2.150",
+    "StartedUtc": "2026-09-17T12:00:37.2934448Z",
+    "CompletedUtc": "2026-09-17T12:00:39.7896994Z",
+    "Result": "Built",
+    "Note": "Improve settings resize focus, checkbox alignment and search clearing; add a direct thumbnail-settings entry point."
+  },
+  {
+    "Version": "0.2.151",
+    "StartedUtc": "2026-09-17T12:04:51.5314285Z",
+    "CompletedUtc": "2026-09-17T12:04:53.9876209Z",
+    "Result": "Built",
+    "Note": "Finalize workflow redesign, shortcut compatibility, stale address cancellation, built-in Help and release notes."
+  },
+  {
+    "Version": "0.2.152",
+    "StartedUtc": "2026-09-17T12:07:47.2903076Z",
+    "CompletedUtc": "2026-09-17T12:07:49.7654596Z",
+    "Result": "Built",
+    "Note": "Match keyboard traversal to visual toolbar order; final workflow release and compatibility verification."
+  },
+  {
+    "Version": "0.2.153",
+    "StartedUtc": "2026-09-17T12:49:04.554187Z",
+    "CompletedUtc": "2026-09-17T12:49:06.9352444Z",
+    "Result": "Built",
+    "Note": "Rename to Zen Image Viewer; simplify shutter icon to teal/ivory; embed multi-size icons; preserve profile and backup compatibility."
+  },
+  {
+    "Version": "0.2.154",
+    "StartedUtc": "2026-09-17T12:49:55.9270716Z",
+    "CompletedUtc": "2026-09-17T12:49:58.3556444Z",
+    "Result": "Built",
+    "Note": "Verify Zen branding and native small/large icon extraction; complete compatibility and visual checks."
+  },
+  {
+    "Version": "0.2.155",
+    "StartedUtc": "2026-09-17T13:05:59.3758194Z",
+    "CompletedUtc": "2026-09-17T13:06:01.8231744Z",
+    "Result": "Built",
+    "Note": "Add batch rename, resize and format conversion with preview, presets, conflict handling, backups and recovery."
+  },
+  {
+    "Version": "0.2.156",
+    "StartedUtc": "2026-09-17T13:11:09.9388312Z",
+    "CompletedUtc": "2026-09-17T13:11:12.4055086Z",
+    "Result": "Built",
+    "Note": "Add isolated batch regression tests for rename transactions, resize/convert encoders, metadata, safety, presets and native dialogs."
+  },
+  {
+    "Version": "0.2.157",
+    "StartedUtc": "2026-09-17T13:12:20.8679726Z",
+    "CompletedUtc": "2026-09-17T13:12:23.2828158Z",
+    "Result": "Built",
+    "Note": "Allow resize output-format selection; expose six verified encoders and retain HEIC/HEIF as decode-only inputs."
+  },
+  {
+    "Version": "0.2.158",
+    "StartedUtc": "2026-09-17T13:14:40.8695694Z",
+    "CompletedUtc": "2026-09-17T13:14:43.4170055Z",
+    "Result": "Built",
+    "Note": "Protect excluded rename dependencies; invalidate thumbnail revisions after batch changes; verify actual EXIF orientation fixtures."
+  },
+  {
+    "Version": "0.2.159",
+    "StartedUtc": "2026-09-17T13:16:34.5165054Z",
+    "CompletedUtc": "2026-09-17T13:16:36.9098366Z",
+    "Result": "Built",
+    "Note": "Verify metadata stripping, native format limits, input validation and 100k-row batch preview virtualization."
+  },
+  {
+    "Version": "0.2.160",
+    "StartedUtc": "2026-09-17T13:17:42.8106365Z",
+    "CompletedUtc": "2026-09-17T13:17:45.1921438Z",
+    "Result": "Built",
+    "Note": "Keep batch continuations on the UI dispatcher and verify full-window dark/light preview layouts."
+  },
+  {
+    "Version": "0.2.161",
+    "StartedUtc": "2026-09-17T13:21:14.0594888Z",
+    "CompletedUtc": "2026-09-17T13:21:16.4917765Z",
+    "Result": "Built",
+    "Note": "Polish batch presets/progress and preserve fresh thumbnails and displayed pixels after timestamp-preserving overwrites."
+  },
+  {
+    "Version": "0.2.162",
+    "StartedUtc": "2026-09-17T13:25:36.3645576Z",
+    "CompletedUtc": "2026-09-17T13:25:38.7776755Z",
+    "Result": "Built",
+    "Note": "Complete batch tools, Help/release documentation, safe folder-cache invalidation and read-only export regression checks."
+  },
+  {
+    "Version": "0.2.163",
+    "StartedUtc": "2026-09-17T16:49:15.5319746Z",
+    "CompletedUtc": "2026-09-17T16:49:19.3794297Z",
+    "Result": "Built",
+    "Note": "Named collapsible tab stacks, membership controls, drag groups and session/backup persistence."
+  },
+  {
+    "Version": "0.2.164",
+    "StartedUtc": "2026-09-17T16:50:50.7339685Z",
+    "CompletedUtc": "2026-09-17T16:50:53.4688928Z",
+    "Result": "Built",
+    "Note": "Polish stack selection theme and verify stack restore, drag, backup and reset compatibility."
+  },
+  {
+    "Version": "0.2.165",
+    "StartedUtc": "2026-09-17T16:53:00.0783571Z",
+    "CompletedUtc": "2026-09-17T16:53:02.6582363Z",
+    "Result": "Built",
+    "Note": "Finalize tab stacks with high-contrast selection controls, saved sessions and backup compatibility."
+  },
+  {
+    "Version": "0.2.166",
+    "StartedUtc": "2026-09-17T17:20:16.4377492Z",
+    "CompletedUtc": "2026-09-17T17:20:19.0544215Z",
+    "Result": "Built",
+    "Note": "Replace File ellipsis with document icon and trailing dropdown arrow."
+  }
+]

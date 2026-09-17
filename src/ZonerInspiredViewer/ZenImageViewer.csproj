@@ -1,0 +1,51 @@
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <RootNamespace>ZonerInspiredViewer</RootNamespace>
+    <AssemblyName>ZenImageViewer</AssemblyName>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="ReachFramework" />
+    <Reference Include="System.Printing" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="netstandard" />
+    <Reference Include="Magick.NET.Core"><HintPath>Dependencies\Magick.NET.Core.dll</HintPath></Reference>
+    <Reference Include="Magick.NET-Q8-x64"><HintPath>Dependencies\Magick.NET-Q8-x64.dll</HintPath></Reference>
+    <Reference Include="Microsoft.ML.OnnxRuntime"><HintPath>Dependencies\Microsoft.ML.OnnxRuntime.dll</HintPath></Reference>
+    <Reference Include="System.Memory"><HintPath>Dependencies\System.Memory.dll</HintPath></Reference>
+    <Reference Include="System.Buffers"><HintPath>Dependencies\System.Buffers.dll</HintPath></Reference>
+    <Reference Include="System.Numerics.Vectors"><HintPath>Dependencies\System.Numerics.Vectors.dll</HintPath></Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe"><HintPath>Dependencies\System.Runtime.CompilerServices.Unsafe.dll</HintPath></Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="*.cs" />
+    <EmbeddedResource Include="Assets\AppIcon.ico"><LogicalName>Viewer.AppIcon.ico</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Assets\QuickEnhance.ps"><LogicalName>Viewer.QuickEnhance.ps</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Assets\AdvancedEnhance.ps"><LogicalName>Viewer.AdvancedEnhance.ps</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="Assets\ManualEnhance.ps"><LogicalName>Viewer.ManualEnhance.ps</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="..\..\CHANGELOG.md"><LogicalName>Viewer.Changelog.md</LogicalName></EmbeddedResource>
+    <EmbeddedResource Include="..\..\BUILD_HISTORY.json"><LogicalName>Viewer.BuildHistory.json</LogicalName></EmbeddedResource>
+    <Content Include="Dependencies\**\*.*"><Link>%(RecursiveDir)%(Filename)%(Extension)</Link><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="ReserveBuildVersion" BeforeTargets="BeforeBuild" Condition="'$(DesignTimeBuild)' != 'true'">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\..\tools\version.ps1&quot; -BuildNote &quot;MSBuild compilation of current source; see CHANGELOG.md.&quot;" />
+  </Target>
+  <Target Name="RecordBuildVersion" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true'">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\..\tools\version.ps1&quot; -Action Complete -Status Built -OutputDirectory &quot;$(TargetDir).&quot;" />
+  </Target>
+</Project>

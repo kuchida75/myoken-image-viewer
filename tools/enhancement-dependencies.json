@@ -1,0 +1,12 @@
+[
+  {"File":"ort-managed.nupkg","Url":"https://api.nuget.org/v3-flatcontainer/microsoft.ml.onnxruntime.managed/1.20.1/microsoft.ml.onnxruntime.managed.1.20.1.nupkg","SHA256":"137F541F349387D65EBEC9048AFC310BD1296C57EE233C8D2262D858E4969CB3"},
+  {"File":"ort-dml.nupkg","Url":"https://api.nuget.org/v3-flatcontainer/microsoft.ml.onnxruntime.directml/1.20.1/microsoft.ml.onnxruntime.directml.1.20.1.nupkg","SHA256":"6763468507B7CFC777B1334B3E174C11A540DDACB7BD4354BC2E0EC89E56EEC2"},
+  {"File":"microsoft.ai.directml.nupkg","Url":"https://api.nuget.org/v3-flatcontainer/microsoft.ai.directml/1.15.2/microsoft.ai.directml.1.15.2.nupkg","SHA256":"9F07482559087088A4DBA4AE76EEEEE1FAD3F7077A92CCFBDB439C6BC2964C09"},
+  {"File":"system.memory.nupkg","Url":"https://api.nuget.org/v3-flatcontainer/system.memory/4.5.5/system.memory.4.5.5.nupkg","SHA256":"10F43DA352A29FB2B3188E4EDD4DCF5100194C8B526E4F61FE2E2B5623775A22"},
+  {"File":"system.buffers.nupkg","Url":"https://api.nuget.org/v3-flatcontainer/system.buffers/4.5.1/system.buffers.4.5.1.nupkg","SHA256":"C30B3DD2C7E2F4CEE4B823D692FD42118309B42AB1F5007F923D329A5B0D6B12"},
+  {"File":"system.numerics.vectors.nupkg","Url":"https://api.nuget.org/v3-flatcontainer/system.numerics.vectors/4.5.0/system.numerics.vectors.4.5.0.nupkg","SHA256":"A9D49320581FDA1B4F4BE6212C68C01A22CDF228026099C20A8EABEFCF90F9CF"},
+  {"File":"system.runtime.compilerservices.unsafe.nupkg","Url":"https://api.nuget.org/v3-flatcontainer/system.runtime.compilerservices.unsafe/4.5.3/system.runtime.compilerservices.unsafe.4.5.3.nupkg","SHA256":"96764C52A44EE1161151E48EF07489F72047A851CB55B99E9F01D6908536D1A9"},
+  {"File":"humanseg.onnx","Url":"https://media.githubusercontent.com/media/opencv/opencv_zoo/main/models/human_segmentation_pphumanseg/human_segmentation_pphumanseg_2023mar.onnx","SHA256":"552D8A984054E59B5D773D24B9B12022B22046CEB2BBC4C9AAEACEB36A9DDF24"},
+  {"File":"u2netp.onnx","Url":"https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx","SHA256":"309C8469258DDA742793DCE0EBEA8E6DD393174F89934733ECC8B14C76F4DDD8"},
+  {"File":"super-resolution-10.onnx","Url":"https://media.githubusercontent.com/media/onnx/models/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model/super-resolution-10.onnx","SHA256":"85F36FF88CC504A24AF5E0602148BC56A8AA09A58ECA8C0DA2756F3E8186035E"}
+]

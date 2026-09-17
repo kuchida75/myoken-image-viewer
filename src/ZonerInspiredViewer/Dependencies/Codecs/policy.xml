@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<policymap>
+  <policy domain="delegate" rights="none" pattern="*" />
+  <policy domain="filter" rights="none" pattern="*" />
+  <policy domain="coder" rights="none" pattern="*" />
+  <policy domain="coder" rights="read|write" pattern="{AVIF,HEIC,HEIF,JXL,WEBP,GIF,PNG,JPEG}" />
+  <policy domain="path" rights="none" pattern="@*" />
+  <policy domain="resource" name="list-length" value="512" />
+  <policy domain="resource" name="map" value="0" />
+</policymap>
