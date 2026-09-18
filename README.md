@@ -1,20 +1,20 @@
-# Zen Image Viewer
+# Myoken Image Viewer
 
-Zen Image Viewer is a Windows-native C#/WPF photo browser and image viewer, with tabs, a three-pane workspace and GPU-accelerated rendering. Its name and simplified teal/ivory shutter icon are original; no proprietary photo-app branding or assets are used.
+Myoken Image Viewer (formerly Zen Image Viewer) is a Windows-native C#/WPF photo browser and image viewer, with tabs, a three-pane workspace and GPU-accelerated rendering. It uses an original simplified teal/ivory shutter icon; no proprietary photo-app branding or assets are used.
 
 ## Source Repository
 
-The Windows source baseline is **0.2.166**. A fresh Git clone contains source, tests, assets, notices and dependency manifests, but **not** compiled runtimes, AI weights or an executable. Follow [Build from source](docs/BUILDING.md) before using the build commands below. References to bundled/offline builds elsewhere describe the existing full package or a working tree whose dependencies have already been restored.
+Repository: [kuchida75/myoken-image-viewer](https://github.com/kuchida75/myoken-image-viewer). The first Myoken build is **0.2.167**; the original Windows source baseline remains tagged **v0.2.166**. A fresh Git clone contains source, tests, assets, notices and dependency manifests, but **not** compiled runtimes, AI weights or an executable. Follow [Build from source](docs/BUILDING.md) before using the build commands below. References to bundled/offline builds elsewhere describe a full local package or a working tree whose dependencies have already been restored.
 
-Original project code and documentation are licensed under [Apache License 2.0](LICENSE); see [NOTICE](NOTICE). Third-party code, codecs, models and fixtures retain their own terms. See [Third-party notices and distribution review](THIRD_PARTY_NOTICES.md) and the [publication checklist](docs/PUBLISHING.md). The existing Windows executable is unchanged; Ubuntu support is not yet implemented.
+Original project code and documentation are licensed under [Apache License 2.0](LICENSE); see [NOTICE](NOTICE). Third-party code, codecs, models and fixtures retain their own terms. See [Third-party notices and distribution review](THIRD_PARTY_NOTICES.md) and the [publication checklist](docs/PUBLISHING.md). The Myoken rename preserves the Windows feature set; Ubuntu support is not yet implemented.
 
 New installations start with built-in defaults, not the developer's workspace. Tabs, sessions, favorites, history, settings and thumbnail/search caches live in the user's local profile and are never included in Git. See [Default state and recovery](docs/DEFAULT_STATE.md) for reset behavior and backup recovery.
 
 ## App Rename And Existing Data
 
-The executable is now **ZenImageViewer.exe**, with **Zen Image Viewer** in window titles, Help and Windows file details. The source project is `src/ZonerInspiredViewer/ZenImageViewer.csproj`. The internal namespace, profile folder (`%LOCALAPPDATA%\ZonerInspiredViewer`), `ZONER_VIEWER_PROFILE` override, storage locks and backup format intentionally keep their established names. Existing automatic/named sessions, favorites, settings, thumbnail/search caches and exported backups continue to work without moving or resetting data. Old and new executables coordinate their independent window slots through the same profile locks.
+The executable is now **MyokenImageViewer.exe**, with **Myoken Image Viewer** in window titles, Help and Windows file details. The source project is `src/ZonerInspiredViewer/MyokenImageViewer.csproj`. The source directory, internal namespace, profile folder (`%LOCALAPPDATA%\ZonerInspiredViewer`), `ZONER_VIEWER_PROFILE` override, storage locks, backup format and `.zen-batch-backups` folders intentionally keep their established names. Existing automatic/named sessions, tab stacks, favorites, settings, thumbnail/search caches and exported backups continue to work without moving or resetting data. Old and new executables coordinate their independent window slots through the same profile locks.
 
-Launch the new executable and update any personal shortcut to it; an old shortcut still launches the old build. The package includes the complete application folder and source. Run `artifacts\tests\ViewerRegressionTests.exe --branding-only` after building with tests for the rename/icon checks and real multi-instance launches against generated profiles only.
+Launch the new executable and update any personal shortcut to it; an old shortcut still launches the old build. Historical changelog entries and Git tags retain the names used by those releases. Run `artifacts\tests\ViewerRegressionTests.exe --branding-only` after building with tests for the rename/icon checks and real multi-instance launches against generated profiles only.
 
 ## Tab Stacks
 
@@ -248,17 +248,17 @@ The source project's normal MSBuild/Visual Studio Build also increments the vers
 The executable is written to:
 
 ```text
-artifacts\ZenImageViewer\ZenImageViewer.exe
+artifacts\MyokenImageViewer\MyokenImageViewer.exe
 ```
 
 ## Run
 
-For the packaged download, extract `ZenImageViewer-win-x64.zip` and launch `ZenImageViewer\ZenImageViewer.exe`. Keep its DLLs, Codecs, Models, GpuRuntime and Licenses folders beside it; do not copy only the EXE when updating. The archive also contains the source project, bundled dependencies and build script. Windows 10/11 x64 with .NET Framework 4.8 is required. Normal builds and application use need no network access. Runtime/model versions, hashes and third-party notices are in `src/ZonerInspiredViewer/Dependencies/README.md`, `tools/codec-dependencies.json` and `tools/enhancement-dependencies.json`.
+Launch `artifacts\MyokenImageViewer\MyokenImageViewer.exe` after building. Keep its DLLs, Codecs, Models, GpuRuntime and Licenses folders beside it; do not copy only the EXE when updating. A public binary download is not included in the source repository; redistribution of a full package requires the review described in [Third-party notices](THIRD_PARTY_NOTICES.md). Windows 10/11 x64 with .NET Framework 4.8 is required. Builds with restored dependencies and normal application use need no network access. Runtime/model versions, hashes and third-party notices are in `src/ZonerInspiredViewer/Dependencies/README.md`, `tools/codec-dependencies.json` and `tools/enhancement-dependencies.json`.
 
 After building from source:
 
 ```powershell
-.\artifacts\ZenImageViewer\ZenImageViewer.exe
+.\artifacts\MyokenImageViewer\MyokenImageViewer.exe
 ```
 
 ### Configure

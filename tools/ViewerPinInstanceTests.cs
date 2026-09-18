@@ -177,7 +177,7 @@ internal static partial class ViewerRegressionTests
     {
         string profile = Path.Combine(root, "ExecutableProfile"); Directory.CreateDirectory(profile);
         new SessionStore(Path.Combine(profile, "session.json")).Save(InstanceState(photos, "actual-app", 1100));
-        string exe = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "ZenImageViewer", "ZenImageViewer.exe"));
+        string exe = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "MyokenImageViewer", "MyokenImageViewer.exe"));
         var processes = new List<Process>();
         try
         {
@@ -188,7 +188,7 @@ internal static partial class ViewerRegressionTests
             }
             Wait(delegate { return processes.All(process => { process.Refresh(); return !process.HasExited && process.Responding; }); }, "three responsive app instances");
             Wait(delegate { return processes.Any(process => { process.Refresh(); return process.MainWindowTitle.EndsWith("Window 3"); }); }, "instance titles");
-            Assert(processes.All(process => process.MainWindowTitle.StartsWith(BuildInfo.WindowTitle)), "all executable windows use Zen Image Viewer branding");
+            Assert(processes.All(process => process.MainWindowTitle.StartsWith(BuildInfo.WindowTitle)), "all executable windows use Myoken Image Viewer branding");
             Process third = processes.Single(process => process.MainWindowTitle.EndsWith("Window 3"));
             // This intentional interruption verifies OS lease recovery, never a user's running viewer.
             third.Kill(); third.WaitForExit(5000);

@@ -4,7 +4,7 @@ $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
 $src = Join-Path $root "src\ZonerInspiredViewer"
-$out = Join-Path $root "artifacts\ZenImageViewer"
+$out = Join-Path $root "artifacts\MyokenImageViewer"
 $csc = Join-Path $env:WINDIR "Microsoft.NET\Framework64\v4.0.30319\csc.exe"
 
 if (!(Test-Path $csc)) {
@@ -57,7 +57,7 @@ function Copy-EnhancementDependencies($destination) {
 }
 Copy-EnhancementDependencies $out
 $sources = Get-ChildItem $src -Filter "*.cs" | Sort-Object Name | ForEach-Object { $_.FullName }
-$exe = Join-Path $out "ZenImageViewer.exe"
+$exe = Join-Path $out "MyokenImageViewer.exe"
 $assets = Join-Path $src 'Assets'
 $assetBuildDirectory = Join-Path $root 'artifacts\build-tools'
 New-Item -ItemType Directory -Force $assetBuildDirectory | Out-Null

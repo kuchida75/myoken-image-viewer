@@ -43,15 +43,15 @@ using System.Reflection;
 [assembly: AssemblyVersion("$assemblyVersion")]
 [assembly: AssemblyFileVersion("$Version.0")]
 [assembly: AssemblyInformationalVersion("$Version")]
-[assembly: AssemblyTitle("Zen Image Viewer")]
-[assembly: AssemblyProduct("Zen Image Viewer")]
-[assembly: AssemblyDescription("Zen Image Viewer - Windows photo browser and image viewer")]
+[assembly: AssemblyTitle("Myoken Image Viewer")]
+[assembly: AssemblyProduct("Myoken Image Viewer")]
+[assembly: AssemblyDescription("Myoken Image Viewer - Windows photo browser and image viewer")]
 namespace ZonerInspiredViewer
 {
     internal static class BuildInfo
     {
         public const string Version = "$Version";
-        public const string AppName = "Zen Image Viewer";
+        public const string AppName = "Myoken Image Viewer";
         public const string WindowTitle = AppName + " v" + Version;
     }
 }

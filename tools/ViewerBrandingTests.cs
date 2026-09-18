@@ -21,12 +21,13 @@ internal static partial class ViewerRegressionTests
     {
         string root = Path.Combine(Root, "branding-" + Guid.NewGuid().ToString("N").Substring(0, 8));
         string photos = Path.Combine(root, "Photos"); Directory.CreateDirectory(photos);
-        string photo = Path.Combine(photos, "Zen-preview.png"); MakeImage(photo, 640, 420, 96);
-        string executable = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "ZenImageViewer", "ZenImageViewer.exe"));
+        string photo = Path.Combine(photos, "Myoken-preview.png"); MakeImage(photo, 640, 420, 96);
+        string executable = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "MyokenImageViewer", "MyokenImageViewer.exe"));
         var metadata = FileVersionInfo.GetVersionInfo(executable);
-        Assert(metadata.ProductName == "Zen Image Viewer" && metadata.FileDescription == "Zen Image Viewer", "Windows file details carry the new app name");
+        Assert(metadata.ProductName == "Myoken Image Viewer" && metadata.FileDescription == "Myoken Image Viewer", "Windows file details carry the new app name");
         Assert(metadata.ProductVersion == BuildInfo.Version && metadata.FileVersion == BuildInfo.Version + ".0", "renamed executable retains build version metadata");
-        Assert(BuildInfo.WindowTitle == "Zen Image Viewer v" + BuildInfo.Version, "new title includes version");
+        Assert(BuildInfo.WindowTitle == "Myoken Image Viewer v" + BuildInfo.Version, "new title includes version");
+        Assert(System.Reflection.AssemblyName.GetAssemblyName(executable).Name == "MyokenImageViewer", "executable assembly identity renamed");
         string iconPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "src", "ZonerInspiredViewer", "Assets", "AppIcon.ico"));
         var decoder = new IconBitmapDecoder(new Uri(iconPath), BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
         Assert(decoder.Frames.Select(frame => frame.PixelWidth).SequenceEqual(new[] { 16, 24, 32, 48, 64, 128, 256 }), "all seven native icon sizes exist");
@@ -56,22 +57,22 @@ internal static partial class ViewerRegressionTests
             try
             {
                 Wait(delegate { return Ready(window, photo); }, "renamed viewer image"); WaitScan(window);
-                Assert(window.Title == BuildInfo.WindowTitle, "live window has Zen name");
+                Assert(window.Title == BuildInfo.WindowTitle, "live window has Myoken name");
                 var icon = window.Icon as BitmapFrame;
                 Assert(icon != null && icon.PixelWidth == 256 && icon.Decoder.Frames.Count == 7, "WPF keeps the full multi-size icon decoder");
                 CheckBrandPalette(icon);
                 Invoke(window, "ShowHelp"); var help = Field<HelpWindow>(window, "_helpWindow"); Pump();
                 Assert(help.Title == "Help - " + BuildInfo.WindowTitle && help.Icon == window.Icon, "Help uses matching name and icon");
                 var header = ((DockPanel)help.Content).Children.OfType<TextBlock>().First();
-                Assert(header.Text.StartsWith("Zen Image Viewer"), "Help heading renamed");
-                Render((FrameworkElement)help.Content, "zen-help-dark.png");
-                ThemeManager.SetDarkTheme(false); Pump(); Render((FrameworkElement)help.Content, "zen-help-light.png");
+                Assert(header.Text.StartsWith("Myoken Image Viewer"), "Help heading renamed");
+                Render((FrameworkElement)help.Content, "myoken-help-dark.png");
+                ThemeManager.SetDarkTheme(false); Pump(); Render((FrameworkElement)help.Content, "myoken-help-light.png");
                 ThemeManager.SetDarkTheme(true); help.Close();
                 Assert(Capture(window).Tabs.Any(tab => tab.Path == photo), "saved image tab survives new display identity");
             }
             finally { window.Close(); Pump(); }
         }
-        Console.WriteLine("PASS: Zen window/Help/Windows metadata, seven transparent teal/ivory icon sizes, native small/large icon extraction and dark/light previews.");
+        Console.WriteLine("PASS: Myoken window/Help/Windows metadata, seven transparent teal/ivory icon sizes, native small/large icon extraction and dark/light previews.");
     }
 
     private static void CheckBrandPalette(BitmapSource image)
@@ -100,7 +101,7 @@ internal static partial class ViewerRegressionTests
         {
             var section = new StackPanel { Margin = new Thickness(20) };
             var text = dark ? Brushes.WhiteSmoke : Brushes.Black;
-            section.Children.Add(new TextBlock { Text = "Zen Image Viewer", FontSize = 22, Foreground = text, Margin = new Thickness(0, 0, 0, 12) });
+            section.Children.Add(new TextBlock { Text = "Myoken Image Viewer", FontSize = 22, Foreground = text, Margin = new Thickness(0, 0, 0, 12) });
             var sizes = new StackPanel { Orientation = Orientation.Horizontal };
             foreach (var frame in decoder.Frames)
             {
@@ -115,6 +116,6 @@ internal static partial class ViewerRegressionTests
             board.Children.Add(new Border { Background = dark ? new SolidColorBrush(Color.FromRgb(28, 31, 34)) : Brushes.White, Child = section });
         }
         board.Measure(new Size(820, Double.PositiveInfinity)); board.Arrange(new Rect(new Point(), board.DesiredSize)); board.UpdateLayout();
-        Render(board, "zen-icon-sizes.png");
+        Render(board, "myoken-icon-sizes.png");
     }
 }

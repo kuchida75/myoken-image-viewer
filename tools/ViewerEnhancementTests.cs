@@ -63,7 +63,7 @@ internal static partial class ViewerRegressionTests
         var icon = new IconBitmapDecoder(new Uri(iconPath), BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
         Assert(icon.Frames.Count == 7 && icon.Frames.Any(frame => frame.PixelWidth == 16)
             && icon.Frames.Any(frame => frame.PixelWidth == 256), "icon contains small through high-DPI sizes");
-        string executable = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "ZenImageViewer", "ZenImageViewer.exe"));
+        string executable = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "MyokenImageViewer", "MyokenImageViewer.exe"));
         Assert(ExtractIconEx(executable, -1, IntPtr.Zero, IntPtr.Zero, 0) > 0, "executable has native Windows icon resource");
         var convertedIcon = new FormatConvertedBitmap((BitmapSource)window.Icon, PixelFormats.Bgra32, null, 0);
         var corner = new byte[4];

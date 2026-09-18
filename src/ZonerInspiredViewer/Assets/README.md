@@ -1,6 +1,6 @@
 # App Icon
 
-`AppIcon.png` is the high-resolution Zen Image Viewer shutter master generated with the built-in image-generation tool. The simplified teal/ivory silhouette replaces the original multicolor metallic icon to remain readable at title-bar and taskbar sizes. No lettering, fine texture or proprietary branding is used.
+`AppIcon.png` is the high-resolution Myoken Image Viewer shutter master generated with the built-in image-generation tool. The simplified teal/ivory silhouette replaces the original multicolor metallic icon to remain readable at title-bar and taskbar sizes. No lettering, fine texture or proprietary branding is used.
 
 `AppIcon.ico` and `AppIcon-256.png` are format/size conversions produced by `tools/BuildAssets.cs`, retaining transparency. The ICO contains 16, 24, 32, 48, 64, 128 and 256 pixel frames; both the executable and WPF window embed the multi-size ICO. Run `ViewerRegressionTests.exe --branding-only` to verify identity, transparency, native icon resources and generated dark/light size previews.
 

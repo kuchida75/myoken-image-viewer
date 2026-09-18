@@ -1,9 +1,24 @@
 # Publication Checklist
 
-Target: public repository `kuchida75/zen-image-viewer`.
-Baseline: Windows version `0.2.166`.
+Target: public repository `kuchida75/myoken-image-viewer`.
+First Myoken build: Windows version `0.2.167`.
+Historical Windows baseline: tag `v0.2.166` (Zen Image Viewer).
 
-## Before The First Push
+## Repository Rename
+
+Rename the existing `kuchida75/zen-image-viewer` repository in place; do not
+delete/recreate it or rewrite its history. Keep its public visibility,
+Apache-2.0 license, issues, stars and existing tags. Update existing clones:
+
+```powershell
+git remote set-url origin https://github.com/kuchida75/myoken-image-viewer.git
+```
+
+Publish source changes only after reviewing the diff and running the branding,
+workflow and session/backup regression checks. Do not reset the owner's local
+profile as part of a branding update.
+
+## Original Publication Checklist
 
 1. The owner selected Apache-2.0 for original project code and documentation.
    Keep the complete root `LICENSE`, `NOTICE`, and all third-party exceptions

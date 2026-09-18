@@ -1160,5 +1160,12 @@
     "CompletedUtc": "2026-09-17T17:20:19.0544215Z",
     "Result": "Built",
     "Note": "Replace File ellipsis with document icon and trailing dropdown arrow."
+  },
+  {
+    "Version": "0.2.167",
+    "StartedUtc": "2026-09-18T12:05:22.0879310Z",
+    "CompletedUtc": "2026-09-18T12:05:25.2695697Z",
+    "Result": "Built",
+    "Note": "Rename app, executable, source project and repository branding to Myoken Image Viewer; preserve Windows features and existing profiles."
   }
 ]

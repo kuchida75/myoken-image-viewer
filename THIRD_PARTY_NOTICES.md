@@ -1,6 +1,6 @@
 # Third-Party Components And Distribution Review
 
-A license selected for Zen Image Viewer's original code does not relicense
+A license selected for Myoken Image Viewer's original code does not relicense
 third-party software, model weights, codec configuration or fixtures.
 This inventory is not a legal opinion or a completed binary-release audit.
 

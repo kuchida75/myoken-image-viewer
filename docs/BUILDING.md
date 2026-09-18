@@ -2,10 +2,10 @@
 
 ## Windows Baseline
 
-The initial source baseline is Zen Image Viewer **0.2.166**, a Windows x64
-C# / WPF application targeting .NET Framework 4.8. Publishing the repository
-does not change or rebuild the existing Windows executable. Ubuntu support is
-not implemented in this baseline.
+Myoken Image Viewer is a Windows x64 C# / WPF application targeting .NET
+Framework 4.8. Version **0.2.167** introduces the Myoken name without changing
+the Windows feature set. The initial Zen Image Viewer source baseline remains
+tagged **v0.2.166**. Ubuntu support is not implemented in this baseline.
 
 Git contains source, tests, icon assets, a documented HEIC test fixture,
 third-party notices and pinned dependency manifests. Unlike the existing local
@@ -51,7 +51,7 @@ Without these optional files, the viewer retains its CPU JPEG decoding path.
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\build.ps1 -BuildTests -BuildNote "Local source build"
-.\artifacts\ZenImageViewer\ZenImageViewer.exe
+.\artifacts\MyokenImageViewer\MyokenImageViewer.exe
 ```
 
 The build script compiles shader resources and the icon, builds the app and
@@ -60,10 +60,15 @@ next version number and updates `version.json`, `BuildInfo.cs` and the build
 journals, even if compilation fails. Do not build in a checkout that you need
 to keep byte-for-byte unchanged. Build in a separate clone/worktree instead.
 
+The Visual Studio project is `src/ZonerInspiredViewer/MyokenImageViewer.csproj`.
+The legacy source namespace and user-data identifiers are intentionally retained
+for compatibility; they are not the application's display name.
+
 Focused checks after a test build:
 
 ```powershell
 .\artifacts\tests\ViewerRegressionTests.exe --natural-sort-only
+.\artifacts\tests\ViewerRegressionTests.exe --branding-only
 .\artifacts\tests\ViewerRegressionTests.exe --workflow-only
 .\artifacts\tests\ViewerRegressionTests.exe --tab-stacks-only
 ```

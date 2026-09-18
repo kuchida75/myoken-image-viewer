@@ -4,7 +4,7 @@
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <PlatformTarget>x64</PlatformTarget>
     <RootNamespace>ZonerInspiredViewer</RootNamespace>
-    <AssemblyName>ZenImageViewer</AssemblyName>
+    <AssemblyName>MyokenImageViewer</AssemblyName>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>

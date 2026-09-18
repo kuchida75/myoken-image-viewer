@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.167 - 2026-09-18
+
+- Renamed the application and source project to Myoken Image Viewer, including window titles, Help, Windows file details, MyokenImageViewer.csproj and the MyokenImageViewer.exe build output.
+- Updated current documentation and repository links for kuchida75/myoken-image-viewer. Historical release names, the existing shutter icon and Apache-2.0 licensing are retained.
+- Kept established profile paths, environment overrides, instance/storage locks, backup identifiers and batch-backup folders unchanged. Existing tabs, tab stacks, sessions, favorites, settings and caches need no migration or reset.
+- Updated branding and executable-launch regression checks for the new identity, including the executable assembly name.
+
 ## 0.2.166 - 2026-09-17
 
 - Replaced the File toolbar's leading ellipsis with a document icon and added a small trailing dropdown chevron. File commands, tooltip and accessible name are unchanged.
