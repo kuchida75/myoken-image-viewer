@@ -1,0 +1,2 @@
+# Linux launch/check scripts must also work after a clone with autocrlf enabled.
+*.sh text eol=lf

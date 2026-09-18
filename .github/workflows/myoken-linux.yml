@@ -1,0 +1,48 @@
+name: Myoken Linux isolation and smoke tests
+on:
+  push:
+    branches: ['linux/ubuntu-gnome']
+    paths:
+      - 'linux/**'
+      - 'src/Myoken.Core/**'
+      - 'src/Myoken.Linux/**'
+      - 'tests/Myoken.Linux.Tests/**'
+      - '.github/workflows/myoken-linux.yml'
+  pull_request:
+    branches: ['linux/ubuntu-gnome']
+permissions:
+  contents: read
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Check isolation, compile and run core/session regression checks
+        run: bash linux/check.sh
+      - name: Install headless display dependencies
+        run: sudo apt-get update && sudo apt-get install -y xvfb libx11-6 libice6 libsm6 libfontconfig1 libxrandr2 libxi6 libxcursor1 libgl1
+      - name: Launch real window and decode generated image under Xvfb
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture=$(mktemp -d)
+          trap 'rm -rf -- "$fixture"' EXIT
+          mkdir -p "$fixture/pictures/nested" "$fixture/state"
+          python3 - "$fixture/pictures" <<'PY'
+          import pathlib, struct, sys, zlib
+          def chunk(kind, data):
+              return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data) & 0xffffffff)
+          png = b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', 2, 2, 8, 2, 0, 0, 0)) + chunk(b'IDAT', zlib.compress(b'\x00\xff\x00\x00\x00\xff\x00' * 2)) + chunk(b'IEND', b'')
+          for name in ['image2.png', 'image10.png', '日本.png']:
+              (pathlib.Path(sys.argv[1]) / name).write_bytes(png)
+          PY
+          XDG_STATE_HOME="$fixture/state" timeout 45s xvfb-run -a bash linux/run.sh --smoke-test "$fixture/pictures"
