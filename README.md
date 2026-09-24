@@ -40,4 +40,6 @@ Settings, sessions, thumbnail/search caches and recovery backups live in the loc
 
 The app is Windows-only today. RAW decoding and full HDR output are not implemented; ICC handling is optional and limited. SUPIR requires a separate local setup and is experimental. Review the [feature reference](docs/FEATURE_REFERENCE.md) for format and workflow limitations.
 
+The project was previously named Zen Image Viewer. Older GitHub commit titles and the `v0.2.166` tag retain that history. The `src/ZonerInspiredViewer` source path and existing profile/backup identifiers remain unchanged for compatibility; the app and executable are named Myoken Image Viewer.
+
 Original project code and documentation are licensed under [Apache License 2.0](LICENSE). Third-party components retain their own terms; see [NOTICE](NOTICE), [third-party notices](THIRD_PARTY_NOTICES.md), the [changelog](CHANGELOG.md) and the [source publication checklist](docs/PUBLISHING.md).
