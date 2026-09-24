@@ -34,9 +34,9 @@ internal static partial class ViewerRegressionTests
         toggle.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent)); Pump();
         Assert(tree.IsVisible && System.Windows.Automation.AutomationProperties.GetName(toggle) == "Hide folder tree", "arrow restores tree");
         AssertNear(column.ActualWidth, 310, "tree width restored");
-        PressKey(window, Key.J); PressKey(window, Key.H); PressKey(window, Key.J); Pump();
+        PressKey(window, Key.J); PressKey(window, Key.U); PressKey(window, Key.J); Pump();
         Assert(tree.IsVisible && toolbar.Visibility == Visibility.Collapsed, "J can show tree independently inside compact");
-        PressKey(window, Key.H); Pump();
+        PressKey(window, Key.U); Pump();
         Assert(tree.Visibility == Visibility.Collapsed && toolbar.IsVisible, "leaving compact restores explicit normal tree preference");
         Field<TextBox>(window, "_searchBox").Focus(); PressKey(window, Key.J);
         Assert(tree.Visibility == Visibility.Collapsed, "J does not toggle while typing"); Keyboard.ClearFocus();

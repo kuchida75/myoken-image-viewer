@@ -132,9 +132,9 @@ internal static partial class ViewerRegressionTests
         ThemeManager.SetDarkTheme(true); window.Width = 980; window.Height = 640; Pump();
         AssertInside(Field<Button>(window, "_configureButton"), toolbar);
         Render((FrameworkElement)window.Content, "background-themed-viewer-narrow.png");
-        canvas.Focus(); PressKey(window, Key.H); Pump();
+        canvas.Focus(); PressKey(window, Key.U); Pump();
         Assert(!background.IsVisible, "compact hides entire themed toolbar");
-        PressKey(window, Key.H); Pump(); Assert(background.IsVisible && background.Pattern == "Contours", "normal restores chosen background");
+        PressKey(window, Key.U); Pump(); Assert(background.IsVisible && background.Pattern == "Contours", "normal restores chosen background");
         PressKey(window, Key.F11); Pump();
         AssertInside(background, (FrameworkElement)window.Content);
         Render((FrameworkElement)window.Content, "background-themed-viewer-ultrawide.png");
@@ -154,7 +154,7 @@ internal static partial class ViewerRegressionTests
             "settings immediately change toolbar");
         Assert(preview.Pattern == background.Pattern && preview.ColorHex == background.ColorHex && preview.Fade == background.Fade
             && preview.Intensity == background.Intensity && colors.Values.Count(button => button.IsChecked == true) == 1, "preview and exclusive selected swatch stay in sync");
-        pattern.Focus(); PressKey(window, Key.H); Assert(!Field<bool>(window, "_isCompactMode"), "Configure retains keyboard input");
+        pattern.Focus(); PressKey(window, Key.U); Assert(!Field<bool>(window, "_isCompactMode"), "Configure retains keyboard input");
         Render((FrameworkElement)configure.Content, "background-configure-dark.png");
         ThemeManager.SetDarkTheme(false); Pump(); Render((FrameworkElement)configure.Content, "background-configure-light.png");
         configure.Width = 570; configure.Height = 360; Pump();

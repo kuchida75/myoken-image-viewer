@@ -78,7 +78,7 @@ namespace ZonerInspiredViewer
                 Value = DefaultFilmstripSize, TickFrequency = 16, SmallChange = 16, LargeChange = 32, IsSnapToTickEnabled = true,
                 Width = 120, VerticalAlignment = VerticalAlignment.Center,
                 ToolTip = "Nearby thumbnail size. Previews scale down together to fit the image frame." };
-            AutomationProperties.SetName(_filmstripSizeSlider, "Wheel preview thumbnail size");
+            AutomationProperties.SetName(_filmstripSizeSlider, "Navigation preview thumbnail size");
             _filmstripSizeText = new TextBlock { Width = 46, Text = DefaultFilmstripSize + " px", Margin = new Thickness(8, 0, 0, 0),
                 VerticalAlignment = VerticalAlignment.Center };
             ThemeManager.Bind(_filmstripSizeText, TextBlock.ForegroundProperty, ThemeKeys.MutedText);
@@ -116,7 +116,7 @@ namespace ZonerInspiredViewer
 
         private void BuildFilmstripConfiguration()
         {
-            _configureFilmstrip = new CheckBox { Content = "Nearby thumbnails on wheel navigation" };
+            _configureFilmstrip = new CheckBox { Content = "Nearby thumbnails on wheel or arrow navigation" };
             _configureFilmstrip.Click += delegate { SetFilmstripSettings(_configureFilmstrip.IsChecked == true, _filmstripPosition); };
             _configureFilmstripPosition = new ComboBox { ItemsSource = FilmstripPositions, MinWidth = 160 };
             _configureFilmstripPosition.SelectionChanged += delegate
@@ -124,7 +124,7 @@ namespace ZonerInspiredViewer
                 if (_configureFilmstripPosition.SelectedItem != null)
                     SetFilmstripSettings(_filmstripEnabled, (string)_configureFilmstripPosition.SelectedItem);
             };
-            AddConfigurationRow(1, "Wheel previews", _configureFilmstrip);
+            AddConfigurationRow(1, "Navigation previews", _configureFilmstrip);
             AddConfigurationRow(1, "Preview position", _configureFilmstripPosition);
             SetFilmstripSettings(true, "Bottom center");
         }

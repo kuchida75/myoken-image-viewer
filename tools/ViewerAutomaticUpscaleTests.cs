@@ -28,7 +28,10 @@ internal static partial class ViewerRegressionTests
         Assert(map.Match(Key.S, ModifierKeys.None, false).Id == "upscale" && map.Match(Key.S, ModifierKeys.None, true) == null, "S defaults to image-only upscale");
         Assert(map.Load(new System.Collections.Generic.List<ShortcutOverride> { new ShortcutOverride { Action = "metadata", Keys = ShortcutKeys(Key.S) } }, out error)
             && map.Match(Key.S, ModifierKeys.None, false).Id == "metadata" && map.Display("upscale") == "Unassigned", "legacy custom S has priority");
-        map.ResetAll(); Assert(map.Set("upscale", ShortcutKeys(Key.U), out error), "AI shortcut can be rebound");
+        map.ResetAll(); Assert(!map.Set("upscale", ShortcutKeys(Key.U), out error) && error.Contains("conflicts"),
+            "compact default protects U from conflicting rebinding");
+        Assert(map.Set("compact", new System.Collections.Generic.List<ShortcutGesture>(), out error), "compact binding can be cleared");
+        Assert(map.Set("upscale", ShortcutKeys(Key.U), out error), "AI shortcut can be rebound after clearing U");
         var restored = new ShortcutMap(); Assert(restored.Load(map.Export(), out error) && restored.Match(Key.U, ModifierKeys.None, false).Id == "upscale"
             && restored.Match(Key.S, ModifierKeys.None, false) == null, "AI shortcut overrides round-trip");
 

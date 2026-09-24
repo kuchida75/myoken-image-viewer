@@ -83,8 +83,8 @@ namespace ZonerInspiredViewer
                 case "print": ShowPrintPreview(); break;
                 case "open": ActivateBrowserItem(_thumbnailGrid.SelectedItem); break;
                 case "browse": if (_isFullscreen) ToggleFullscreen(); BrowseActiveTab(); break;
-                case "next": OpenRelativeImage(1); break;
-                case "previous": OpenRelativeImage(-1); break;
+                case "next": OpenRelativeImage(1); if (IsImageArrow(key) && !_folderScanPending) ShowFilmstrip(); break;
+                case "previous": OpenRelativeImage(-1); if (IsImageArrow(key) && !_folderScanPending) ShowFilmstrip(); break;
                 case "first": OpenBoundaryImage(false); break;
                 case "last": OpenBoundaryImage(true); break;
                 case "zoomIn": ZoomFromCenter(1.15); break;
@@ -109,6 +109,11 @@ namespace ZonerInspiredViewer
                 case "pauseSlideshow": ToggleSlideshowPause(); break;
             }
             return true;
+        }
+
+        private static bool IsImageArrow(Key key)
+        {
+            return key == Key.Left || key == Key.Right || key == Key.Up || key == Key.Down;
         }
 
         private void BuildShortcutConfiguration()

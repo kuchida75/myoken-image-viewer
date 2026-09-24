@@ -59,8 +59,8 @@ internal static partial class ViewerRegressionTests
         Assert(Ready(window, middle), "empty result navigation leaves image unchanged");
         search.Text = ""; Invoke(window, "ApplySearch");
         search.Focus();
-        PressKey(window, Key.Home); PressKey(window, Key.End); PressKey(window, Key.H);
-        Assert(Ready(window, middle) && !Field<bool>(window, "_isCompactMode"), "text fields retain Home/End/H editing");
+        PressKey(window, Key.Home); PressKey(window, Key.End); PressKey(window, Key.U);
+        Assert(Ready(window, middle) && !Field<bool>(window, "_isCompactMode"), "text fields retain Home/End/U editing");
         var imageClick = new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left)
             { RoutedEvent = UIElement.MouseLeftButtonDownEvent };
         Field<Canvas>(window, "_imageCanvas").RaiseEvent(imageClick);
@@ -77,23 +77,23 @@ internal static partial class ViewerRegressionTests
         double normalWidth = canvas.ActualWidth, normalHeight = canvas.ActualHeight;
         SessionState placement = Capture(window);
         Render((FrameworkElement)window.Content, "normal-image-layout.png");
-        PressKey(window, Key.H); Pump();
+        PressKey(window, Key.U); Pump();
         Assert(Field<bool>(window, "_isCompactMode") && Field<UIElement>(window, "_topToolbar").Visibility == Visibility.Collapsed
             && Field<FolderNavigationPane>(window, "_folderNavigation").Visibility == Visibility.Collapsed
-            && Field<GridSplitter>(window, "_leftSplitter").Visibility == Visibility.Collapsed, "H hides toolbar, folder tree and splitter");
+            && Field<GridSplitter>(window, "_leftSplitter").Visibility == Visibility.Collapsed, "U hides toolbar, folder tree and splitter");
         AssertNear(column.ActualWidth, 0, "compact removes unused folder column");
         Assert(canvas.ActualWidth > normalWidth + 300 && canvas.ActualHeight > normalHeight + 60, "compact reclaims horizontal and vertical space");
         Assert(Field<StackPanel>(window, "_tabStrip").IsVisible, "tabs remain available in compact mode");
         CheckCentered(window); CheckRenderedPixels(window);
         Render((FrameworkElement)window.Content, "compact-image-dark.png");
-        var repeat = new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(window), 0, Key.H)
+        var repeat = new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(window), 0, Key.U)
             { RoutedEvent = Keyboard.PreviewKeyDownEvent };
         typeof(KeyEventArgs).GetMethod("SetRepeat", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(repeat, new object[] { true });
         window.RaiseEvent(repeat);
-        Assert(repeat.Handled && Field<bool>(window, "_isCompactMode"), "held H does not flicker modes");
+        Assert(repeat.Handled && Field<bool>(window, "_isCompactMode"), "held U does not flicker modes");
         AssertNear(Capture(window).WindowWidth, placement.WindowWidth, "compact retains window width");
         AssertNear(Capture(window).WindowHeight, placement.WindowHeight, "compact retains window height");
-        PressKey(window, Key.H); Pump();
+        PressKey(window, Key.U); Pump();
         AssertNear(column.ActualWidth, 305, "normal mode restores resized folder width");
         AssertNear(canvas.ActualWidth, normalWidth, "normal image frame width restored");
         CheckCentered(window);
@@ -101,23 +101,23 @@ internal static partial class ViewerRegressionTests
         Invoke(window, "ZoomFromCenter", 3.0); Pump();
         double zoom = Field<Dictionary<string, ImageTabState>>(window, "_tabs")[id].Zoom;
         Assert((bool)Invoke(window, "BeginImagePan", new Point(100, 100)), "start pan before mode change");
-        PressKey(window, Key.H); Pump();
+        PressKey(window, Key.U); Pump();
         Assert(!Field<bool>(window, "_isPanning") && !canvas.IsMouseCaptured, "mode change releases image drag");
         CheckVisible(window);
         AssertNear(Field<Dictionary<string, ImageTabState>>(window, "_tabs")[id].Zoom, zoom, "compact retains manual zoom");
-        PressKey(window, Key.H); Pump(); CheckVisible(window);
+        PressKey(window, Key.U); Pump(); CheckVisible(window);
         Invoke(window, "FitImageToView", true); Pump();
-        PressKey(window, Key.H); Pump();
+        PressKey(window, Key.U); Pump();
         Invoke(window, "ToggleFullscreen"); Pump(); CheckCentered(window);
         Assert(Field<bool>(window, "_isCompactMode"), "fullscreen keeps compact mode");
         Invoke(window, "ToggleFullscreen"); Pump(); CheckCentered(window);
         PressKey(window, Key.Escape); WaitScan(window);
         Assert(Field<Grid>(window, "_browserView").IsVisible && Field<bool>(window, "_isCompactMode"), "Esc retains usable compact browser");
-        PressKey(window, Key.H); Pump();
-        Assert(!Field<bool>(window, "_isCompactMode"), "H restores normal from browser mode");
+        PressKey(window, Key.U); Pump();
+        Assert(!Field<bool>(window, "_isCompactMode"), "U restores normal from browser mode");
 
         Invoke(window, "OpenBrowserImage", middle); Wait(delegate { return Ready(window, middle); }, "compact restart image");
-        PressKey(window, Key.H); Pump();
+        PressKey(window, Key.U); Pump();
         Field<CheckBox>(window, "_darkThemeCheckBox").IsChecked = false;
         window.Width = 980; window.Height = 640; Pump(); CheckCentered(window);
         Render((FrameworkElement)window.Content, "compact-image-light-narrow.png");

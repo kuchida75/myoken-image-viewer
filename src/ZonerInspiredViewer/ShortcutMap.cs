@@ -109,7 +109,7 @@ namespace ZonerInspiredViewer
             Add("nextTab", "Next tab", 3, Key.Tab, ModifierKeys.Control);
             Add("closeTab", "Close tab", 3, Key.W, ModifierKeys.Control);
             Add("fullscreen", "Fullscreen", 3, Key.F11);
-            Add("compact", "Compact mode", 3, Key.H);
+            Add("compact", "Compact mode", 3, Key.U);
             Add("tree", "Folder tree", 3, Key.J);
             Add("minimap", "Thumbnail minimap", 1, Key.T);
             Add("metadata", "Image metadata overlay", 2, Key.I);
@@ -119,8 +119,8 @@ namespace ZonerInspiredViewer
             Add("print", "Print preview", 2, Key.P, ModifierKeys.Control);
             Add("open", "Open selected item", 1, Key.Enter);
             Add("browse", "Return to thumbnails", 2, Key.Enter);
-            Add("next", "Next image", 2, Key.Right, ModifierKeys.None, Key.PageDown, Key.Space).Repeat = true;
-            Add("previous", "Previous image", 2, Key.Left, ModifierKeys.None, Key.PageUp, Key.Back).Repeat = true;
+            Add("next", "Next image", 2, Key.Right, ModifierKeys.None, Key.Down, Key.PageDown, Key.Space).Repeat = true;
+            Add("previous", "Previous image", 2, Key.Left, ModifierKeys.None, Key.Up, Key.PageUp, Key.Back).Repeat = true;
             Add("first", "First image", 2, Key.Home);
             Add("last", "Last image", 2, Key.End);
             Add("zoomIn", "Zoom in", 2, Key.OemPlus, ModifierKeys.None, Key.Add).Repeat = true;
@@ -128,8 +128,8 @@ namespace ZonerInspiredViewer
             Add("zoomOut", "Zoom out", 2, Key.OemMinus, ModifierKeys.None, Key.Subtract).Repeat = true;
             Add("fit", "Fit image", 2, Key.D0, ModifierKeys.None, Key.NumPad0);
             Add("actual", "Actual size (100%)", 2, Key.None);
-            Add("fitWidth", "Fit width", 2, Key.None);
-            Add("fitHeight", "Fit height", 2, Key.None);
+            Add("fitWidth", "Fit width", 2, Key.W);
+            Add("fitHeight", "Fit height", 2, Key.H);
             Add("zoomLock", "Zoom lock", 3, Key.None);
             Add("rotateLeft", "Rotate left 90 degrees", 2, Key.Oem4);
             Add("rotateRight", "Rotate right 90 degrees", 2, Key.Oem6);
@@ -267,6 +267,16 @@ namespace ZonerInspiredViewer
                 if (!seen.Contains(introduced) && Commands.Any(c => c.Id != introduced && seen.Contains(c.Id)
                     && next[c.Id] != null && next[c.Id].Any(g => g != null && Matches(c, g, key, ModifierKeys.Control))))
                     next[introduced] = new List<ShortcutGesture>();
+            }
+            foreach (var introduced in new[] { new { Id = "compact", Key = Key.U }, new { Id = "fitWidth", Key = Key.W },
+                new { Id = "fitHeight", Key = Key.H }, new { Id = "next", Key = Key.Down }, new { Id = "previous", Key = Key.Up } })
+            {
+                if (seen.Contains(introduced.Id)) continue;
+                var target = Commands.Single(c => c.Id == introduced.Id);
+                next[introduced.Id] = next[introduced.Id].Where(g => g.KeyCode != (int)introduced.Key || g.Modifiers != 0
+                    || !Commands.Any(c => c.Id != target.Id && (c.Scope & target.Scope) != 0 && seen.Contains(c.Id)
+                        && next[c.Id] != null && next[c.Id].Any(custom => custom != null
+                            && Matches(c, custom, introduced.Key, ModifierKeys.None)))).ToList();
             }
             error = Validate(next); if (error != null) return false;
             _keys = next.ToDictionary(pair => pair.Key, pair => pair.Value.Select(g => g.Copy()).ToList()); return true;

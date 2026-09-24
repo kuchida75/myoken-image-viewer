@@ -221,11 +221,11 @@ internal static partial class ViewerRegressionTests
         Assert(values[2].ActualHeight > values[0].ActualHeight, "long unbroken filename wraps in narrow view");
         Render((FrameworkElement)window.Content, "metadata-overlay-light-narrow.png");
         Invoke(window, "SetMetadataPanelVisible", false); ThemeManager.SetDarkTheme(true); canvas.Focus();
-        PressKey(window, Key.H); Pump(); CheckMetadataOverlayBounds(window);
+        PressKey(window, Key.U); Pump(); CheckMetadataOverlayBounds(window);
         Render((FrameworkElement)window.Content, "metadata-overlay-compact.png");
         PressKey(window, Key.F11); Pump(); CheckMetadataOverlayBounds(window);
         Render((FrameworkElement)window.Content, "metadata-overlay-fullscreen.png");
-        PressKey(window, Key.Escape); Pump(); PressKey(window, Key.H); Pump();
+        PressKey(window, Key.Escape); Pump(); PressKey(window, Key.U); Pump();
 
         Invoke(window, "ShowConfigure"); Pump();
         var check = Field<CheckBox>(window, "_configureImageMetadata");

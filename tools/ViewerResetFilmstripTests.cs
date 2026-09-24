@@ -39,6 +39,13 @@ internal static partial class ViewerRegressionTests
             Wait(delegate { return Ready(window, paths[4]) && tiles.Children.Cast<Border>().All(tile => tile.Child is Image && ((Image)tile.Child).Source != null); }, "wheel strip thumbnails");
             Assert(overlay.IsVisible && tiles.Children.Count == 7, "wheel advances image and shows seven previews");
             Assert(Field<List<string>>(window, "_filmstripPaths").SequenceEqual(paths.Skip(1).Take(7)), "three previous/current/three next in natural order");
+            canvas.Focus();
+            PressKey(window, Key.Left); Wait(delegate { return Ready(window, paths[3]) && overlay.IsVisible; }, "left arrow carousel");
+            PressKey(window, Key.Up); Wait(delegate { return Ready(window, paths[2]) && overlay.IsVisible; }, "up arrow carousel");
+            PressKey(window, Key.Right); Wait(delegate { return Ready(window, paths[3]) && overlay.IsVisible; }, "right arrow carousel");
+            PressKey(window, Key.Down); Wait(delegate { return Ready(window, paths[4]) && overlay.IsVisible; }, "down arrow carousel");
+            Assert(Field<List<string>>(window, "_filmstripPaths").SequenceEqual(paths.Skip(1).Take(7)),
+                "arrow carousel recenters in the current folder order");
             Assert(((SolidColorBrush)((Border)tiles.Children[3]).BorderBrush).Color.A == 255, "current thumbnail has visible colored border");
             Assert(((SolidColorBrush)overlay.Background).Color.A == 0 && ((SolidColorBrush)overlay.BorderBrush).Color.A == 0
                 && overlay.BorderThickness == new Thickness(0), "carousel backdrop and outer border are fully transparent");
@@ -112,6 +119,8 @@ internal static partial class ViewerRegressionTests
             if (!overlay.IsMouseOver) Wait(delegate { return !overlay.IsVisible; }, "strip hides after two seconds");
             Invoke(window, "SetFilmstripSettings", false, "Left center"); Invoke(window, "NavigateWithFilmstrip", 1);
             Assert(!overlay.IsVisible, "disabling strip preserves normal navigation");
+            canvas.Focus(); PressKey(window, Key.Left); Pump();
+            Assert(!overlay.IsVisible, "disabled navigation previews stay hidden for arrow keys");
             Invoke(window, "SetFilmstripSettings", true, "Right center");
             SessionState state = (SessionState)Invoke(window, "CaptureSessionState");
             services.Sessions.Save(state); Assert(services.Sessions.Load().WheelFilmstripPosition == "Right center", "strip preferences persist");

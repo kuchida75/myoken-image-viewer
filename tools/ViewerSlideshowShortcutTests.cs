@@ -20,8 +20,27 @@ internal static partial class ViewerRegressionTests
     {
         var map = new ShortcutMap(); string error;
         Assert(map.Load(null, out error), "all default shortcuts are valid and non-conflicting: " + error);
+        Assert(map.Display("compact") == "U" && map.Display("fitHeight") == "H" && map.Display("fitWidth") == "W",
+            "new compact and axis-fit defaults");
         Assert(map.Match(Key.Right, ModifierKeys.None, true).Id == "navRight"
             && map.Match(Key.Right, ModifierKeys.None, false).Id == "next", "same key has view-specific action");
+        Assert(map.Match(Key.Up, ModifierKeys.None, false).Id == "previous"
+            && map.Match(Key.Down, ModifierKeys.None, false).Id == "next"
+            && map.Match(Key.Up, ModifierKeys.None, true).Id == "navUp"
+            && map.Match(Key.Down, ModifierKeys.None, true).Id == "navDown", "arrow navigation remains view-specific");
+        var older = new List<ShortcutOverride>
+        {
+            new ShortcutOverride { Action = "compact", Keys = ShortcutKeys(Key.H) },
+            new ShortcutOverride { Action = "upscale", Keys = ShortcutKeys(Key.U) },
+            new ShortcutOverride { Action = "manualEnhance", Keys = ShortcutKeys(Key.W) },
+            new ShortcutOverride { Action = "metadata", Keys = ShortcutKeys(Key.Down) }
+        };
+        Assert(map.Load(older, out error), "older custom bindings load across new defaults: " + error);
+        Assert(map.Display("compact") == "H" && map.Display("fitHeight") == "Unassigned"
+            && map.Display("fitWidth") == "Unassigned" && map.Match(Key.U, ModifierKeys.None, false).Id == "upscale"
+            && map.Match(Key.Down, ModifierKeys.None, false).Id == "metadata"
+            && map.Match(Key.Right, ModifierKeys.None, false).Id == "next", "saved custom keys take priority without losing unrelated defaults");
+        map.ResetAll();
         Assert(map.Match(Key.Right, ModifierKeys.Control | ModifierKeys.Shift, true).Id == "navRight", "selection modifiers preserved");
         Assert(!map.Set("metadata", ShortcutKeys(Key.J), out error) && error.Contains("conflicts"), "global/image conflict rejected");
         Assert(!map.Set("help", ShortcutKeys(Key.Right, ModifierKeys.Control), out error), "selection variant conflict rejected");

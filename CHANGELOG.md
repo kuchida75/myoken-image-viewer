@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.168-0.2.170 - 2026-09-23
+
+- Changed default shortcuts to U for compact mode, H for fit height and W for fit width. Existing custom bindings take priority when loading older sessions and backups.
+- Left/Up and Right/Down now navigate previous/next images and show the same configurable seven-image carousel as mouse-wheel navigation. Browser thumbnail keys and focused sliders retain their own arrow behavior.
+- Updated the navigation preview setting, Help and shortcut documentation for both mouse and keyboard use.
+- The 0.2.168 app compiled but its regression executable did not. Version 0.2.169 compiled the tests; 0.2.170 corrects a conflicting test fixture and completes verification.
+
 ## 0.2.167 - 2026-09-18
 
 - Renamed the application and source project to Myoken Image Viewer, including window titles, Help, Windows file details, MyokenImageViewer.csproj and the MyokenImageViewer.exe build output.

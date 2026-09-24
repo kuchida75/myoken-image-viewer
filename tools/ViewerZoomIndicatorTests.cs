@@ -97,14 +97,14 @@ internal static partial class ViewerRegressionTests
         ThemeManager.SetDarkTheme(false); window.Width = 980; window.Height = 640; Pump();
         Invoke(window, "SetZoomOneToOne"); Invoke(window, "ZoomFromCenter", 1.25);
         CheckZoomIndicatorBounds(window); Render((FrameworkElement)window.Content, "zoom-indicator-light-narrow.png");
-        ThemeManager.SetDarkTheme(true); PressKey(window, Key.H); Pump();
+        ThemeManager.SetDarkTheme(true); PressKey(window, Key.U); Pump();
         Invoke(window, "ZoomFromCenter", 1.2);
         CheckZoomIndicatorBounds(window); Render((FrameworkElement)window.Content, "zoom-indicator-compact.png");
         PressKey(window, Key.F11); Pump(); Invoke(window, "ZoomFromCenter", 1.1);
         CheckZoomIndicatorBounds(window); Render((FrameworkElement)window.Content, "zoom-indicator-fullscreen.png");
         PressKey(window, Key.Escape); Pump();
         Assert(indicator.Visibility == Visibility.Collapsed && !timer.IsEnabled, "leaving image/fullscreen clears zoom feedback");
-        PressKey(window, Key.H); Pump();
+        PressKey(window, Key.U); Pump();
 
         Invoke(window, "OpenImageTab", large, true); Wait(delegate { return Ready(window, large); }, "restore fitted image");
         Invoke(window, "SetZoomOneToOne"); Invoke(window, "ZoomFromCenter", 1.5);

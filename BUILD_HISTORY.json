@@ -1167,5 +1167,26 @@
     "CompletedUtc": "2026-09-18T12:05:25.2695697Z",
     "Result": "Built",
     "Note": "Rename app, executable, source project and repository branding to Myoken Image Viewer; preserve Windows features and existing profiles."
+  },
+  {
+    "Version": "0.2.168",
+    "StartedUtc": "2026-09-23T17:50:49.3066957Z",
+    "CompletedUtc": "2026-09-23T17:50:51.5326824Z",
+    "Result": "Failed",
+    "Note": "Update default U/H/W shortcuts and show nearby-image carousel for arrow navigation; preserve custom bindings."
+  },
+  {
+    "Version": "0.2.169",
+    "StartedUtc": "2026-09-23T17:51:05.1291184Z",
+    "CompletedUtc": "2026-09-23T17:51:07.6282290Z",
+    "Result": "Built",
+    "Note": "Complete U/H/W shortcut and arrow-carousel update; fix regression test compilation."
+  },
+  {
+    "Version": "0.2.170",
+    "StartedUtc": "2026-09-23T17:51:33.2417597Z",
+    "CompletedUtc": "2026-09-23T17:51:35.7657651Z",
+    "Result": "Built",
+    "Note": "Verify U/H/W shortcut and arrow-carousel update with compatible custom-binding fixture."
   }
 ]

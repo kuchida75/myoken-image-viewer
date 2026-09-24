@@ -151,9 +151,9 @@ internal static partial class ViewerRegressionTests
         Assert(Field<MinimapLayout>(map, "_layout").Viewport.Bottom <= map.ActualHeight + 0.01, "resized aspect/metadata layout keeps band in rail");
         Render((FrameworkElement)main.Content, "minimap-browser-light-narrow.png");
         Invoke(main, "SetMetadataPanelVisible", false); ThemeManager.SetDarkTheme(true);
-        grid.Focus(); PressKey(main, Key.H); Pump(); Assert(map.IsVisible, "compact browser retains enabled minimap");
+        grid.Focus(); PressKey(main, Key.U); Pump(); Assert(map.IsVisible, "compact browser retains enabled minimap");
         PressKey(main, Key.J); Pump(); Assert(map.IsVisible, "tree toggle retains minimap");
-        PressKey(main, Key.H); Pump();
+        PressKey(main, Key.U); Pump();
 
         ImageFileItem[] realItems = Enumerable.Range(0, grid.ItemCount).Select(grid.ItemAt).ToArray();
         var huge = Enumerable.Range(0, 100000).Select(i => new ImageFileItem { Path = i % 2 == 0 ? first : second,
