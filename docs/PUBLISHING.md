@@ -1,57 +1,23 @@
-# Publication Checklist
+# Source Publication Checklist
 
-Target: public repository `kuchida75/myoken-image-viewer`.
-First Myoken build: Windows version `0.2.167`.
-Historical Windows baseline: tag `v0.2.166` (Zen Image Viewer).
+The public source repository is [kuchida75/myoken-image-viewer](https://github.com/kuchida75/myoken-image-viewer). The current source version is **0.2.170**; `version.json` is authoritative for later builds. The first Myoken build was 0.2.167, and the earlier Zen Image Viewer source baseline is tagged `v0.2.166`.
 
-## Repository Rename
+## Before Each Source Push
 
-Rename the existing `kuchida75/zen-image-viewer` repository in place; do not
-delete/recreate it or rewrite its history. Keep its public visibility,
-Apache-2.0 license, issues, stars and existing tags. Update existing clones:
+1. Review the diff and run relevant Windows regression checks. Use a separate worktree for a rebuild if the current version must stay unchanged: `tools/build.ps1` advances the build number on every run.
+2. Confirm the staged tree contains only reviewed source, tests, assets, docs and notices. The root `.gitignore` is an allowlist; never stage `sources`, `artifacts`, runtime DLLs, AI weights, profiles, sessions, thumbnail/search caches, photos, backups or credentials.
+3. Keep the complete root [Apache-2.0 license](../LICENSE), [NOTICE](../NOTICE), and [third-party notices](../THIRD_PARTY_NOTICES.md). The project's license does not relicense downloaded codecs, runtimes or model weights.
+4. Check that the app's built-in first-run defaults have no personal settings. A developer's local profile is separate from the source tree; do not reset or publish it merely to make a source commit.
+5. Fetch/check GitHub's `main` before pushing. Never force-push over unexpected remote history. Verify the remote commit after the push.
 
-```powershell
-git remote set-url origin https://github.com/kuchida75/myoken-image-viewer.git
-```
+See [building from source](BUILDING.md) and [default state and recovery](DEFAULT_STATE.md).
 
-Publish source changes only after reviewing the diff and running the branding,
-workflow and session/backup regression checks. Do not reset the owner's local
-profile as part of a branding update.
+## Binary Releases
 
-## Original Publication Checklist
+Do not upload the local full ZIP or an executable/model pack until the [third-party distribution review](../THIRD_PARTY_NOTICES.md) is complete. A future binary release needs exact dependency/model versions, checksums, notices, a source revision and test notes.
 
-1. The owner selected Apache-2.0 for original project code and documentation.
-   Keep the complete root `LICENSE`, `NOTICE`, and all third-party exceptions
-   and notices. This does not relicense downloaded runtimes or model weights.
-2. Create an empty public GitHub repository, without GitHub-generated README,
-   license or ignore files, so the first commit can come from this source tree.
-3. Review the staged file list and diff. Confirm no `sources`, `artifacts`,
-   runtime DLLs, AI weights, profiles, photos or credentials are staged. The
-   root `.gitignore` is an allowlist; add future root files intentionally.
-   Verify default startup/reset behavior without embedding a personal profile.
-4. Make the initial source commit, then tag it `v0.2.166` as the Windows source
-   baseline. Do not rebuild just to publish: builds advance the version.
-5. Push `main` and that tag to the exact target repository. Never force-push
-   over unexpected remote history. Verify the remote commit and public
-   visibility after upload.
+## Historical Repository Rename
 
-Read [BUILDING.md](BUILDING.md) for a fresh source clone. The native runtime and
-model files restored locally remain ignored by Git. The prepared repository
-does not claim that a completely clean machine build was tested during this
-documentation-only preparation.
+The former `kuchida75/zen-image-viewer` repository was renamed in place. Its public history, issues and Windows baseline tag were retained. Existing clones should use `https://github.com/kuchida75/myoken-image-viewer.git` as `origin`.
 
-## Releases
-
-Do not upload the existing full ZIP or an executable/model pack until the
-[third-party distribution review](../THIRD_PARTY_NOTICES.md) is completed.
-Git history is for source; independently reviewed release assets can be
-published later with checksums, notices, exact source revision and test notes.
-
-## Ubuntu Work Later
-
-Use a separate branch and checkout/worktree in the same repository. Keep the
-Windows baseline tag and existing WPF implementation intact. Add the Linux UI
-as a separate project under `src`, and extract shared code deliberately with
-Windows regression tests. The current project is not cross-platform simply
-because its source is on GitHub. No Ubuntu project, branch or implementation
-is created by this publication preparation.
+Ubuntu/GNOME work can use a separate branch and project in this same repository. The current WPF application remains Windows-only; a shared repository does not make it cross-platform.
