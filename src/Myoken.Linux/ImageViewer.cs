@@ -63,7 +63,6 @@ internal sealed class ImageViewer : UserControl, IDisposable
         AddHandler(KeyDownEvent, OnViewerKeyDown, RoutingStrategies.Bubble);
         UpdateView();
     }
-
     private Button MakeButton(string caption, Action action, string tip)
     {
         var button = new Button { Content = caption };
@@ -100,17 +99,17 @@ internal sealed class ImageViewer : UserControl, IDisposable
             { _message.Text = "Cannot open image: " + ex.Message; UpdateView(); }
         }
     }
-
     private bool IsCurrent(int generation, CancellationToken token) => !_disposed && _active
         && generation == _generation && !token.IsCancellationRequested;
-
     private void UpdateView()
     {
         _fit.IsEnabled = _minus.IsEnabled = _plus.IsEnabled = _active && HasImage;
         _actual.IsEnabled = _active && _image != null && ViewerDecodePolicy.CanDecodeFull(_image.Width, _image.Height);
         _message.IsVisible = !HasImage;
         _zoom.Text = HasImage ? $"{View.Zoom * 100:0.#}%{(View.IsFit ? " · Fit" : "")}{(IsFullResolution ? "" : " · preview")}" : "";
-        if (_active && _image != null && !IsFullResolution && !_detailLoading && !_detailFailed
+        // Fit has no meaningful demand until the surface has a real viewport.
+        if (_active && _image != null && View.Width > 0 && View.Height > 0
+            && !IsFullResolution && !_detailLoading && !_detailFailed
             && ViewerDecodePolicy.CanDecodeFull(_image.Width, _image.Height) && View.Zoom > PreviewScale + 1e-6)
         {
             _detailLoading = true;
@@ -118,7 +117,6 @@ internal sealed class ImageViewer : UserControl, IDisposable
         }
         StatusChanged?.Invoke();
     }
-
     private async Task UpgradeAsync(int generation, CancellationToken token)
     {
         try
@@ -143,7 +141,6 @@ internal sealed class ImageViewer : UserControl, IDisposable
             if (IsCurrent(generation, token)) { _detailLoading = false; UpdateView(); }
         }
     }
-
     internal void Fit() { _surface.StopDrag(); View.Fit(); _surface.NotifyViewChanged(); }
     internal void ActualSize()
     {
@@ -153,7 +150,6 @@ internal sealed class ImageViewer : UserControl, IDisposable
     internal void ZoomBy(double factor) => _surface.ZoomAt(View.Zoom * factor, new Point(View.Width / 2, View.Height / 2));
     internal void InvokeActualSizeButton() => _actual.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
     internal void InvokeFitButton() => _fit.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-
     private void OnViewerKeyDown(object? sender, KeyEventArgs e)
     {
         if (!_active || !HasImage || e.KeyModifiers.HasFlag(KeyModifiers.Control)
@@ -172,7 +168,6 @@ internal sealed class ImageViewer : UserControl, IDisposable
         }
         e.Handled = true;
     }
-
     public void Suspend()
     {
         _active = false; _generation++;

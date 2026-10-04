@@ -8,6 +8,9 @@ namespace Myoken.Linux;
 
 internal sealed class ImageSurface : Control
 {
+    private static readonly Cursor ArrowCursor = new(StandardCursorType.Arrow);
+    private static readonly Cursor PanCursor = new(StandardCursorType.Hand);
+    private static readonly Cursor DragCursor = new(StandardCursorType.SizeAll);
     private TopLevel? _top;
     private IPointer? _dragPointer;
     private Point _lastPoint;
@@ -23,7 +26,6 @@ internal sealed class ImageSurface : Control
         Focusable = true; ClipToBounds = true; UseLayoutRounding = false;
         SizeChanged += (_, _) => UpdateViewport();
     }
-
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
@@ -35,8 +37,7 @@ internal sealed class ImageSurface : Control
     {
         StopDrag();
         if (_top != null) _top.ScalingChanged -= OnScalingChanged;
-        _top = null;
-        base.OnDetachedFromVisualTree(e);
+        _top = null; base.OnDetachedFromVisualTree(e);
     }
     private void OnScalingChanged(object? sender, EventArgs e) => UpdateViewport();
     private void UpdateViewport()
@@ -47,7 +48,7 @@ internal sealed class ImageSurface : Control
     public void NotifyViewChanged()
     {
         RenderOptions.SetBitmapInterpolationMode(this, View.Zoom >= 1 ? BitmapInterpolationMode.None : BitmapInterpolationMode.HighQuality);
-        Cursor = new Cursor(_dragPointer != null ? StandardCursorType.SizeAll : View.CanPan ? StandardCursorType.Hand : StandardCursorType.Arrow);
+        Cursor = _dragPointer != null ? DragCursor : View.CanPan ? PanCursor : ArrowCursor;
         InvalidateVisual(); ViewChanged?.Invoke();
     }
     public override void Render(DrawingContext context)
@@ -60,9 +61,7 @@ internal sealed class ImageSurface : Control
     }
     public void ZoomAt(double zoom, Point point)
     {
-        StopDrag();
-        View.ZoomAt(LimitZoom?.Invoke(zoom) ?? zoom, point.X, point.Y);
-        NotifyViewChanged();
+        StopDrag(); View.ZoomAt(LimitZoom?.Invoke(zoom) ?? zoom, point.X, point.Y); NotifyViewChanged();
     }
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
@@ -103,7 +102,7 @@ internal sealed class ImageSurface : Control
     {
         base.OnPointerReleased(e);
         if (_dragPointer != e.Pointer) return;
-        StopDrag(); e.Handled = true;
+        StopDrag(); NotifyViewChanged(); e.Handled = true;
     }
     protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
     {
