@@ -110,7 +110,16 @@ internal sealed class DocumentTabs : UserControl, IDisposable
         _previous.Click += (_, _) => ScrollBy(-Math.Max(100, _scroll.Viewport.Width * 0.75));
         _next.Click += (_, _) => ScrollBy(Math.Max(100, _scroll.Viewport.Width * 0.75));
         _open.ContextMenu = _menu;
-        _open.Click += (_, _) => { if (_menu.IsOpen) _menu.Close(); else _menu.Open(_open); };
+        _open.Click += (_, _) =>
+        {
+            if (_menu.IsOpen) _menu.Close();
+            else
+            {
+                // Programmatic Open must receive a populated collection; don't rely
+                // on the separate context-request Opening notification for this route.
+                BuildMenu(); _menu.Open(_open);
+            }
+        };
         _menu.Opening += (_, _) => BuildMenu();
         _scroll.ScrollChanged += (_, _) => UpdateScrollButtons();
         _scroll.SizeChanged += (_, _) => QueueReveal();
