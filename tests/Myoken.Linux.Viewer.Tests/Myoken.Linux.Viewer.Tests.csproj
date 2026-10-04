@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/Myoken.Linux/ImageViewport.cs" Link="ImageViewport.cs" />
+    <Compile Include="../../src/Myoken.Linux/ViewerDecodePolicy.cs" Link="ViewerDecodePolicy.cs" />
+  </ItemGroup>
+</Project>

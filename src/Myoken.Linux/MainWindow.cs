@@ -5,7 +5,6 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Myoken.Core;
@@ -14,7 +13,7 @@ namespace Myoken.Linux;
 
 internal sealed partial class MainWindow : Window
 {
-    private readonly TextBox _path = new() { Watermark = "Folder path", MinWidth = 160 };
+    private readonly TextBox _path = new() { PlaceholderText = "Folder path", MinWidth = 160 };
     private readonly TextBlock _status = new() { Margin = new Thickness(8), TextWrapping = TextWrapping.Wrap };
     private readonly FolderTree _folders = new();
     private readonly VirtualThumbnailBrowser _thumbnails = new();
@@ -22,7 +21,7 @@ internal sealed partial class MainWindow : Window
     private readonly ObservableCollection<TabItem> _tabItems = new();
     private readonly TabItem _browser = new() { Header = "Browser" };
     private readonly DispatcherTimer _saveTimer = new() { Interval = TimeSpan.FromSeconds(2) };
-    private CancellationTokenSource? _browseCts, _imageCts;
+    private CancellationTokenSource? _browseCts;
     private SessionStore? _sessions;
     private string[] _files = Array.Empty<string>();
     private string _folder = string.Empty;
@@ -32,7 +31,7 @@ internal sealed partial class MainWindow : Window
 
     public MainWindow()
     {
-        Title = "Myoken Ubuntu/GNOME - Linux preview L002a";
+        Title = "Myoken Ubuntu/GNOME - Linux preview L002b";
         Width = 1200; Height = 820; MinWidth = 820; MinHeight = 480;
         var root = new DockPanel();
         var toolbar = new DockPanel { Margin = new Thickness(8), LastChildFill = true };
@@ -85,14 +84,14 @@ internal sealed partial class MainWindow : Window
         _saveTimer.Tick += (_, _) => SaveSession();
         Closed += (_, _) =>
         {
-            _closed = true; _saveTimer.Stop(); SaveSession();
-            Cancel(ref _browseCts); Cancel(ref _imageCts);
-            _thumbnails.Dispose(); _folders.Dispose(); ClearPreviews(); _sessions?.Dispose();
+            _closed = true; _saveTimer.Stop(); SaveSession(); Cancel(ref _browseCts);
+            _thumbnails.Dispose(); _folders.Dispose();
+            foreach (var tab in _tabItems) (tab.Content as ImageViewer)?.Dispose();
+            _sessions?.Dispose();
         };
     }
 
     private static string Home => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-
     private Button Button(string text, Func<Task> action)
     {
         var button = new Button { Content = text };
@@ -128,8 +127,7 @@ internal sealed partial class MainWindow : Window
             _dirty = true; _saveTimer.Start();
             if (Program.TestMode != null)
             {
-                _saveTimer.Stop();
-                await RunUiChecksAsync(Program.TestMode);
+                _saveTimer.Stop(); await RunUiChecksAsync(Program.TestMode);
                 ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).Shutdown(0);
             }
         }
@@ -140,20 +138,17 @@ internal sealed partial class MainWindow : Window
                 ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).Shutdown(1);
         }
     }
-
     private async Task PickFolderAsync()
     {
         var selected = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             { Title = "Choose an image folder", AllowMultiple = false });
         if (selected.FirstOrDefault()?.TryGetLocalPath() is string path) await NavigateAsync(path);
     }
-
     private async Task RefreshAsync()
     {
         await _folders.RefreshSelectedAsync();
         await NavigateAsync(string.IsNullOrEmpty(_folder) ? Home : _folder);
     }
-
     private async Task NavigateAsync(string path)
     {
         if (_closed) return;
@@ -172,8 +167,7 @@ internal sealed partial class MainWindow : Window
                 foreach (var entry in Directory.EnumerateFiles(full, "*", options))
                 { token.ThrowIfCancellationRequested(); if (ImageDecoder.IsSupported(entry)) result.Add(entry); }
                 result.Sort((a, b) => NaturalNameComparer.Instance.Compare(Path.GetFileName(a), Path.GetFileName(b)));
-                token.ThrowIfCancellationRequested();
-                return result.ToArray();
+                token.ThrowIfCancellationRequested(); return result.ToArray();
             }, token);
             if (token.IsCancellationRequested || _closed) return;
             _folder = full; _path.Text = full; _files = files;
@@ -191,13 +185,17 @@ internal sealed partial class MainWindow : Window
             }
         }
     }
-
     private TabItem AddImageTab(string path)
     {
         path = Path.GetFullPath(path);
         var existing = _tabItems.FirstOrDefault(t => t.Tag is string p && StringComparer.Ordinal.Equals(p, path));
         if (existing != null) return existing;
-        var tab = new TabItem { Tag = path, Content = new Image { Stretch = Stretch.Uniform, Margin = new Thickness(8) } };
+        var viewer = new ImageViewer(path);
+        var tab = new TabItem { Tag = path, Content = viewer };
+        viewer.StatusChanged += () =>
+        {
+            if (!_closed && ReferenceEquals(_tabs.SelectedItem, tab)) Status(viewer.StatusText);
+        };
         var header = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
         header.Children.Add(new TextBlock
         {
@@ -210,44 +208,25 @@ internal sealed partial class MainWindow : Window
         ToolTip.SetTip(header, path); ToolTip.SetTip(tab, path);
         _tabItems.Add(tab); return tab;
     }
-
     private async Task ShowSelectedImageAsync()
     {
-        Cancel(ref _imageCts); ClearPreviews();
-        _thumbnails.SetActive(ReferenceEquals(_tabs.SelectedItem, _browser));
+        var selected = _tabs.SelectedItem as TabItem;
+        foreach (var tab in _tabItems)
+            if (tab != selected) (tab.Content as ImageViewer)?.Suspend();
+        _thumbnails.SetActive(ReferenceEquals(selected, _browser));
         if (_closed) return;
-        if (ReferenceEquals(_tabs.SelectedItem, _browser)) { UpdateBrowserStatus(); return; }
-        if (_tabs.SelectedItem is not TabItem { Tag: string path, Content: Image image }) return;
-        _imageCts = new CancellationTokenSource(); var token = _imageCts.Token;
-        Status("Opening " + path);
-        try
-        {
-            var bitmap = await ImageDecoder.LoadAsync(path, 4096, token);
-            if (token.IsCancellationRequested || _closed) { bitmap.Dispose(); return; }
-            image.Source = bitmap;
-            Status($"{Path.GetFileName(path)} | fit preview {bitmap.PixelSize.Width} × {bitmap.PixelSize.Height}");
-        }
-        catch (OperationCanceledException) { }
-        catch (Exception ex) { if (!token.IsCancellationRequested && !_closed) Status("Cannot open image: " + ex.Message); }
+        if (ReferenceEquals(selected, _browser)) { UpdateBrowserStatus(); return; }
+        if (selected?.Content is not ImageViewer viewer) return;
+        await viewer.ActivateAsync();
+        if (!_closed && ReferenceEquals(_tabs.SelectedItem, selected)) Status(viewer.StatusText);
     }
-
     private void CloseTab(TabItem tab)
     {
         if (tab == _browser) return;
-        if (ReferenceEquals(_tabs.SelectedItem, tab)) Cancel(ref _imageCts);
-        if (tab.Content is Image image && image.Source is Bitmap bitmap)
-        { image.Source = null; bitmap.Dispose(); }
+        (tab.Content as ImageViewer)?.Dispose();
         _tabItems.Remove(tab); _dirty = true;
         if (_tabs.SelectedItem == null) _tabs.SelectedItem = _browser;
     }
-
-    private void ClearPreviews()
-    {
-        foreach (var tab in _tabItems)
-            if (tab.Content is Image image && image.Source is Bitmap bitmap)
-            { image.Source = null; bitmap.Dispose(); }
-    }
-
     private void SaveSession()
     {
         if (!_dirty || _starting || _sessions?.CanWrite != true) return;
@@ -263,7 +242,6 @@ internal sealed partial class MainWindow : Window
         }
         catch (Exception ex) { _persistenceWarning = "Session save failed: " + ex.Message; Status("Session save failed."); }
     }
-
     private void UpdateBrowserStatus()
     {
         if (ReferenceEquals(_tabs.SelectedItem, _browser)) Status(_browserStatus);

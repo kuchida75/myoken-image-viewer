@@ -48,7 +48,7 @@ internal sealed partial class MainWindow
             CheckUi(_tabItems.Skip(1).Select(t => t.Tag as string).SequenceEqual(new[] { originals[0], originals[2] }),
                 "second process restores exact tab order and excludes closed tab");
             CheckUi((_tabs.SelectedItem as TabItem)?.Tag as string == originals[2], "second process restores active image tab");
-            CheckUi((_tabs.SelectedItem as TabItem)?.Content is Image { Source: not null }, "restored active image decoded");
+            CheckUi((_tabs.SelectedItem as TabItem)?.Content is ImageViewer { HasImage: true }, "restored active image decoded");
             await SelectForTestAsync(_browser);
             CheckUi(_status.Text == $"{originals.Length:N0} images in {folder}", "returning to Browser restores folder/count status");
             Console.WriteLine("PASS: cross-process UI session regression");
@@ -62,7 +62,6 @@ internal sealed partial class MainWindow
         CaptureForTest("browser-initial");
         if (mode == "--browser-test")
         {
-            // Keyboard scrolling must reach beyond the old 72-image page boundary.
             _thumbnails.RaiseEvent(new KeyEventArgs { RoutedEvent = KeyDownEvent, Key = Key.End });
             await WaitUiAsync(() => _thumbnails.EndRealized == originals.Length && _thumbnails.FirstRealized > 0,
                 "End key did not reach the last image");
@@ -75,8 +74,6 @@ internal sealed partial class MainWindow
             Width = 1200;
             await WaitUiAsync(() => _thumbnails.Columns == oldColumns, "wide window did not reflow columns");
 
-            // Synthetic paths reference real fixture files: this tests UI allocation and
-            // recycling, NOT 100k-file directory enumeration or unique-image performance.
             var many = Enumerable.Range(0, 100_000).Select(i => originals[i % originals.Length]).ToArray();
             _thumbnails.SetFiles(many);
             await WaitUiAsync(() => _thumbnails.LoadedCount > 0, "synthetic viewport failed to load");
@@ -104,13 +101,14 @@ internal sealed partial class MainWindow
             await WaitUiAsync(() => _thumbnails.LoadedCount > 0, "thumbnails did not recover after navigation");
             await _thumbnails.WaitForLoadsAsync();
             CaptureForTest("browser-tree");
+            await RunViewerChecksAsync(folder);
+            await SelectForTestAsync(_browser);
         }
 
-        // Exercise the real thumbnail Button.Click route, then tab closing and persistence.
         _thumbnails.ScrollToIndex(0);
         await WaitUiAsync(() => _thumbnails.FirstRealized == 0 && _thumbnails.LoadedCount > 0, "first thumbnail unavailable");
         _thumbnails.ActivateForTest(0);
-        await WaitUiAsync(() => (_tabs.SelectedItem as TabItem)?.Content is Image { Source: not null }, "thumbnail click did not open image");
+        await WaitUiAsync(() => (_tabs.SelectedItem as TabItem)?.Content is ImageViewer { HasImage: true }, "thumbnail click did not open image");
         CheckUi(_thumbnails.RealizedCount == 0, "hidden browser releases thumbnail bitmaps and controls");
         var first = AddImageTab(originals[0]);
         var second = AddImageTab(originals[1]);
@@ -118,7 +116,7 @@ internal sealed partial class MainWindow
         CheckUi(ReferenceEquals(first, AddImageTab(originals[0])), "one tab per exact Linux path");
         CloseTab(second);
         await SelectForTestAsync(third);
-        CheckUi(third.Content is Image { Source: not null }, "selected image preview decoded");
+        CheckUi(third.Content is ImageViewer { HasImage: true }, "selected image preview decoded");
         CaptureForTest("image-preview");
         SaveSession();
         CheckUi(_sessions?.CanWrite == true, "isolated session writable");
