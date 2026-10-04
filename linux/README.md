@@ -2,77 +2,75 @@
 
 Independent Linux development track in the existing Myoken repository.
 
-- Branch: `linux/ubuntu-gnome`.
-- Windows baseline: **v0.2.167**, commit `ea785b3770383278f1a3bf67762d35014e8bda26`.
-- Target: Ubuntu 24.04 LTS and newer, GNOME, initially x64.
-- Linux UI: separate C# / .NET 10 / Avalonia 12.1.2 application.
-- Portable core: .NET Standard 2.0, so a future Windows .NET Framework 4.8 integration does not require replacing WPF.
+- Development branch: `linux/ubuntu-gnome`; Linux feature branches may be used for CI before fast-forwarding this branch.
+- Protected-by-workflow Windows baseline: **v0.2.167**, commit `ea785b3770383278f1a3bf67762d35014e8bda26`. This describes our isolation checks, not GitHub branch-protection settings.
+- Target: Ubuntu 24.04 LTS and newer with GNOME, initially x64.
+- Separate Linux UI: C# / .NET 10 / Avalonia 12.1.2. Linux app version: **0.1.0-alpha.2**, window label **L002a**.
+- Portable core: .NET Standard 2.0. It is not yet referenced by the Windows .NET Framework 4.8/WPF application.
 
 ## Isolation contract
 
-Do not edit `src/ZonerInspiredViewer`, Windows version/build journals, dependency manifests, or Windows build scripts for Linux milestones. Do not run `tools/build.ps1`: it reserves a Windows version number even when compilation fails. Do not replace the WPF interface or merge this branch to `main` without a separate review. New core code is **not yet referenced by Windows**. Natural ordering is portable, not a claim of exact `StrCmpLogicalW` equivalence.
+Do not edit `src/ZonerInspiredViewer`, Windows version/build journals, dependency manifests, or Windows build scripts for Linux milestones. Do not run `tools/build.ps1`: it reserves a Windows version even on compilation failure. Do not replace WPF, modify the default branch, merge to `main`, retag Windows releases or write Windows profiles. Natural ordering is portable, not a claim of exact `StrCmpLogicalW` equivalence.
 
-Use a separate native-Linux checkout, not the Windows workspace, a shared writable profile, or a checkout on a Windows-mounted drive. Source creation through GitHub does not create a directory on your computer.
+Use a **separate checkout on the Linux filesystem**, never the Windows workspace or a shared writable profile. Native Ubuntu is the GNOME acceptance target; Ubuntu under WSL2/WSLg can be used for development, but is not GNOME/NVIDIA release validation. The current user workflow is native Ubuntu. GitHub source changes do not update a checkout on the user's computer.
+
+## Build and run
+
+Install prerequisites using the configured Ubuntu repositories, reviewing APT's proposal before confirming. No Ubuntu release upgrade, NVIDIA/CUDA package changes or Python environment changes are required by this source update.
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y git dotnet-sdk-10.0 libx11-6 libice6 libsm6 libfontconfig1 libxrandr2 libxi6 libxcursor1 libgl1 xwayland
+sudo apt-get install --no-install-recommends git dotnet-sdk-10.0 libx11-6 libice6 libsm6 libfontconfig1 libxrandr2 libxi6 libxcursor1 libgl1 xwayland
 mkdir -p "$HOME/Projects"
 git clone --branch linux/ubuntu-gnome --single-branch https://github.com/kuchida75/myoken-image-viewer.git "$HOME/Projects/Myoken-Ubuntu-GNOME"
 cd "$HOME/Projects/Myoken-Ubuntu-GNOME"
 bash linux/check.sh
 bash linux/run.sh
-# An explicit starting folder is also supported:
+# Optional explicit starting folder:
 bash linux/run.sh "$HOME/Pictures"
 ```
 
-The clone command deliberately fails rather than reusing an existing nonempty destination. Run the viewer as your normal desktop user, never with sudo. Review your configured Ubuntu package sources before installing packages. First restore requires NuGet network access.
+Clone only when the separate checkout does not already exist. Do not delete or reset an existing working tree to make cloning succeed. For an existing clean Linux checkout, close the app normally, confirm the branch and run `git pull --ff-only origin linux/ubuntu-gnome`, then check and run. Never run the viewer with sudo. The initial NuGet restore needs network access.
 
-## Initial implementation: L001
+## Current browser iteration: L002a
 
-The source provides folder navigation (path entry, folder picker, Home and Up), a paged thumbnail browser, natural filename ordering, one image per tab, tab closing, fit-to-window previews, and session restore of folder, all valid stored image tabs, and active tab. Only the selected image tab is decoded. Thumbnails are limited to 72 visible items and two simultaneous decode operations. Folder enumeration runs off the UI thread and can be cancelled. Session files are replaced atomically; a second instance cannot write the same session; malformed or newer-version sessions are not overwritten.
+- Persistent, expandable **Home / File system** directory tree. Children are enumerated off the UI thread on expansion; navigating to a child retains its ancestors. Path entry and the folder picker reveal the selected path. Symbolic links are displayed as navigable leaves rather than recursively expanded.
+- **Continuous thumbnail scrolling**, replacing the 72-image pages. A pixel-scrolling virtual canvas owns controls and decoded thumbnails only for the visible rows plus one overscan row on either side. Stale requests are cancelled; hidden/off-screen thumbnail bitmaps are released. The existing decoder allows at most two simultaneous decode operations.
+- Columns reflow with browser width. Thumbnail captions wrap to two lines and full paths are available on hover. Tab labels retain the beginning and end of long filenames to distinguish screenshots.
+- Arrow keys, Page Up/Down and Home/End navigate thumbnails; Enter/Space opens the focused image. Clicking still opens one image per tab. **Refresh / F5**, **Ctrl+L**, **Ctrl+W**, and **F11** are available.
+- Returning to Browser refreshes the folder/image-count status instead of retaining the last image-preview text.
+- Folder, ordered image tabs and active tab use the **unchanged session schema and location**. Fit-to-window image previews remain bounded to a requested 4096-pixel long edge. Only the active image tab is decoded.
 
-Initial formats are JPEG, PNG, WebP, BMP and the first frame of GIF where the bundled decoder accepts them. HEIC, AVIF, JXL, video, EXIF orientation/colour-management parity, full-resolution zoom/pan, GPU decoding, filesystem watching, disk caching, drag/drop and file operations are **not implemented**. Preview decoding is bounded to a requested 4096-pixel long edge; individual inputs above 120 million pixels are rejected. Paged thumbnails are an interim memory measure, not a virtualised 100,000-file performance claim.
-
-Linux state is separate from every Windows profile:
+Session location:
 
 ```text
 ${XDG_STATE_HOME:-$HOME/.local/state}/myoken-linux/session.json
 ```
 
-A corrupt/unreadable session or a session from a newer schema makes persistence read-only for that run; the status bar reports this. No Windows session import occurs. On first launch, the default folder is `~/Pictures` when present, otherwise home.
+A second instance cannot write the same session; corrupt/unreadable/newer-schema sessions are preserved and reported read-only. No Windows session import occurs. Default initial folder is `~/Pictures` when present, otherwise home.
 
-## GNOME and display backend
+### Scope limits
 
-This is a GNOME-compatible desktop app, **not a GTK/libadwaita application**. The initial Avalonia desktop backend is X11; in a GNOME Wayland session it runs through XWayland. Do not advertise native Wayland validation: upstream's opt-in native Wayland backend remains experimental. Keep native Wayland evaluation as a separate milestone. Neither GPU acceleration parity nor NVIDIA-driver compatibility is established by a headless launch test.
+The thumbnail **controls** are virtualised; filenames are still fully enumerated and sorted off the UI thread before publication. The tree is lazy-loaded, **not virtualised**, and expanding a directory with a very large sibling set can still create many nodes. Expanded tree state and browser scroll position are retained during normal in-process navigation where applicable, not saved as new session settings. Links can be browsed, but deep link paths may leave the tree selection at the link ancestor. Refresh reloads the selected node's children and current file list.
 
-## Testing and acceptance
+There is no disk thumbnail cache, cross-viewport bitmap cache, incremental file-list publication, three-image preloading or measured real 100k-folder throughput yet. The synthetic 100k-entry UI check reuses generated fixture paths; it is a bounded-control/recycling check, not a unique-image performance benchmark.
 
-`bash linux/check.sh` verifies Windows-baseline files are unchanged, builds the Linux project, and runs the independent console regression checks. The Linux-only GitHub Actions workflow also launches the UI under Xvfb with generated PNG fixtures and isolated state. A successful CI result does not replace GNOME testing.
+Initial formats remain JPEG, PNG, WebP, BMP and the first frame of GIF where the decoder accepts them. Inputs above 120 million pixels are rejected. **Zoom/pan, HEIC/AVIF/JXL, video, metadata/orientation/colour-management parity, GPU decoding, filesystem watching, drag/drop and file operations remain unimplemented.**
 
-The initial source was authored from a environment without a .NET SDK or an accessible GNOME desktop. Treat build/runtime status as **unverified until the corresponding checks actually succeed**. Do not call L001 accepted merely because the source or branch exists.
+## Display backend
 
-Manual L001 acceptance on Ubuntu 24.04 GNOME:
+This is GNOME-compatible, not GTK/libadwaita. The selected desktop backend is X11, using XWayland within a GNOME Wayland session. Native Wayland and hardware-specific performance require separate evaluation; do not infer them from CI or a WSLg launch.
 
-1. Browse nested folders, spaces and Japanese/Unicode filenames; distinguish `A.png` from `a.png`; check `image2` before `image10`.
-2. Open several images in separate tabs, close one, select another, quit, relaunch, and verify folder, remaining tabs and active tab restore.
-3. Change folders/pages rapidly while thumbnails load; exercise unreadable/missing files and a corrupt image without a crash.
-4. Test GNOME Wayland/XWayland on the actual NVIDIA system, fractional scaling, fullscreen and a high-resolution monitor.
-5. Compare `git diff ea785b3770383278f1a3bf67762d35014e8bda26 -- src/ZonerInspiredViewer version.json tools` and verify no Windows changes.
+## Checks and acceptance
 
-## Next milestones
+`bash linux/check.sh` checks Windows isolation, builds the app, runs the original sorting/session regressions and the additional viewport/directory console checks.
 
-- L001 acceptance: build and real GNOME browser/viewer/session testing; fix regressions before advancing.
-- L002: virtualised folder tree/grid, incremental enumeration, byte-budgeted memory/disk caches, three-image preloading and measured 100k-folder behaviour.
-- L003: metadata/orientation/colour management, HEIC/AVIF/JXL and decoder fallback tests.
-- L004: filesystem notifications, rename/move/Trash, desktop integration, packaging and native Wayland evaluation.
-- L005: selective Windows adoption of proven shared sorting/session/metadata/cache policies, each gated by existing Windows regressions. Keep Windows-specific WPF, DirectX/CUDA and filesystem integration separate.
+`bash linux/smoke.sh` is an optional X11 integration suite requiring `xvfb` and Python 3. It generates disposable images/folders and isolated state, exercises scrolling, resize, tree navigation, malformed images and tabs, then starts a fresh process to check actual folder/tab/active-tab restoration and closed-tab exclusion. The restore process deliberately has no starting-folder override. `MYOKEN_TEST_OUTPUT` optionally selects a screenshot directory; CI saves screenshots containing generated fixtures only. These programmatic UI checks are not Windows Computer Use or a human GNOME usability test.
 
-## Reference documentation checked 18 September 2026
+Source compilation, CI and desktop validation are separate states. See `linux/VALIDATION.md` for the user-confirmed L001 desktop result and `linux/L002A.md` for the new iteration's validation status. Do not infer L002a GNOME acceptance from the earlier L001 screenshot.
 
-- https://learn.microsoft.com/en-us/dotnet/core/install/linux-ubuntu-install
-- https://docs.avaloniaui.net/docs/supported-platforms
-- https://docs.avaloniaui.net/docs/platform-specific-guides/linux
-- https://www.nuget.org/packages/Avalonia.Desktop/12.1.2
+## Next work
 
-See `linux/AGENTS.md` for the development handoff. Existing repository licensing and notices remain in force; Avalonia and SkiaSharp add their respective upstream dependency licences to the Linux dependency graph. Packaging must carry the resolved transitive notices before distribution.
+Accept the L002a tree/continuous-grid change on the real desktop while retaining session checks. Then add zoom/pan and improve keyboard/tab ergonomics. Continue L002 performance work with incremental enumeration, byte-budgeted caches, preloading and real dataset measurements. Metadata/codecs and filesystem/packaging integration remain separate milestones; proven portable policies can later be adopted by Windows with its own regression review.
+
+Reference documentation: Avalonia's ScrollViewer/TreeViewItem APIs and rendering documentation; Microsoft .NET Linux installation guidance. See `linux/AGENTS.md` for the development handoff. Existing repository licensing/notices remain in force. Packaging must include resolved transitive dependency notices before distribution.

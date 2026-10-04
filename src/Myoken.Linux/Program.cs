@@ -8,6 +8,7 @@ internal static class Program
 {
     public static string? StartPath { get; private set; }
     public static string? TestMode { get; private set; }
+    public static string? ExpectedTestFolder { get; private set; }
 
     [STAThread]
     public static void Main(string[] args)
@@ -25,6 +26,10 @@ internal static class Program
                 string.IsNullOrWhiteSpace(StartPath) || !Path.IsPathFullyQualified(StartPath) ||
                 !DirectoryCatalog.Contains(DirectoryCatalog.Normalize(root), DirectoryCatalog.Normalize(StartPath)))
                 throw new InvalidOperationException("UI tests require an isolated MYOKEN_TEST_ROOT containing XDG_STATE_HOME and the fixture folder. Use bash linux/smoke.sh.");
+            ExpectedTestFolder = DirectoryCatalog.Normalize(StartPath);
+            // The restore process must recover the folder from its saved session, NOT
+            // from a command-line override. Keep the supplied path only as an assertion.
+            if (TestMode == "--restore-test") StartPath = null;
         }
         AppBuilder.Configure<App>().UsePlatformDetect().LogToTrace()
             .StartWithClassicDesktopLifetime(args);

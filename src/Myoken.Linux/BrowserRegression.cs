@@ -44,7 +44,7 @@ internal sealed partial class MainWindow
         var folder = _folder;
         if (mode == "--restore-test")
         {
-            CheckUi(StringComparer.Ordinal.Equals(folder, DirectoryCatalog.Normalize(Program.StartPath!)), "folder restored in second process");
+            CheckUi(StringComparer.Ordinal.Equals(folder, Program.ExpectedTestFolder), "folder restored in second process without a path override");
             CheckUi(_tabItems.Skip(1).Select(t => t.Tag as string).SequenceEqual(new[] { originals[0], originals[2] }),
                 "second process restores exact tab order and excludes closed tab");
             CheckUi((_tabs.SelectedItem as TabItem)?.Tag as string == originals[2], "second process restores active image tab");

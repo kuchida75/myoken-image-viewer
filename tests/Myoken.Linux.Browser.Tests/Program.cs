@@ -6,18 +6,20 @@ static void Check(bool condition, string message)
     Console.WriteLine("PASS: " + message);
 }
 
+var cases = 0;
 foreach (var count in new[] { 0, 1, 72, 73, 100_000, int.MaxValue })
 foreach (var width in new[] { 0.0, 1.0, 184.0, 923.0, 5120.0 })
 foreach (var height in new[] { 0.0, 1.0, 736.0, 2160.0 })
 foreach (var offset in new[] { -100.0, 0.0, 18_400.0, double.MaxValue, double.NaN })
 {
+    cases++;
     var r = ThumbnailLayout.Calculate(count, width, height, offset);
     if (r.Columns < 1 || r.First < 0 || r.End > count || r.End < r.First || !double.IsFinite(r.ExtentHeight))
         throw new InvalidOperationException("Invalid viewport bounds.");
     var maximum = ((long)Math.Ceiling(height / ThumbnailLayout.CellHeight) + 1 + 2 * ThumbnailLayout.OverscanRows) * r.Columns;
     if (r.End - r.First > maximum) throw new InvalidOperationException("Viewport allocation is not bounded.");
 }
-Console.WriteLine("PASS: viewport bounds and bounded realisation across 3,000 edge-case combinations");
+Console.WriteLine($"PASS: viewport bounds and bounded realisation across {cases} edge-case combinations");
 var bottom = ThumbnailLayout.Calculate(100_000, 920, 736, double.MaxValue);
 Check(bottom.End == 100_000 && bottom.First > 99_900, "100k viewport reaches final entries without a page boundary");
 Check(ThumbnailLayout.Calculate(100_000, 920, 0, 0).End == 0, "zero-height viewport realises no controls");
