@@ -69,4 +69,20 @@ The synthetic 100k test reused 120 generated PNG paths and reported 25-30 live t
 
 The candidate diff against Windows v0.2.167 contained additions only: no pre-existing baseline file was changed/deleted. The follow-up recording these results changes only linux/L002A.md and this validation document; application/test sources remain at the passing revision. Windows UI/build/version files, dependency versions and the session schema are not changed by L002a.
 
-L002a status: automated checks passed; the new tree/continuous-grid implementation awaits user validation on Nova. The earlier L001 user report is preserved above and is not relabelled as acceptance of the new UI. See linux/L002A.md for exact coverage, limitations and safe update/acceptance steps.
+L002a automated status: passed. The subsequent user-confirmed native-desktop visual check is recorded below; it does not replace remaining interactive acceptance checks. The earlier L001 user report is preserved above and is not relabelled as a new L002a restart test. See linux/L002A.md for automated coverage, limitations and safe update/acceptance steps.
+
+## L002a native Ubuntu visual check - 4 October 2026
+
+Evidence: the user's screenshot of a window titled "Myoken Ubuntu/GNOME - Linux preview L002a", accompanied by "looks ok". This continues the native Ubuntu/Nova workflow established earlier in the conversation. This is a user-performed visual check, not desktop control or a test executed remotely by the assistant. The screenshot remains in the conversation and has not been uploaded to the repository. The exact local commit ID and current driver/SDK versions were not included in this report.
+
+Visible in the supplied screenshot:
+
+- The expanded folder tree retains Pictures as the parent of the selected Screenshots directory, with other folders still accessible in the sidebar.
+- The continuous thumbnail-browser layout is populated with real image thumbnails and two-line filename captions; the former page controls are absent.
+- Four image-tab headers are visible alongside the selected Browser tab. Their labels expose distinguishing date/time suffixes.
+- The Browser status bar reports 786 images and the current folder rather than a previous image's fit-preview dimensions.
+- The user reports that the interface "looks ok".
+
+Result: native desktop rendering and the initial visual layout of L002a are user-confirmed. A screenshot does not establish sustained scrolling smoothness, successful decoding of all 786 files, resize behaviour over time, memory/GPU measurements, or a new L002a session-restoration test. Those checks remain separate from the earlier L001 restart confirmation and the passing L002a automated cross-process session tests. Fractional scaling, GNOME dialog integration and native Wayland remain outside this evidence.
+
+This record is a documentation-only update to linux/VALIDATION.md. No application code, dependencies, session schema, Windows source or Windows branch is changed by this update, and no new manual or automated test result is claimed. The next planned implementation area remains image-viewer zoom/pan and controls, retaining browser and session regressions.
