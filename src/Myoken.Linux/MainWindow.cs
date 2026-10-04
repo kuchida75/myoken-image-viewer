@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
@@ -17,9 +18,9 @@ internal sealed partial class MainWindow : Window
     private readonly TextBlock _status = new() { Margin = new Thickness(8), TextWrapping = TextWrapping.Wrap };
     private readonly FolderTree _folders = new();
     private readonly VirtualThumbnailBrowser _thumbnails = new();
-    private readonly TabControl _tabs = new();
-    private readonly ObservableCollection<TabItem> _tabItems = new();
-    private readonly TabItem _browser = new() { Header = "Browser" };
+    private readonly DocumentTabs _tabs = new();
+    private readonly ObservableCollection<DocumentTab> _tabItems = new();
+    private readonly DocumentTab _browser;
     private readonly DispatcherTimer _saveTimer = new() { Interval = TimeSpan.FromSeconds(2) };
     private CancellationTokenSource? _browseCts;
     private SessionStore? _sessions;
@@ -31,7 +32,7 @@ internal sealed partial class MainWindow : Window
 
     public MainWindow()
     {
-        Title = "Myoken Ubuntu/GNOME - Linux preview L002b";
+        Title = "Myoken Ubuntu/GNOME - Linux preview L002c1";
         Width = 1200; Height = 820; MinWidth = 820; MinHeight = 480;
         var root = new DockPanel();
         var toolbar = new DockPanel { Margin = new Thickness(8), LastChildFill = true };
@@ -51,8 +52,8 @@ internal sealed partial class MainWindow : Window
         var splitter = new GridSplitter { Width = 6, HorizontalAlignment = HorizontalAlignment.Stretch };
         Grid.SetColumn(splitter, 1); browserGrid.Children.Add(splitter);
         Grid.SetColumn(_thumbnails, 2); browserGrid.Children.Add(_thumbnails);
-        _browser.Content = browserGrid;
-        _tabItems.Add(_browser); _tabs.ItemsSource = _tabItems; _tabs.SelectedItem = _browser;
+        _browser = new DocumentTab { Content = browserGrid };
+        _tabItems.Add(_browser); _tabs.Bind(_tabItems, _browser);
         root.Children.Add(_tabs); Content = root;
 
         _path.KeyDown += async (_, e) =>
@@ -61,17 +62,32 @@ internal sealed partial class MainWindow : Window
         };
         _folders.FolderSelected += path => { _ = NavigateAsync(path); };
         _thumbnails.ImageActivated += path => { _tabs.SelectedItem = AddImageTab(path); _dirty = true; };
-        _tabs.SelectionChanged += async (_, e) =>
+        _tabs.SelectionChanged += async (_, _) =>
         {
-            if (ReferenceEquals(e.Source, _tabs) && !_starting)
-            { _dirty = true; await ShowSelectedImageAsync(); }
+            if (!_starting && !_closed) { _dirty = true; await ShowSelectedImageAsync(); }
         };
+        _tabs.CloseRequested += CloseTab;
+        // Tunnel before a text box or image control can consume the tab chord.
+        AddHandler(KeyDownEvent, (_, e) =>
+        {
+            var modifiers = e.KeyModifiers;
+            if (!modifiers.HasFlag(KeyModifiers.Control)
+                || modifiers.HasFlag(KeyModifiers.Alt) || modifiers.HasFlag(KeyModifiers.Meta)) return;
+            if (e.Key == Key.Tab)
+            {
+                e.Handled = true; _tabs.Cycle(modifiers.HasFlag(KeyModifiers.Shift) ? -1 : 1);
+            }
+            else if (e.Key == Key.W && !modifiers.HasFlag(KeyModifiers.Shift))
+            {
+                e.Handled = true;
+                if (_tabs.SelectedItem is DocumentTab tab && tab != _browser)
+                { CloseTab(tab); _tabs.FocusSelectedHeader(); }
+            }
+        }, RoutingStrategies.Tunnel);
         KeyDown += async (_, e) =>
         {
             if (e.Key == Key.F11)
             { WindowState = WindowState == WindowState.FullScreen ? WindowState.Normal : WindowState.FullScreen; e.Handled = true; }
-            else if (e.Key == Key.W && e.KeyModifiers.HasFlag(KeyModifiers.Control) && _tabs.SelectedItem is TabItem tab && tab != _browser)
-            { CloseTab(tab); e.Handled = true; }
             else if (e.Key == Key.L && e.KeyModifiers.HasFlag(KeyModifiers.Control))
             { _path.Focus(); _path.SelectAll(); e.Handled = true; }
             else if (e.Key == Key.F5)
@@ -85,7 +101,7 @@ internal sealed partial class MainWindow : Window
         Closed += (_, _) =>
         {
             _closed = true; _saveTimer.Stop(); SaveSession(); Cancel(ref _browseCts);
-            _thumbnails.Dispose(); _folders.Dispose();
+            _tabs.Dispose(); _thumbnails.Dispose(); _folders.Dispose();
             foreach (var tab in _tabItems) (tab.Content as ImageViewer)?.Dispose();
             _sessions?.Dispose();
         };
@@ -121,7 +137,7 @@ internal sealed partial class MainWindow : Window
             if (string.IsNullOrWhiteSpace(start) || !Directory.Exists(start))
                 start = Directory.Exists(Path.Combine(Home, "Pictures")) ? Path.Combine(Home, "Pictures") : Home;
             await NavigateAsync(start);
-            _tabs.SelectedItem = _tabItems.FirstOrDefault(t => t.Tag is string p && StringComparer.Ordinal.Equals(p, state.ActiveImagePath)) ?? _browser;
+            _tabs.SelectedItem = _tabItems.FirstOrDefault(t => t.Path != null && StringComparer.Ordinal.Equals(t.Path, state.ActiveImagePath)) ?? _browser;
             _starting = false;
             await ShowSelectedImageAsync();
             _dirty = true; _saveTimer.Start();
@@ -185,32 +201,22 @@ internal sealed partial class MainWindow : Window
             }
         }
     }
-    private TabItem AddImageTab(string path)
+    private DocumentTab AddImageTab(string path)
     {
         path = Path.GetFullPath(path);
-        var existing = _tabItems.FirstOrDefault(t => t.Tag is string p && StringComparer.Ordinal.Equals(p, path));
+        var existing = _tabItems.FirstOrDefault(t => StringComparer.Ordinal.Equals(t.Path, path));
         if (existing != null) return existing;
         var viewer = new ImageViewer(path);
-        var tab = new TabItem { Tag = path, Content = viewer };
+        var tab = new DocumentTab { Path = path, Content = viewer };
         viewer.StatusChanged += () =>
         {
             if (!_closed && ReferenceEquals(_tabs.SelectedItem, tab)) Status(viewer.StatusText);
         };
-        var header = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-        header.Children.Add(new TextBlock
-        {
-            Text = ThumbnailLayout.TabCaption(Path.GetFileName(path)), MaxWidth = 240,
-            TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, FontSize = 14
-        });
-        var close = new Button { Content = "×", Padding = new Thickness(5, 0) };
-        close.Click += (_, e) => { e.Handled = true; CloseTab(tab); };
-        header.Children.Add(close); tab.Header = header;
-        ToolTip.SetTip(header, path); ToolTip.SetTip(tab, path);
         _tabItems.Add(tab); return tab;
     }
     private async Task ShowSelectedImageAsync()
     {
-        var selected = _tabs.SelectedItem as TabItem;
+        var selected = _tabs.SelectedItem;
         foreach (var tab in _tabItems)
             if (tab != selected) (tab.Content as ImageViewer)?.Suspend();
         _thumbnails.SetActive(ReferenceEquals(selected, _browser));
@@ -220,9 +226,9 @@ internal sealed partial class MainWindow : Window
         await viewer.ActivateAsync();
         if (!_closed && ReferenceEquals(_tabs.SelectedItem, selected)) Status(viewer.StatusText);
     }
-    private void CloseTab(TabItem tab)
+    private void CloseTab(DocumentTab tab)
     {
-        if (tab == _browser) return;
+        if (tab == _browser || !_tabItems.Contains(tab)) return;
         (tab.Content as ImageViewer)?.Dispose();
         _tabItems.Remove(tab); _dirty = true;
         if (_tabs.SelectedItem == null) _tabs.SelectedItem = _browser;
@@ -235,8 +241,8 @@ internal sealed partial class MainWindow : Window
             _sessions.Save(new SessionState
             {
                 FolderPath = _folder,
-                ImagePaths = _tabItems.Where(t => t.Tag is string).Select(t => (string)t.Tag!).ToList(),
-                ActiveImagePath = (_tabs.SelectedItem as TabItem)?.Tag as string
+                ImagePaths = _tabItems.Where(t => t.Path != null).Select(t => t.Path!).ToList(),
+                ActiveImagePath = _tabs.SelectedItem?.Path
             });
             _dirty = false;
         }

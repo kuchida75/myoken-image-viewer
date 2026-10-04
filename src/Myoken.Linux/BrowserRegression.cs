@@ -23,7 +23,7 @@ internal sealed partial class MainWindow
             await Task.Delay(30);
         }
     }
-    private async Task SelectForTestAsync(TabItem tab)
+    private async Task SelectForTestAsync(DocumentTab tab)
     {
         _starting = true; _tabs.SelectedItem = tab; _starting = false; _dirty = true;
         await ShowSelectedImageAsync();
@@ -45,10 +45,12 @@ internal sealed partial class MainWindow
         if (mode == "--restore-test")
         {
             CheckUi(StringComparer.Ordinal.Equals(folder, Program.ExpectedTestFolder), "folder restored in second process without a path override");
-            CheckUi(_tabItems.Skip(1).Select(t => t.Tag as string).SequenceEqual(new[] { originals[0], originals[2] }),
+            CheckUi(_tabItems.Skip(1).Select(t => t.Path).SequenceEqual(new[] { originals[0], originals[2] }),
                 "second process restores exact tab order and excludes closed tab");
-            CheckUi((_tabs.SelectedItem as TabItem)?.Tag as string == originals[2], "second process restores active image tab");
-            CheckUi((_tabs.SelectedItem as TabItem)?.Content is ImageViewer { HasImage: true }, "restored active image decoded");
+            CheckUi(_tabs.SelectedItem?.Path == originals[2], "second process restores active image tab");
+            CheckUi(_tabs.SelectedItem?.Content is ImageViewer { HasImage: true }, "restored active image decoded");
+            await WaitUiAsync(() => _tabs.SelectedHeaderVisible, "restored tab header was not revealed");
+            CheckUi(_tabs.HeadersShareRow && _tabs.ContentTop == 44, "restored tabs retain the fixed single-row strip");
             await SelectForTestAsync(_browser);
             CheckUi(_status.Text == $"{originals.Length:N0} images in {folder}", "returning to Browser restores folder/count status");
             Console.WriteLine("PASS: cross-process UI session regression");
@@ -101,6 +103,7 @@ internal sealed partial class MainWindow
             await WaitUiAsync(() => _thumbnails.LoadedCount > 0, "thumbnails did not recover after navigation");
             await _thumbnails.WaitForLoadsAsync();
             CaptureForTest("browser-tree");
+            await RunTabStripChecksAsync(folder);
             await RunViewerChecksAsync(folder);
             await SelectForTestAsync(_browser);
         }
@@ -108,13 +111,14 @@ internal sealed partial class MainWindow
         _thumbnails.ScrollToIndex(0);
         await WaitUiAsync(() => _thumbnails.FirstRealized == 0 && _thumbnails.LoadedCount > 0, "first thumbnail unavailable");
         _thumbnails.ActivateForTest(0);
-        await WaitUiAsync(() => (_tabs.SelectedItem as TabItem)?.Content is ImageViewer { HasImage: true }, "thumbnail click did not open image");
+        await WaitUiAsync(() => _tabs.SelectedItem?.Content is ImageViewer { HasImage: true }, "thumbnail click did not open image");
         CheckUi(_thumbnails.RealizedCount == 0, "hidden browser releases thumbnail bitmaps and controls");
         var first = AddImageTab(originals[0]);
         var second = AddImageTab(originals[1]);
         var third = AddImageTab(originals[2]);
         CheckUi(ReferenceEquals(first, AddImageTab(originals[0])), "one tab per exact Linux path");
-        CloseTab(second);
+        _tabs.CloseButtonFor(second).RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        CheckUi(!_tabItems.Contains(second), "close-button route removes only the requested tab");
         await SelectForTestAsync(third);
         CheckUi(third.Content is ImageViewer { HasImage: true }, "selected image preview decoded");
         CaptureForTest("image-preview");
