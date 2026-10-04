@@ -112,7 +112,11 @@ internal sealed partial class MainWindow
         await WaitUiAsync(() => _thumbnails.FirstRealized == 0 && _thumbnails.LoadedCount > 0, "first thumbnail unavailable");
         _thumbnails.ActivateForTest(0);
         await WaitUiAsync(() => _tabs.SelectedItem?.Content is ImageViewer { HasImage: true }, "thumbnail click did not open image");
-        CheckUi(_thumbnails.RealizedCount == 0, "hidden browser releases thumbnail bitmaps and controls");
+        CheckUi(_thumbnails.RealizedCount == 0, "hidden browser releases thumbnail controls");
+        await WaitUiAsync(() => _thumbnails.Cache.Snapshot.Memory.OutstandingLeases == 0, "hidden browser leaked thumbnail leases");
+        var memory = _thumbnails.Cache.Snapshot.Memory;
+        CheckUi(memory.LiveBytes == memory.RetainedBytes && memory.RetainedBytes <= memory.BudgetBytes,
+            "hidden browser releases tile leases, retaining only bounded reusable cache ownership");
         var first = AddImageTab(originals[0]);
         var second = AddImageTab(originals[1]);
         var third = AddImageTab(originals[2]);
