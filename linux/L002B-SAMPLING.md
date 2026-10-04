@@ -1,6 +1,6 @@
 # L002b sampling correction
 
-Status: candidate source and regression tests authored; compilation and CI results must be verified before advancing linux/ubuntu-gnome. Native Nova validation of this patch is pending.
+Status: source compilation, rendered-pixel sampling checks and all existing core/browser/viewer/session regressions passed in Ubuntu CI. Native Nova validation of this patch is pending. The user confirmed dragging and per-tab viewing-position restoration in the preceding L002b build.
 
 ## User report and diagnosis - 4 October 2026
 
@@ -12,18 +12,32 @@ The source at 731e359 selected BitmapInterpolationMode.None for every View.Zoom 
 
 Linux version 0.1.0-alpha.3.1 retains the L002b window title and adds a Smooth/Pixels button to image tabs. Smooth is the default for scaled viewing, with HighQuality interpolation applied directly around DrawImage. Full-resolution 100% uses unfiltered 1:1 render-target mapping; a reduced preview at source zoom 100% is not misidentified as exact 1:1. Pixels explicitly opts into nearest-neighbour enlargement above 100%; minification remains filtered. Sampling is evaluated on every draw, including when original-resolution pixels replace a reduced preview.
 
-The button shows the current mode and toggles it without resetting zoom/pan or re-decoding the same bitmap. Mode selection is per tab and retained across in-process tab switching, not across application restart. It does not edit any source image or introduce AI upscaling. Smoothing reduces hard blocks but cannot recreate detail absent from a low-resolution screenshot.
+The button shows the current mode and toggles it without resetting zoom/pan or re-decoding the same bitmap. Mode selection is per tab and retained across in-process tab switching, not across application restart. It does not edit any source image or introduce AI upscaling. Smoothing reduces hard blocks but cannot recreate detail absent from a low-resolution screenshot. Full resolution describes decoded source detail, not new detail invented above 100% zoom.
 
 The toolbar hint wraps in the remaining width rather than overflowing when the new control is added. The browser, pointer/pan geometry, decoding limits/gates, dependency versions, portable core and session schema/location are unchanged. Windows/WPF/main and Windows profiles are outside this patch.
 
-## Regression coverage
+## Completed automated validation - 4 October 2026
 
-The existing guarded X11 suite now renders a generated 16x16 black/white checkerboard at 176.8%, 200% and 800%, and reads back pixels to distinguish actual smooth interpolation from nearest-neighbour blocks. A separate 100% render compares every source pixel. Reduced-preview/full-source transitions and minification policy are checked. No user images are used.
+Tested source: f8994de75e0491a059855ef57d5e44243bbaae40.
 
-The live viewer checks exercise the Smooth/Pixels button route, preservation of geometry and bitmap identity, independent defaults on other tabs and mode retention after hidden-tab reload. All original pointer/drag, source-resolution upgrade, browser and fresh-process session tests remain mandatory. The same linux/check.sh and linux/smoke.sh commands run these checks; no new test dependencies are introduced.
+Passing GitHub Actions run: https://github.com/kuchida75/myoken-image-viewer/actions/runs/37232234047
+
+Job: 111524211122. Runner reported Ubuntu 24.04.5, .NET SDK 10.0.401. Completed job steps and logs were read before promoting the patch. Tests ran on GitHub Actions, not on the user's computer or in the assistant's container. The final documentation commit changes only this file, README.md and VALIDATION.md; the application/test source remains the passing revision above.
+
+Executed commands: bash linux/check.sh and bash linux/smoke.sh.
+
+- Windows isolation, compilation, original core/session tests, 600 browser viewport combinations and directory checks, and 60 viewer geometry/scale combinations passed. Compilation had zero errors and the one pre-existing obsolete Bitmap.Save warning in BrowserRegression.cs.
+- New rendering tests generated a 16x16 black/white checkerboard and rendered it through ImageSurface at 176.8%, 200% and 800%. Each sampled 12x12 interior region contained 144 blended samples in Smooth versus 0 in Pixels. This checks actual output pixels, not only a configuration enum.
+- At 100%, all 256 source pixels matched the rendered fixture. Reduced-preview/full-source transitions and filtered minification passed.
+- The live viewer's Smooth/Pixels button route changed neither zoom/pan nor decoded bitmap identity. New tabs defaulted independently to Smooth; the selected mode survived in-process tab switching. Existing wheel-anchor, drag/capture/release, full-resolution upgrade, cancellation, corrupted-image and view-position checks passed.
+- Continuous browser scrolling, resize, tree navigation, hidden-view resource release and the fresh-process folder/ordered-tab/active-tab/closed-tab-exclusion regression passed.
+
+Six generated-fixture screenshots were uploaded by CI, including Smooth and Pixels sampling fixtures. No user images or sessions were used. Pixel equality at 100% applies to the tested render target, not guaranteed physical monitor-pixel parity after GNOME/XWayland scaling. These automated checks do not establish the appearance of the user's screenshot on Nova or performance with large images.
 
 ## Nova acceptance
 
-Close Myoken normally, update the clean linux/ubuntu-gnome checkout, run bash linux/check.sh, and launch bash linux/run.sh. Do not upgrade Ubuntu, drivers or Python packages for this patch. Use the same screenshot at approximately 176.8%, leave Smooth selected and toggle Pixels for a direct comparison without changing viewing position. Check 100%, pan and switching away/back. Full-resolution status describes decoded source detail; it does not mean new detail is invented when magnifying beyond 100%.
+Close Myoken normally, update the clean linux/ubuntu-gnome checkout using the guarded README block, run bash linux/check.sh, and launch bash linux/run.sh. No new APT packages, Ubuntu/driver updates or Python changes are required. The title still says L002b; the new Smooth/Pixels button identifies the patch.
 
-Reference: https://docs.avaloniaui.net/docs/graphics-animation/image-interpolation and https://docs.avaloniaui.net/docs/how-to/image-how-to describe the distinct interpolation modes. Actual Myoken validation must be based on completed tests and the user's desktop report, not documentation alone.
+Use the same screenshot at approximately 176.8%, leave Smooth selected and toggle Pixels for a direct comparison without changing viewing position. Check 100%, pan and switching away/back. Smoother edges are expected; extra original detail is not. The user's new desktop result must be recorded separately from this passing CI run.
+
+Reference: https://docs.avaloniaui.net/docs/graphics-animation/image-interpolation and https://docs.avaloniaui.net/docs/how-to/image-how-to describe the distinct interpolation modes. Actual Myoken validation is based on completed tests and user reports, not documentation alone.
