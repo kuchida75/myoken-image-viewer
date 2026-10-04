@@ -54,3 +54,19 @@ Continue using the separate native-Linux checkout and Linux scripts. Preserve Wi
 - Capture the local source revision and `bash linux/check.sh` result when completing the full acceptance record.
 
 L001 status: initial source compilation and CI passed; user-confirmed native Ubuntu launch, thumbnail display, multiple image tabs and tab restoration now recorded. Full desktop acceptance remains partial. Do not mark advanced codecs, GPU decoding, large-folder performance, full-resolution zoom/pan, metadata parity or filesystem integration as implemented. Native Wayland remains a separate evaluation.
+
+## L002a automated browser/session validation - 4 October 2026
+
+Tested application/test-source commit: `2d80fe2ab408fd7464bfdb82e21e45feb48836ac`.
+
+Passing GitHub Actions run: https://github.com/kuchida75/myoken-image-viewer/actions/runs/37211980804
+
+Job `111464851149` completed successfully on an Ubuntu 24.04.5 x64 runner using .NET SDK 10.0.401. Its completed logs were reviewed. `bash linux/check.sh` passed isolation, compilation, the original sorting/session checks and 600 viewport combinations plus directory/path/cancellation tests. Compilation had zero errors and two obsolete-API warnings (TextBox.Watermark and the screenshot helper's Bitmap.Save overload).
+
+`bash linux/smoke.sh` passed the real-X11-window integration checks under Xvfb: continuous scrolling beyond the former page limit, final-image decoding, resize reflow, bounded tile realisation with a synthetic 100k path list, corrupt/missing images, stale-load cancellation, tree ancestor retention, rapid navigation, thumbnail activation, tab deduplication, hidden-browser resource release and image preview decoding. A second process restored the folder without a command-line override, exact tab order and active image, excluded the closed tab, and refreshed the Browser folder/count status.
+
+The synthetic 100k test reused 120 generated PNG paths and reported 25-30 live tiles for its tested viewport. It is not a real 100k-unique-image throughput, GPU or memory benchmark. CI uploaded three generated-fixture screenshots; these were not a human GNOME visual review. No user images or session data were used.
+
+The candidate diff against Windows v0.2.167 contained additions only: no pre-existing baseline file was changed/deleted. The follow-up recording these results changes only linux/L002A.md and this validation document; application/test sources remain at the passing revision. Windows UI/build/version files, dependency versions and the session schema are not changed by L002a.
+
+L002a status: automated checks passed; the new tree/continuous-grid implementation awaits user validation on Nova. The earlier L001 user report is preserved above and is not relabelled as acceptance of the new UI. See linux/L002A.md for exact coverage, limitations and safe update/acceptance steps.
