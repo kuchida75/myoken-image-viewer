@@ -37,11 +37,11 @@ internal sealed partial class MainWindow : Window
         var root = new DockPanel();
         var toolbar = new DockPanel { Margin = new Thickness(8), LastChildFill = true };
         var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-        actions.Children.Add(Button("Home", async () => await NavigateAsync(Home)));
-        actions.Children.Add(Button("Up", async () => await NavigateAsync(Directory.GetParent(_folder)?.FullName ?? _folder)));
-        actions.Children.Add(Button("Choose folder", PickFolderAsync));
-        actions.Children.Add(Button("Refresh", RefreshAsync));
-        actions.Children.Add(Button("Go", async () => await NavigateAsync(_path.Text ?? string.Empty)));
+        actions.Children.Add(ActionButton("Home", async () => await NavigateAsync(Home)));
+        actions.Children.Add(ActionButton("Up", async () => await NavigateAsync(Directory.GetParent(_folder)?.FullName ?? _folder)));
+        actions.Children.Add(ActionButton("Choose folder", PickFolderAsync));
+        actions.Children.Add(ActionButton("Refresh", RefreshAsync));
+        actions.Children.Add(ActionButton("Go", async () => await NavigateAsync(_path.Text ?? string.Empty)));
         DockPanel.SetDock(actions, Dock.Left); toolbar.Children.Add(actions);
         _path.Margin = new Thickness(8, 0, 0, 0); toolbar.Children.Add(_path);
         DockPanel.SetDock(toolbar, Dock.Top); root.Children.Add(toolbar);
@@ -108,7 +108,7 @@ internal sealed partial class MainWindow : Window
     }
 
     private static string Home => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-    private Button Button(string text, Func<Task> action)
+    private Button ActionButton(string text, Func<Task> action)
     {
         var button = new Button { Content = text };
         button.Click += async (_, _) =>
