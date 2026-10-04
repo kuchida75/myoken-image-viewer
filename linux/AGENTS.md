@@ -1,21 +1,20 @@
 # Myoken Ubuntu/GNOME development context
 
-Read linux/README.md before Linux work. Continue independently from Windows.
+Read linux/README.md and the current iteration record before work.
 
-## Non-negotiable boundaries
+## Boundaries
 
 - Work on linux/ubuntu-gnome or a Linux feature branch in a separate Linux-filesystem checkout.
-- Windows baseline is v0.2.167 at ea785b3770383278f1a3bf67762d35014e8bda26. Preserve WPF and every existing Windows source/build/version file.
-- Never run Windows build/version-reservation scripts for Linux tasks; do not modify main, merge to main, retag releases or publish binaries without a separate request.
-- Do not read/write Windows profiles. Use case-sensitive ordinal Linux path identity.
-- Core targets netstandard2.0 for future .NET Framework 4.8 compatibility. Do not add Avalonia/WPF/SkiaSharp/Win32/DirectX/CUDA/platform-I/O dependencies to it.
+- Preserve every Windows v0.2.167 file at ea785b3770383278f1a3bf67762d35014e8bda26, WPF, main and Windows profiles. Never run Windows build/version scripts or retag/publish releases for ordinary Linux work.
+- Myoken.Core stays netstandard2.0 without UI/Skia/OS/GPU dependencies. Windows still does not reference it.
+- Preserve case-sensitive Linux path identity and the existing session schema/location.
 
 ## Current iteration
 
-L002a adds a lazy FolderTree and a VirtualThumbnailBrowser pixel-scrolling canvas. It is not a new decoder or session migration. The tree itself is not virtualised, and directory file lists are still fully scanned/sorted off the UI thread. Off-screen/hidden thumbnail controls and bitmaps are disposed; the decoder's two-operation gate remains in force. Do not claim 100k-folder throughput from the synthetic repeated-path UI check.
+L002b: ImageViewer owns active-tab decoding and transient per-tab view state; ImageSurface handles drawing/pointer input; ImageViewport holds pure geometry; ViewerDecodePolicy/ViewerImageLoader enforce source dimensions and output-size guards. Hidden tabs retain geometry, not bitmaps. Source pixels, reduced-preview pixels, DIP units and render-target pixels are distinct; do not equate a stretched preview with full resolution. Zoom/pan is not persisted across restart. Input event positions in tests must use presentation-root coordinates, just like real pointer events.
 
-Keep changes scoped to src/Myoken.Linux, portable policies when warranted, Linux tests/scripts/docs and the Linux CI workflow. Windows still does not reference Myoken.Core.
+L002a tree/continuous thumbnail code remains the browser baseline. The tree is lazy, not virtualised; directory lists are fully scanned/sorted. Do not infer real 100k-folder throughput from repeated fixture paths. Thumbnail and serial viewer decode gates are separate. Output pixel guards do not establish a process-memory limit.
 
-Run bash linux/check.sh, then bash linux/smoke.sh where Xvfb is available. Original core/session tests must keep passing. UI checks use generated fixtures and guarded, isolated state; do not bypass the isolation requirement. The second process must restore its folder from session rather than a command-line override. Manual GNOME acceptance is separate and still required for new UI changes.
+Run bash linux/check.sh, then bash linux/smoke.sh where Xvfb is available. Keep original core/session, browser and fresh-process restoration assertions. Tests must use disposable fixtures and isolated state; no user images/sessions in CI. The restore process must not receive a startup-folder override.
 
-Each handoff should report exact source revision, checks actually completed, files affected, limitations and the next concrete desktop acceptance step. Maintain linux/VALIDATION.md and linux/L002A.md without converting unverified behaviour into a passed test. Preserve the user's confirmed L001 tab-restore result while checking the new iteration separately.
+Report exact source revision, tests actually completed, known limitations and next desktop acceptance step. Maintain validation history in linux/VALIDATION.md and iteration records without turning user screenshots or earlier-version tests into full acceptance of a new build. Do not change main or advance the shared Linux branch over failing CI.

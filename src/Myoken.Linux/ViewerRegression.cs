@@ -31,11 +31,12 @@ internal sealed partial class MainWindow
         var originalX = (anchor.X - viewer.View.X) / viewer.View.Scale;
         var originalY = (anchor.Y - viewer.View.Y) / viewer.View.Scale;
         using var pointer = new Pointer(Pointer.GetNextFreeId(), PointerType.Mouse, true);
-        // Pointer event positions are in the window/presentation-root coordinates,
-        // even when their source is the image surface. Validate the test mapping.
+        // The event position is in the window root, not in the source control.
         var wheel = new PointerWheelEventArgs(surface, pointer, this, Root(anchor), 1,
             new PointerPointProperties(), KeyModifiers.None, new Vector(0, 1));
-        CheckUi((wheel.GetPosition(surface) - anchor).Length < 1e-6, "synthetic input uses correct root-to-surface coordinates");
+        var mapped = wheel.GetPosition(surface);
+        CheckUi(Math.Abs(mapped.X - anchor.X) < 1e-6 && Math.Abs(mapped.Y - anchor.Y) < 1e-6,
+            "synthetic input uses correct root-to-surface coordinates");
         surface.RaiseEvent(wheel);
         CheckUi(wheel.Handled && Math.Abs(viewer.View.Zoom - 1.2) < 1e-9, "wheel event routes to image zoom");
         CheckUi(Math.Abs((anchor.X - viewer.View.X) / viewer.View.Scale - originalX) < 1e-6
