@@ -12,3 +12,4 @@ dotnet build ../src/Myoken.Linux/Myoken.Linux.csproj --configuration Release
 dotnet run --project ../tests/Myoken.Linux.Tests/Myoken.Linux.Tests.csproj --configuration Release
 dotnet run --project ../tests/Myoken.Linux.Browser.Tests/Myoken.Linux.Browser.Tests.csproj --configuration Release
 dotnet run --project ../tests/Myoken.Linux.Viewer.Tests/Myoken.Linux.Viewer.Tests.csproj --configuration Release
+dotnet run --project ../tests/Myoken.Linux.Cache.Tests/Myoken.Linux.Cache.Tests.csproj --configuration Release

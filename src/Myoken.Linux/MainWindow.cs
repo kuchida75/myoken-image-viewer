@@ -32,7 +32,7 @@ internal sealed partial class MainWindow : Window
 
     public MainWindow()
     {
-        Title = "Myoken Ubuntu/GNOME - Linux preview L002c1";
+        Title = "Myoken Ubuntu/GNOME - Linux preview L002c2";
         Width = 1200; Height = 820; MinWidth = 820; MinHeight = 480;
         var root = new DockPanel();
         var toolbar = new DockPanel { Margin = new Thickness(8), LastChildFill = true };
@@ -143,7 +143,9 @@ internal sealed partial class MainWindow : Window
             _dirty = true; _saveTimer.Start();
             if (Program.TestMode != null)
             {
-                _saveTimer.Stop(); await RunUiChecksAsync(Program.TestMode);
+                _saveTimer.Stop();
+                if (Program.TestMode == "--browser-test") await RunThumbnailCacheChecksAsync();
+                await RunUiChecksAsync(Program.TestMode);
                 ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).Shutdown(0);
             }
         }
@@ -162,6 +164,7 @@ internal sealed partial class MainWindow : Window
     }
     private async Task RefreshAsync()
     {
+        _thumbnails.InvalidateCache();
         await _folders.RefreshSelectedAsync();
         await NavigateAsync(string.IsNullOrEmpty(_folder) ? Home : _folder);
     }

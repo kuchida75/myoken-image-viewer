@@ -10,8 +10,8 @@ using Avalonia.Threading;
 
 namespace Myoken.Linux;
 
-// Pixel-scrolling virtual canvas. Only visible cells plus one row either side own
-// controls/bitmaps. File-path storage and the initial directory sort remain O(n).
+// Visible cells plus overscan own controls and bitmap leases. The bounded cache
+// may retain unused thumbnails, independently of file-path storage (still O(n)).
 internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
 {
     private sealed class Tile : IDisposable
@@ -20,13 +20,14 @@ internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
         public required Button Button { get; init; }
         public required Image Image { get; init; }
         public required TextBlock Caption { get; init; }
+        public LeasedLruCache<ThumbnailKey, Bitmap>.Lease? Thumbnail { get; set; }
         public CancellationTokenSource Cancellation { get; } = new();
         public Task Loading { get; set; } = Task.CompletedTask;
         public bool Failed { get; set; }
         public void Dispose()
         {
             Cancellation.Cancel(); Cancellation.Dispose();
-            var bitmap = Image.Source as Bitmap; Image.Source = null; bitmap?.Dispose();
+            Image.Source = null; Thumbnail?.Dispose(); Thumbnail = null;
         }
     }
 
@@ -43,6 +44,13 @@ internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
         HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
         TextAlignment = TextAlignment.Center, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(24)
     };
+    private readonly ThumbnailCache _cache = new();
+    private readonly TextBlock _cacheInfo = new()
+    {
+        FontSize = 11, Height = 22, Margin = new Thickness(8, 2),
+        TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center
+    };
+    private readonly DispatcherTimer _statsTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private readonly Dictionary<int, Tile> _tiles = new();
     private string[] _files = Array.Empty<string>();
     private ThumbnailRange _range;
@@ -55,16 +63,20 @@ internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
     internal int FirstRealized => _range.First;
     internal int EndRealized => _range.End;
     internal int Columns => _range.Columns;
+    internal ThumbnailCache Cache => _cache;
 
     public VirtualThumbnailBrowser()
     {
         Focusable = true;
         _scroll.Content = _canvas;
-        var grid = new Grid(); grid.Children.Add(_scroll); grid.Children.Add(_empty); Content = grid;
+        var grid = new Grid(); grid.Children.Add(_scroll); grid.Children.Add(_empty);
+        var root = new DockPanel(); DockPanel.SetDock(_cacheInfo, Dock.Bottom);
+        root.Children.Add(_cacheInfo); root.Children.Add(grid); Content = root;
+        _statsTimer.Tick += (_, _) => UpdateCacheInfo();
         _scroll.ScrollChanged += (_, _) => QueueRefresh();
         SizeChanged += (_, _) => QueueRefresh();
-        AttachedToVisualTree += (_, _) => QueueRefresh();
-        DetachedFromVisualTree += (_, _) => Clear();
+        AttachedToVisualTree += (_, _) => { _statsTimer.Start(); UpdateCacheInfo(); QueueRefresh(); };
+        DetachedFromVisualTree += (_, _) => { _statsTimer.Stop(); Clear(); };
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
     }
 
@@ -74,17 +86,29 @@ internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
         Clear(); _files = files; _selected = -1; _range = default;
         _scroll.Offset = default;
         _empty.IsVisible = files.Length == 0;
-        // Update the extent even when hidden, so a formerly empty browser can recover.
         _canvas.Height = ThumbnailLayout.Calculate(files.Length, Math.Max(1, _scroll.Viewport.Width), 0, 0).ExtentHeight;
         QueueRefresh();
     }
-
     public void SetActive(bool active)
     {
         _active = active;
         if (!active) Clear(); else QueueRefresh();
     }
-
+    // Explicit Refresh bypasses even an undetectable same-size/same-mtime edit.
+    public void InvalidateCache()
+    {
+        Clear(); _cache.Clear(); UpdateCacheInfo(); QueueRefresh();
+    }
+    private void UpdateCacheInfo()
+    {
+        var s = _cache.Snapshot; var m = s.Memory;
+        var text = $"Thumb cache: {m.RetainedBytes / 1048576d:0.0}/{m.BudgetBytes / 1048576d:0} MiB est. · Hits {m.Hits:N0} · Decodes {s.DecodeAttempts:N0}";
+        if (_cacheInfo.Text != text) _cacheInfo.Text = text;
+        ToolTip.SetTip(_cacheInfo, $"{m.Entries:N0} cached thumbnails; {m.Misses:N0} lookup misses; {m.Evictions:N0} capacity evictions\n"
+            + $"{m.OutstandingLeases:N0} displayed leases; {(m.LiveBytes - m.RetainedBytes) / 1048576d:0.00} MiB retired but still leased\n"
+            + $"{m.Invalidations:N0} invalidations; {s.StaleResults:N0} changed-during-decode results rejected\n"
+            + "Estimated thumbnail storage, not total process/GPU memory. Counters last until exit. Refresh/F5 clears cached thumbnails.");
+    }
     private void QueueRefresh()
     {
         if (_queued || _disposed) return;
@@ -95,7 +119,6 @@ internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
             if (!_disposed) Refresh();
         }, DispatcherPriority.Background);
     }
-
     private void Refresh()
     {
         if (!_active || _disposed || !IsEffectivelyVisible) return;
@@ -131,7 +154,6 @@ internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
             Canvas.SetTop(tile.Button, (index / range.Columns) * ThumbnailLayout.CellHeight + 4);
         }
     }
-
     private Tile CreateTile(int index)
     {
         var path = _files[index];
@@ -148,14 +170,13 @@ internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
         button.Click += (_, _) => { _selected = index; ImageActivated?.Invoke(path); };
         return new Tile { Path = path, Button = button, Image = image, Caption = caption };
     }
-
     private async Task LoadAsync(Tile tile, CancellationToken token)
     {
         try
         {
-            var bitmap = await ImageDecoder.LoadAsync(tile.Path, 256, token);
-            if (token.IsCancellationRequested || _disposed) { bitmap.Dispose(); return; }
-            tile.Image.Source = bitmap;
+            var lease = await _cache.AcquireAsync(tile.Path, 256, token);
+            if (token.IsCancellationRequested || _disposed) { lease.Dispose(); return; }
+            tile.Thumbnail = lease; tile.Image.Source = lease.Value;
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)
@@ -167,7 +188,6 @@ internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
             }
         }
     }
-
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (_files.Length == 0 || !_active || e.KeyModifiers.HasFlag(KeyModifiers.Alt)) return;
@@ -182,9 +202,7 @@ internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
             Key.Home => 0, Key.End => _files.Length - 1, _ => -1
         };
         if (e.Key is Key.Enter or Key.Space && _selected >= 0)
-        {
-            e.Handled = true; ImageActivated?.Invoke(_files[_selected]); return;
-        }
+        { e.Handled = true; ImageActivated?.Invoke(_files[_selected]); return; }
         if (e.Key is not (Key.Right or Key.Left or Key.Down or Key.Up or Key.PageDown or Key.PageUp or Key.Home or Key.End)) return;
         e.Handled = true; _selected = Math.Clamp(next, 0, _files.Length - 1);
         ScrollToIndex(_selected);
@@ -193,7 +211,6 @@ internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
             if (!_disposed && _tiles.TryGetValue(_selected, out var tile)) tile.Button.Focus();
         }, DispatcherPriority.Background);
     }
-
     internal void ScrollToIndex(int index)
     {
         if (_files.Length == 0) return;
@@ -207,7 +224,6 @@ internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
     }
     internal Task WaitForLoadsAsync() => Task.WhenAll(_tiles.Values.Select(t => t.Loading));
     internal void ActivateForTest(int index) => _tiles[index].Button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-
     private void Clear()
     {
         _canvas.Children.Clear();
@@ -217,6 +233,6 @@ internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
     public void Dispose()
     {
         if (_disposed) return;
-        _disposed = true; Clear();
+        _disposed = true; _statsTimer.Stop(); Clear(); _cache.Dispose();
     }
 }

@@ -9,6 +9,7 @@ on:
       - 'tests/Myoken.Linux.Tests/**'
       - 'tests/Myoken.Linux.Browser.Tests/**'
       - 'tests/Myoken.Linux.Viewer.Tests/**'
+      - 'tests/Myoken.Linux.Cache.Tests/**'
       - '.github/workflows/myoken-linux.yml'
   pull_request:
     branches: ['linux/ubuntu-gnome']
@@ -28,11 +29,11 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Check isolation, compile and run core/session/browser/viewer policy checks
+      - name: Check isolation, compile and run core/session/browser/viewer/cache policy checks
         run: bash linux/check.sh
       - name: Install headless display dependencies
         run: sudo apt-get update && sudo apt-get install -y xvfb libx11-6 libice6 libsm6 libfontconfig1 libxrandr2 libxi6 libxcursor1 libgl1
-      - name: Run X11 browser, viewer and fresh-process session regressions
+      - name: Run X11 cache, browser, viewer and fresh-process session regressions
         env:
           MYOKEN_TEST_OUTPUT: '${{ github.workspace }}/artifacts/linux-ui'
         run: bash linux/smoke.sh
