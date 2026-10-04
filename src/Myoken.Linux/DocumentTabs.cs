@@ -279,7 +279,12 @@ internal sealed class DocumentTabs : UserControl, IDisposable
     internal ContextMenu OpenTabsMenu => _menu;
     internal ScrollViewer HeaderScroll => _scroll;
     internal double ContentTop => _content.Bounds.Top;
-    internal bool HeadersShareRow => _headers.Values.All(h => Math.Abs(h.Bounds.Top) < 0.01 && h.Bounds.Height <= 34.01);
+    // Explicit-height headers are centred by layout within the slightly taller row.
+    // Test their common baseline and containment, not an assumed zero top offset.
+    internal bool HeadersShareRow => _headers.Count == 0 || _headers.Values.All(h => h.IsArrangeValid
+        && Math.Abs(h.Bounds.Top - _headers.Values.First().Bounds.Top) < 0.01
+        && h.Bounds.Top >= 0 && h.Bounds.Bottom <= _scroll.Viewport.Height + 0.01
+        && Math.Abs(h.Bounds.Height - 34) < 0.01);
     internal bool SelectedHeaderVisible => ReferenceEquals(_selected, _browser)
         || (_selected != null && _headers.TryGetValue(_selected, out var h) && h.Bounds.Width > 0
             && h.Bounds.Left >= _scroll.Offset.X - 0.5 && h.Bounds.Right <= _scroll.Offset.X + _scroll.Viewport.Width + 0.5);
