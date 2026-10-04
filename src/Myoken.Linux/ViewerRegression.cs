@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Media.Imaging;
 
 namespace Myoken.Linux;
 
@@ -8,6 +9,7 @@ internal sealed partial class MainWindow
 {
     private async Task RunViewerChecksAsync(string folder)
     {
+        RunSamplingRenderChecks();
         var largePath = Path.GetFullPath(Path.Combine(folder, "..", "large.png"));
         using (var detached = new ImageViewer(largePath))
         {
@@ -26,6 +28,7 @@ internal sealed partial class MainWindow
             "100% maps source pixels to application render-target pixels");
 
         var surface = viewer.Surface;
+        CheckUi(!surface.PixelMode && surface.SamplingMode == BitmapInterpolationMode.None, "default Smooth preserves full-resolution 1:1 sampling");
         var anchor = new Point(viewer.View.Width * 0.4, viewer.View.Height * 0.4);
         Point Root(Point point) => surface.TranslatePoint(point, this) ?? throw new InvalidOperationException("Detached test surface.");
         var originalX = (anchor.X - viewer.View.X) / viewer.View.Scale;
@@ -41,6 +44,14 @@ internal sealed partial class MainWindow
         CheckUi(wheel.Handled && Math.Abs(viewer.View.Zoom - 1.2) < 1e-9, "wheel event routes to image zoom");
         CheckUi(Math.Abs((anchor.X - viewer.View.X) / viewer.View.Scale - originalX) < 1e-6
             && Math.Abs((anchor.Y - viewer.View.Y) / viewer.View.Scale - originalY) < 1e-6, "wheel zoom keeps cursor's source point anchored away from edges");
+        CheckUi(surface.SamplingMode == BitmapInterpolationMode.HighQuality, "wheel enlargement defaults to smooth resampling");
+        var sampleX = viewer.View.X; var sampleY = viewer.View.Y; var sampleZoom = viewer.View.Zoom; var pixels = surface.Bitmap;
+        viewer.InvokeSamplingButton();
+        CheckUi(surface.PixelMode && surface.SamplingMode == BitmapInterpolationMode.None, "Pixels button explicitly selects nearest-neighbour enlargement");
+        viewer.InvokeSamplingButton();
+        CheckUi(!surface.PixelMode && surface.SamplingMode == BitmapInterpolationMode.HighQuality
+            && viewer.View.Zoom == sampleZoom && viewer.View.X == sampleX && viewer.View.Y == sampleY && ReferenceEquals(pixels, surface.Bitmap),
+            "sampling toggle changes neither view geometry nor decoded bitmap");
 
         var beforeX = viewer.View.X; var beforeY = viewer.View.Y;
         var pressed = new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed);
@@ -57,12 +68,16 @@ internal sealed partial class MainWindow
         viewer.RaiseEvent(new KeyEventArgs { RoutedEvent = KeyDownEvent, Key = Key.Down });
         var zoom = viewer.View.Zoom; var x = viewer.View.X; var y = viewer.View.Y;
         CaptureForTest("viewer-zoom-pan");
+        viewer.InvokeSamplingButton();
         var other = AddImageTab(_files[1]); await SelectForTestAsync(other);
         CheckUi(!viewer.HasImage && ((ImageViewer)other.Content!).View.IsFit, "inactive tab releases bitmap and another tab starts with independent Fit state");
+        CheckUi(!((ImageViewer)other.Content!).Surface.PixelMode, "new image tabs independently default to Smooth");
         await SelectForTestAsync(tab);
         await WaitUiAsync(() => viewer.IsFullResolution, "reactivated zoomed tab did not reload source pixels");
         CheckUi(Math.Abs(viewer.View.Zoom - zoom) < 1e-9 && Math.Abs(viewer.View.X - x) < 1e-6
             && Math.Abs(viewer.View.Y - y) < 1e-6, "zoom and pan survive tab switching without retaining hidden bitmaps");
+        CheckUi(surface.PixelMode, "sampling choice survives in-process tab switching");
+        viewer.InvokeSamplingButton();
         viewer.InvokeFitButton();
         CheckUi(viewer.View.IsFit && !viewer.View.CanPan, "Fit button resets zoom and pan");
         await SelectForTestAsync(_browser); await SelectForTestAsync(tab);

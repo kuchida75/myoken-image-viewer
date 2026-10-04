@@ -17,10 +17,26 @@ internal sealed class ImageSurface : Control
     public ImageViewport View { get; } = new();
     // Borrowed from ImageViewer; this surface never disposes image ownership.
     public Bitmap? Bitmap { get; set; }
+    public bool PixelMode { get; private set; }
     public event Action? ViewChanged;
     public event Action? ActualSizeRequested;
     public Func<double, double>? LimitZoom { get; set; }
 
+    // Smooth is the default at both fractional and integer enlargements. Nearest
+    // neighbour is reserved for explicit pixel inspection or genuine 1:1 output.
+    // Evaluate on every draw: a full-resolution upgrade must not leave a stale
+    // preview interpolation mode, and source zoom alone does not imply 1:1 pixels.
+    internal BitmapInterpolationMode SamplingMode =>
+        (PixelMode && View.Zoom > 1) ||
+        (Math.Abs(View.Zoom - 1) < 1e-10 && Bitmap != null
+            && Bitmap.PixelSize.Width == View.SourceWidth && Bitmap.PixelSize.Height == View.SourceHeight)
+        ? BitmapInterpolationMode.None : BitmapInterpolationMode.HighQuality;
+
+    public void SetPixelMode(bool enabled)
+    {
+        if (PixelMode == enabled) return;
+        PixelMode = enabled; NotifyViewChanged();
+    }
     public ImageSurface()
     {
         Focusable = true; ClipToBounds = true; UseLayoutRounding = false;
@@ -47,7 +63,6 @@ internal sealed class ImageSurface : Control
     }
     public void NotifyViewChanged()
     {
-        RenderOptions.SetBitmapInterpolationMode(this, View.Zoom >= 1 ? BitmapInterpolationMode.None : BitmapInterpolationMode.HighQuality);
         Cursor = _dragPointer != null ? DragCursor : View.CanPan ? PanCursor : ArrowCursor;
         InvalidateVisual(); ViewChanged?.Invoke();
     }
@@ -56,6 +71,7 @@ internal sealed class ImageSurface : Control
         base.Render(context);
         context.FillRectangle(Brushes.Transparent, new Rect(Bounds.Size));
         if (Bitmap == null || !View.HasSource) return;
+        using (context.PushRenderOptions(new RenderOptions { BitmapInterpolationMode = SamplingMode }))
         using (context.PushClip(new Rect(Bounds.Size)))
             context.DrawImage(Bitmap, new Rect(Bitmap.Size), new Rect(View.X, View.Y, View.DrawWidth, View.DrawHeight));
     }

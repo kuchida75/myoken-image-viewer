@@ -19,7 +19,7 @@ internal sealed class ImageViewer : UserControl, IDisposable
         TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center,
         Margin = new Thickness(24), IsHitTestVisible = false
     };
-    private readonly Button _fit, _actual, _minus, _plus;
+    private readonly Button _fit, _actual, _minus, _plus, _sampling;
     private ViewerImage? _image;
     private CancellationTokenSource? _loadCts;
     private Task _detailTask = Task.CompletedTask;
@@ -37,6 +37,7 @@ internal sealed class ImageViewer : UserControl, IDisposable
     internal string StatusText => _image == null ? (_message.Text ?? "Opening image…")
         : $"{System.IO.Path.GetFileName(_path)} | {View.SourceWidth} × {View.SourceHeight} | {View.Zoom * 100:0.#}%{(View.IsFit ? " Fit" : "")} | "
             + (IsFullResolution ? "full resolution" : _detailLoading ? "preview — loading full resolution…" : "preview")
+            + (View.Zoom > 1 ? (_surface.PixelMode ? " | pixels" : " | smooth") : "")
             + (string.IsNullOrEmpty(_warning) ? "" : " | " + _warning);
 
     public ImageViewer(string path)
@@ -46,12 +47,18 @@ internal sealed class ImageViewer : UserControl, IDisposable
         _actual = MakeButton("100%", ActualSize, "One source pixel per application render-target pixel (1)");
         _minus = MakeButton("−", () => ZoomBy(1 / 1.2), "Zoom out (−)");
         _plus = MakeButton("+", () => ZoomBy(1.2), "Zoom in (+)");
-        var toolbar = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Margin = new Thickness(8) };
-        toolbar.Children.Add(_fit); toolbar.Children.Add(_actual); toolbar.Children.Add(_minus); toolbar.Children.Add(_plus); toolbar.Children.Add(_zoom);
+        _sampling = MakeButton("Smooth", () => _surface.SetPixelMode(!_surface.PixelMode),
+            "Scaling: click to switch Smooth/Pixels. Pixels shows hard pixel edges when enlarged; 100% stays 1:1 in both modes. No image file is changed.");
+        var controls = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        controls.Children.Add(_fit); controls.Children.Add(_actual); controls.Children.Add(_minus); controls.Children.Add(_plus);
+        controls.Children.Add(_sampling); controls.Children.Add(_zoom);
+        var toolbar = new DockPanel { Margin = new Thickness(8) };
+        DockPanel.SetDock(controls, Dock.Left); toolbar.Children.Add(controls);
         toolbar.Children.Add(new TextBlock
         {
             Text = "Wheel: zoom · Drag: pan · Double-click: Fit/100%",
-            VerticalAlignment = VerticalAlignment.Center, FontSize = 12
+            VerticalAlignment = VerticalAlignment.Center, FontSize = 12,
+            TextWrapping = TextWrapping.Wrap, Margin = new Thickness(8, 0, 0, 0)
         });
         var root = new DockPanel(); DockPanel.SetDock(toolbar, Dock.Top); root.Children.Add(toolbar);
         var area = new Grid { ClipToBounds = true };
@@ -103,7 +110,8 @@ internal sealed class ImageViewer : UserControl, IDisposable
         && generation == _generation && !token.IsCancellationRequested;
     private void UpdateView()
     {
-        _fit.IsEnabled = _minus.IsEnabled = _plus.IsEnabled = _active && HasImage;
+        _fit.IsEnabled = _minus.IsEnabled = _plus.IsEnabled = _sampling.IsEnabled = _active && HasImage;
+        _sampling.Content = _surface.PixelMode ? "Pixels" : "Smooth";
         _actual.IsEnabled = _active && _image != null && ViewerDecodePolicy.CanDecodeFull(_image.Width, _image.Height);
         _message.IsVisible = !HasImage;
         _zoom.Text = HasImage ? $"{View.Zoom * 100:0.#}%{(View.IsFit ? " · Fit" : "")}{(IsFullResolution ? "" : " · preview")}" : "";
@@ -150,6 +158,7 @@ internal sealed class ImageViewer : UserControl, IDisposable
     internal void ZoomBy(double factor) => _surface.ZoomAt(View.Zoom * factor, new Point(View.Width / 2, View.Height / 2));
     internal void InvokeActualSizeButton() => _actual.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
     internal void InvokeFitButton() => _fit.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+    internal void InvokeSamplingButton() => _sampling.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
     private void OnViewerKeyDown(object? sender, KeyEventArgs e)
     {
         if (!_active || !HasImage || e.KeyModifiers.HasFlag(KeyModifiers.Control)
