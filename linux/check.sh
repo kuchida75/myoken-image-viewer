@@ -10,3 +10,4 @@ if ! command -v dotnet >/dev/null 2>&1; then
 fi
 dotnet build ../src/Myoken.Linux/Myoken.Linux.csproj --configuration Release
 dotnet run --project ../tests/Myoken.Linux.Tests/Myoken.Linux.Tests.csproj --configuration Release
+dotnet run --project ../tests/Myoken.Linux.Browser.Tests/Myoken.Linux.Browser.Tests.csproj --configuration Release
