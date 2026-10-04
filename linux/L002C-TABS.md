@@ -1,6 +1,6 @@
 # L002c1 - single-row document tabs
 
-Status: compilation, original policy/regression suites, new single-row tab-strip/popup/input checks, rendered sampling, viewer and fresh-process restoration checks **passed** on the Ubuntu CI runner. Native Ubuntu/GNOME acceptance of L002c1 remains pending.
+Status: compilation, original policy/regression suites, new single-row tab-strip/popup/input checks, rendered sampling, viewer and fresh-process restoration checks **passed** on the Ubuntu CI runner. The user subsequently reported "all good" from Nova after the tab-strip test request; see the scoped native-desktop record below.
 
 ## Scope and controls
 
@@ -59,3 +59,11 @@ Open eight or more image tabs and narrow the window. Confirm there is no second 
 ## Previous sampling feedback
 
 On 4 October 2026 the user supplied a screenshot with Smooth selected at 189.3%, reporting "much better". This is user-confirmed improvement of the L002b sampling patch on Nova, not evidence of L002c1 acceptance. No user screenshot, file contents or session is copied into this repository or CI.
+
+## Native Nova feedback - 4 October 2026
+
+The user supplied a screenshot titled "Myoken Ubuntu/GNOME - Linux preview L002c1" and reported "all good" in response to the request to check the menu, keyboard switching and middle-click closing. Record this as a positive user acceptance report for the requested tab-strip workflow, not as assistant-executed desktop testing or a separate assertion for every edge case.
+
+The screenshot shows image headers on a single row, Browser and Open tabs remaining accessible, a highlighted active image header, and a displayed image with 100%, full-resolution and smooth status. It does not independently demonstrate popup contents, particular keystrokes, restart behaviour, performance measurements, fractional scaling or accessibility. The exact local commit and SDK/driver versions were not supplied with this report. The screenshot and its image content remain only in the conversation and are not uploaded to this repository or CI.
+
+This feedback update changes this documentation file only. It does not change application source, dependencies, session state, Windows files or main, and no new automated test was run by the assistant for it. Bounded thumbnail RAM caching remains the next planned implementation pass; preview caching and preloading follow separately.
