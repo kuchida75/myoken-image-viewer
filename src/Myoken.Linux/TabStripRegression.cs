@@ -36,11 +36,26 @@ internal sealed partial class MainWindow
             "opening many tab headers does not decode their inactive images");
         CaptureForTest("tabs-overflow-narrow");
 
+        Point Root(Control control, Point point) => control.TranslatePoint(point, this)
+            ?? throw new InvalidOperationException("Detached tab test control.");
+        using var pointer = new Pointer(Pointer.GetNextFreeId(), PointerType.Mouse, true);
+        var scroll = _tabs.HeaderScroll;
+        var offset = scroll.Offset.X;
+        var activeLast = (ImageViewer)documents[^1].Content;
+        var zoomLast = activeLast.View.Zoom;
+        var wheel = new PointerWheelEventArgs(scroll, pointer, this, Root(scroll, new Point(100, 16)), 1,
+            new PointerPointProperties(), KeyModifiers.None, new Vector(0, 1));
+        scroll.RaiseEvent(wheel);
+        await Task.Delay(50);
+        CheckUi(wheel.Handled && scroll.Offset.X < offset && _tabs.SelectedItem == documents[^1]
+            && activeLast.View.Zoom == zoomLast, "header wheel scrolls horizontally without changing the selected image or its zoom");
+
         // Exercise a visible button's popup and actual MenuItem.Click routing.
         _tabs.OpenTabsButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         await WaitUiAsync(() => _tabs.OpenTabsMenu.IsOpen, "open-tabs popup did not open");
         var entries = _tabs.OpenTabsMenu.Items.Cast<MenuItem>().ToArray();
-        CheckUi(entries.Length == _tabItems.Count, "open-tabs menu includes every image and Browser");
+        CheckUi(entries.Length == _tabItems.Count,
+            $"open-tabs menu includes every image and Browser ({entries.Length}/{_tabItems.Count})");
         var sameNames = entries.Where(m => m.Tag is DocumentTab t && special.Contains(t)).ToArray();
         CheckUi(sameNames.Length == 2 && sameNames.All(m => m.Header is StackPanel p
             && ((TextBlock)p.Children[0]).Text == duplicateName)
@@ -68,16 +83,19 @@ internal sealed partial class MainWindow
         Chord(this, false);
         CheckUi(_tabs.SelectedItem == _browser, "forward tab cycling wraps back to Browser");
 
+        // Reveal the first header before selecting its neighbour so both targets
+        // are visible; never inject a close into a hidden/off-screen header.
+        await SelectForTestAsync(documents[0]);
+        await WaitUiAsync(() => _tabs.SelectedHeaderVisible, "first header not visible for close test");
         await SelectForTestAsync(documents[1]);
         await WaitUiAsync(() => _tabs.SelectedHeaderVisible, "active header not visible for close test");
         var active = (ImageViewer)documents[1].Content;
         var bitmap = active.Surface.Bitmap;
         var header = _tabs.HeaderFor(documents[0]);
-        // First and second tabs fit together in the tested 820-wide window.
+        CheckUi(header.Bounds.Left >= scroll.Offset.X - 0.5
+            && header.Bounds.Right <= scroll.Offset.X + scroll.Viewport.Width + 0.5,
+            "inactive middle-close target is visibly inside the header viewport");
         var point = new Point(header.Bounds.Width / 2, header.Bounds.Height / 2);
-        Point Root(Control control, Point p) => control.TranslatePoint(p, this)
-            ?? throw new InvalidOperationException("Detached tab test control.");
-        using var pointer = new Pointer(Pointer.GetNextFreeId(), PointerType.Mouse, true);
         var pressed = new PointerPointProperties(RawInputModifiers.MiddleMouseButton, PointerUpdateKind.MiddleButtonPressed);
         var released = new PointerPointProperties(RawInputModifiers.None, PointerUpdateKind.MiddleButtonReleased);
         header.RaiseEvent(new PointerPressedEventArgs(header, pointer, this, Root(header, point), 10, pressed, KeyModifiers.None, 1));
