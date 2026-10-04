@@ -86,3 +86,21 @@ Visible in the supplied screenshot:
 Result: native desktop rendering and the initial visual layout of L002a are user-confirmed. A screenshot does not establish sustained scrolling smoothness, successful decoding of all 786 files, resize behaviour over time, memory/GPU measurements, or a new L002a session-restoration test. Those checks remain separate from the earlier L001 restart confirmation and the passing L002a automated cross-process session tests. Fractional scaling, GNOME dialog integration and native Wayland remain outside this evidence.
 
 This record is a documentation-only update to linux/VALIDATION.md. No application code, dependencies, session schema, Windows source or Windows branch is changed by this update, and no new manual or automated test result is claimed. The next planned implementation area remains image-viewer zoom/pan and controls, retaining browser and session regressions.
+
+## L002b automated viewer validation - 4 October 2026
+
+Tested application/test-source commit: `755de9ca5b6ff35e3a355080e738861ea310aa1c`.
+
+Passing GitHub Actions run: https://github.com/kuchida75/myoken-image-viewer/actions/runs/37214121233
+
+Completed job `111471054237` ran on Ubuntu 24.04.5 x64 with .NET SDK 10.0.401. The completed log was reviewed. `bash linux/check.sh` passed Windows isolation, compilation, original sorting/session regressions, browser policies (including 600 viewport combinations), and the new viewer geometry/decode policies (including 60 size/scale combinations). Compilation had zero errors and one obsolete Bitmap.Save warning in the screenshot helper.
+
+`bash linux/smoke.sh` passed the retained X11 browser checks under Xvfb and the new image-viewer integration checks: a 6000x2000 original decoded beyond the 4096-preview limit at 100%; root-coordinate wheel input retained its source-point anchor; pointer capture, drag movement and release passed; inactive tabs released bitmaps while preserving transient zoom/pan; Fit reset the view; cancelled full decodes could not populate hidden tabs; corrupt images left actual-size controls disabled. An unarranged Fit viewport did not trigger a full decode.
+
+The fresh-process regression still restored the folder without a startup-path override, restored ordered tabs and active image, excluded a closed tab, and refreshed Browser status. Zoom/pan values are deliberately not part of the persisted session schema; after application restart, image tabs start in Fit. Full-resolution viewing is guarded at 64 million source pixels, with preview-only handling above that limit and a 120-million-pixel input ceiling. These are not total process/GPU memory limits.
+
+Four generated-fixture screenshots were uploaded by CI; no user data was included. These results establish neither human GNOME visual acceptance nor physical monitor-pixel parity under compositor scaling. The first candidate's synthetic wheel-root assumption and a subsequent test Point API compile mismatch were corrected before this passing run, retaining the affected assertions.
+
+The follow-up documenting this run changes only linux/L002B.md and this file. Windows baseline files, main, shared core, dependency versions and session schema are outside the L002b change. See linux/L002B.md for controls, resource caveats, exact automated coverage and Nova update/test steps.
+
+L002b status: compilation and automated checks passed; native Nova/GNOME viewer acceptance pending. Earlier L001/L002a user confirmations remain scoped to those versions.
