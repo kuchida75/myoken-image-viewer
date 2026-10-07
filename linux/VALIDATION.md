@@ -166,3 +166,22 @@ Priority-gate tests confirmed that a queued selected-image foreground decode is 
 All inherited L002c2 thumbnail-cache and L002c3 preview-cache checks passed, including changed/deleted/corrupt files, eviction/lease safety, cancellation and cache clearing. Existing single-row tab/menu/keyboard/middle-close, Smooth/Pixels rendered output, source-resolution viewing, pointer-centred zoom, drag/pan, full-resolution non-caching and fresh-process folder/tab/session restoration regressions also passed.
 
 L002c4 preloading is process-local, sequential and limited by the existing 512 MiB / 256-entry preview cache. It warms only normal previews of neighbouring **open tabs**; it does not scan ahead through unopened folder images, preload full-resolution bitmaps, add a disk cache or establish a Nova performance improvement. Native Nova responsiveness/acceptance remains pending.
+
+
+## L003a automated EXIF orientation and basic metadata - 7 October 2026
+
+Tested application/test-source commit: `b1a3b7166a27a3312189069610690bf914b5c4a5`.
+
+Passing GitHub Actions run: https://github.com/kuchida75/myoken-image-viewer/actions/runs/37629673905 ; job `112820339136`. The completed Ubuntu job and log were reviewed. `bash linux/check.sh` and `bash linux/smoke.sh` passed. Compilation had zero errors and retained the existing obsolete Bitmap.Save warning in the generated-screenshot helper.
+
+Portable core checks passed EXIF orientation normalization/display naming and axis-swap policy. Real synthetic JPEG fixtures with EXIF Orientation values **1 through 8** then passed both oriented-dimension and four-corner mapping assertions, covering normal, both mirrors, 180°, transpose, 90° CW, transverse and 90° CCW. The thumbnail decoder published oriented dimensions before caching. The viewer used oriented source geometry, while the Info panel exposed display/encoded dimensions and orientation.
+
+The portable MetadataExtractor-based reader correctly extracted the fixture's EXIF orientation, camera make **MYOKEN**, model **L003A** and software field. The lazy Info panel displayed the camera metadata and `Rotate 90° CW (6)` for the orientation-6 fixture. Metadata descriptions are bounded (256 displayed tags, 2048 characters per description); this is a read-only metadata surface, not an editor.
+
+All inherited L002c2 thumbnail-cache, L002c3 preview-cache and L002c4 preload checks passed, as did single-row tabs, rendered Smooth/Pixels/100% assertions, source-resolution viewing, pointer-centred zoom, drag/pan, full-resolution non-caching and fresh-process folder/tab/session restoration.
+
+Earlier L003a candidates were not promoted: CI first exposed a MetadataExtractor extension-method import mismatch, then a viewer-property name collision and Skia overload incompatibility. Those compile issues were corrected without removing the new orientation/metadata assertions. Metadata Refresh semantics were also tightened before the passing run so a visible Info panel can reread after invalidation instead of requiring the tab to be recreated.
+
+The incremental diff from L002c4 changes only Myoken.Core portable orientation/metadata code plus Linux decode/UI/tests/version. A comparison against Windows v0.2.167 found no Windows baseline source/build/version files changed. Myoken.Core adds the **MetadataExtractor 2.9.3** dependency; Windows still does not reference the core project. Distribution packaging must account for third-party licence/notices.
+
+**Colour management is not implemented.** A reported EXIF colour-space value does not imply ICC/profile conversion, and these tests do not establish colour accuracy. HEIC/AVIF/JXL, RAW orientation behaviour, native Wayland, hardware performance and Nova visual acceptance remain outside this automated result.
