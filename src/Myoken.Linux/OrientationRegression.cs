@@ -49,7 +49,7 @@ internal sealed partial class MainWindow
         var viewer = (ImageViewer)tab.Content;
         await WaitUiAsync(() => viewer.HasImage, "oriented viewer fixture failed to load");
         CheckUi(viewer.View.SourceWidth == 30 && viewer.View.SourceHeight == 40
-            && viewer.Orientation == ImageOrientation.RightTop,
+            && viewer.EncodedOrientation == ImageOrientation.RightTop,
             "viewer geometry uses oriented source dimensions");
         viewer.InvokeInfoButton();
         await viewer.MetadataTask.WaitAsync(TimeSpan.FromSeconds(10));
