@@ -4,3 +4,6 @@ Read ../../linux/AGENTS.md and ../../linux/README.md before changes. Preserve th
 
 
 L003c: HEIC/HEIF/AVIF support lives in HeifAvifDecoder and must remain a Linux application dependency. PhotoSauce's NuGet package supplies runtime native libheif binaries; do not make host APT libheif packages a user prerequisite. CI encoder packages are fixture-generation only. Preserve primary-image-only, 8-bit-RGB and native-full-decode-before-resize limitations in reporting. All HEIF-family output must enter the existing sRGB working/cache paths; keep JPEG XL separate.
+
+
+L003d: JPEG XL support lives in JxlDecoder and AdvancedCodecRegistry. PhotoSauce CodecManager is global; register libheif + libjxl together and regression-test coexistence. Runtime libjxl comes from the NuGet package; Ubuntu libjxl-tools is CI fixture-generation only. Preserve first-frame-only JxlDecoderOptions(0..1), 8-bit-output/HDR limitations, alpha preservation, full-native-frame-before-thumbnail caveat and explicit lack of detailed JXL EXIF/XMP panel extraction.

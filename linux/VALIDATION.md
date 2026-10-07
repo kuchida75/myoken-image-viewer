@@ -223,3 +223,26 @@ Runtime scope is intentionally limited. L003c exposes the primary still image on
 A comparison against Windows v0.2.167 found no Windows source/build/version/script changes. Myoken.Core and the Linux session schema are unchanged. L003c adds the Linux-only PhotoSauce libheif package and modifies the Linux CI workflow solely to generate test fixtures.
 
 Distribution must review the codec/native dependency licences and notices. HEVC/HEIC patent-licensing obligations may vary by jurisdiction/distribution. JPEG XL, HEIF sequences/auxiliary images, alpha/high-bit-depth preservation, HDR/tone mapping and native Nova performance remain outside this automated result.
+
+
+## L003d automated JPEG XL decoding - 7 October 2026
+
+Tested application/test-source commit: `6c2d57e900df134adaec108260b2973a9f1e02a7`.
+
+Passing GitHub Actions run: https://github.com/kuchida75/myoken-image-viewer/actions/runs/37645201794 ; job `112874047078`. The completed Ubuntu job and full log were reviewed. `bash linux/check.sh` and `bash linux/smoke.sh` passed. Compilation had zero errors and retained the one pre-existing obsolete Bitmap.Save warning in the generated-screenshot helper.
+
+The CI workflow generated a 64×48 RGBA PNG with four colour quadrants and bottom-right alpha **64**, then encoded it losslessly to a genuine JPEG XL file with Ubuntu's `cjxl` test tool. Myoken's runtime decode used **PhotoSauce.NativeCodecs.Libjxl 0.12.0-preview1** and its bundled Linux libjxl, not Ubuntu's runtime decoder package; `libjxl-tools` exists in CI only to create the fixture.
+
+The JXL fixture passed browser-extension recognition, full first-frame decode at 64×48, expected opaque red-quadrant pixels, and **exact first-frame alpha 64** in the decoded Avalonia bitmap. A 32-pixel-long-edge thumbnail passed through the common ImageDecoder path. A real ImageViewer tab used the expected visual dimensions and Info reported decoder-managed JPEG XL colour plus sRGB working output.
+
+MetadataExtractor 2.9.3 does not expose JPEG XL container EXIF/XMP to the existing portable reader. L003d therefore makes this a controlled Info-panel limitation: JXL Info displays file/image/color data plus an explicit `JPEG XL EXIF/XMP detail extraction is not exposed in this panel yet` note, with no generic metadata parse error.
+
+Switching Browser→JXL reused the existing PreviewCache with no additional preview decode. The new AdvancedCodecRegistry was also exercised by decoding HEIC **after** JPEG XL; the HEIC thumbnail still succeeded, proving libjxl registration does not replace libheif in PhotoSauce's global CodecManager.
+
+All inherited HEIC/AVIF, Display P3→sRGB, EXIF orientation 1-8, thumbnail/preview cache, neighbour preload, single-row tabs, Smooth/Pixels/100%, zoom/pan and fresh-process session checks remained passing.
+
+The first L003d candidate was not promoted because it referenced PhotoSauce's inaccessible internal `MultiFrameDecoderOptions`. Source inspection identified the plugin's public `JxlDecoderOptions`, and the passing revision explicitly uses `new JxlDecoderOptions(0..1)` to retain first-frame-only behavior. No JPEG XL assertion was removed.
+
+Runtime limits: first frame only; no JXL animation playback/page navigation. The current PhotoSauce/libjxl pixel output is 8-bit, so alpha is preserved but >8-bit/HDR precision is not claimed. The decoder materializes a native full frame before downstream resize, so thumbnail requests can have transient native RAM/CPU cost beyond Myoken's retained cache size. Detailed JXL EXIF/XMP bridging remains future work. Myoken uses the plugin only for reading, even though the package also exposes encoding.
+
+A comparison against Windows v0.2.167 found no Windows source/build/version/script changes. Myoken.Core and the Linux session schema are unchanged. L003d adds the Linux-only PhotoSauce libjxl package and CI-only `libjxl-tools` fixture generation. Native Nova acceptance and large real-world JXL performance remain pending.

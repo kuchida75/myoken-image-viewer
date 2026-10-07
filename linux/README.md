@@ -5,7 +5,7 @@ Independent Linux development track in the existing Myoken repository.
 - Development branch: **linux/ubuntu-gnome**; Linux feature branches are checked in CI before a fast-forward update.
 - Windows baseline: **v0.2.167**, commit ea785b3770383278f1a3bf67762d35014e8bda26. Isolation checks are not a claim of GitHub branch-protection settings.
 - Target: Ubuntu 24.04 LTS and newer with GNOME, initially x64.
-- Linux UI: C# / .NET 10 / Avalonia 12.1.2. Current source version: **0.1.0-alpha.10**, window label **L003c**.
+- Linux UI: C# / .NET 10 / Avalonia 12.1.2. Current source version: **0.1.0-alpha.11**, window label **L003d**.
 - Portable core: .NET Standard 2.0, not yet referenced by Windows .NET Framework 4.8/WPF.
 
 ## Isolation contract
@@ -40,6 +40,24 @@ Close Myoken normally first. This block stops on a wrong branch, local changes, 
 
 No new APT packages, Ubuntu release upgrade, NVIDIA/CUDA changes or Python changes are required to update an already-working checkout. Run the viewer as your normal user, never sudo. The first NuGet restore requires network access. For a new machine, install git, dotnet-sdk-10.0, libx11-6, libice6, libsm6, libfontconfig1, libxrandr2, libxi6, libxcursor1, libgl1 and xwayland from configured Ubuntu feeds after reviewing APT's proposal, then clone linux/ubuntu-gnome into a new, separate directory. Do not delete an existing checkout to make cloning succeed.
 
+## L003d JPEG XL decoding
+
+The Linux browser/viewer now recognises **.jxl** files through **PhotoSauce.NativeCodecs.Libjxl 0.12.0-preview1**. Its NuGet package carries libjxl native binaries for Linux glibc x64/arm64, so Nova does **not** need Ubuntu JPEG XL packages for runtime decoding. The CI workflow installs Ubuntu `libjxl-tools` only to generate a disposable real JXL fixture with `cjxl`; it is not a Myoken runtime dependency.
+
+L003d also introduces one process-wide **AdvancedCodecRegistry** that registers both libheif and libjxl together. PhotoSauce's CodecManager is global, so this prevents opening/registering JPEG XL from replacing HEIC/AVIF support, or vice versa.
+
+JPEG XL decoding deliberately selects **frame 0 only** using the public `JxlDecoderOptions(0..1)`. MagicScaler normalises the first frame's EXIF-style orientation, converts the decoder's ICC/profile output into Myoken's SDR **sRGB working space**, preserves first-frame alpha into BGRA32, and then feeds the existing thumbnail/viewer/cache paths. Existing 120-million-input-pixel and 64-million-full-resolution guards apply to the visual first-frame dimensions.
+
+Important limits:
+
+- first frame only; JPEG XL animation is not played or exposed as separate tabs/pages;
+- PhotoSauce/libjxl currently requests **8-bit output**, so alpha is preserved but 10/12/16-bit or HDR precision is not;
+- JPEG XL ICC/color data participates in the decoder-managed sRGB path, but detailed JXL EXIF/XMP boxes are **not yet bridged into Myoken's portable metadata panel**; Info states this explicitly rather than showing a parse error;
+- the decoder materialises a full native frame before Myoken/MagicScaler thumbnail downscaling, so a tiny retained thumbnail can still have larger transient native CPU/RAM cost;
+- Myoken uses the package for decoding only even though the plugin also has encoder support.
+
+The real CI fixture is a lossless 64×48 RGBA JXL. Tests confirm full decode, requested-edge thumbnail, viewer tab, exact alpha value **64**, PreviewCache reuse and that HEIC still decodes after JPEG XL has used the shared codec registry. See **linux/L003D-JPEG-XL.md**.
+
 ## L003c HEIC / HEIF / AVIF decoding
 
 The Linux browser/viewer now recognises **.heic, .heif and .avif** files. These formats use **PhotoSauce.NativeCodecs.Libheif 1.23.5-preview1** as a decode-only plugin. Its NuGet package carries the compatible native libheif decoder stack for Linux x64/arm64, so an already-working Nova checkout does **not** need Ubuntu libheif packages installed just to run Myoken. The CI workflow installs Ubuntu `heif-enc` and encoder plugins only to generate disposable HEIC/AVIF fixtures during testing; they are not application runtime dependencies.
@@ -53,7 +71,7 @@ Important decoder limits in this pass:
 - thumbnail requests still cause libheif to decode the primary image before MagicScaler downsizes it, so large HEIC/AVIF files can have native decode CPU/RAM cost beyond the retained thumbnail-cache budget;
 - output is normalised to SDR sRGB; HDR/tone mapping and monitor-profile output remain outside this milestone.
 
-The codec package is decode-only. Distribution must carry the resolved PhotoSauce/libheif/native dependency notices, and HEVC/HEIC patent-licensing obligations can vary by jurisdiction and distribution model. **JPEG XL remains a separate milestone.**
+The codec package is decode-only. Distribution must carry the resolved PhotoSauce/libheif/native dependency notices, and HEVC/HEIC patent-licensing obligations can vary by jurisdiction and distribution model. JPEG XL is implemented separately in L003d.
 
 See **linux/L003C-HEIC-AVIF.md** for exact automated validation and Nova acceptance.
 
@@ -77,7 +95,7 @@ Image tabs add an **Info** button; with viewer focus, **I** toggles the same sid
 
 Portable metadata DTOs, orientation policy and the metadata reader live in Myoken.Core (netstandard2.0). The reader uses **MetadataExtractor 2.9.3**; UI and pixel transforms remain Linux-specific, so Windows WPF is still untouched and does not yet reference Myoken.Core. Distribution packaging must include the resolved third-party licence/notices.
 
-**L003a itself only added metadata/orientation; L003b adds source-profile-to-sRGB pixel conversion, and L003c adds HEIC/HEIF/AVIF decoding.** Monitor/display-profile output, HDR/tone mapping and full end-to-end colour-management parity remain separate work. JPEG XL remains separate. See **linux/L003A-ORIENTATION-METADATA.md** for exact automated coverage and Nova acceptance.
+**L003a adds metadata/orientation; L003b adds source-profile-to-sRGB pixel conversion; L003c adds HEIC/HEIF/AVIF; L003d adds first-frame JPEG XL.** Monitor/display-profile output, HDR/tone mapping and full end-to-end colour-management parity remain separate work. See **linux/L003A-ORIENTATION-METADATA.md** for exact automated coverage and Nova acceptance.
 
 ## L002c4 low-priority neighbour preloading
 
@@ -135,14 +153,14 @@ A second writer is excluded; corrupt, unreadable or newer-schema sessions are pr
 
 ## Scope limits and next work
 
-Current formats are JPEG, PNG, WebP, BMP, first-frame GIF, plus primary-image HEIC/HEIF/AVIF. EXIF/encoded orientation, basic read-only metadata and source-profile-to-sRGB normalisation are implemented. JPEG XL, video, monitor-profile/HDR colour-management parity, GPU decoding, filesystem watching, file operations and drag/drop are future work. Filenames are fully enumerated/sorted before publication; the directory tree is lazy, not virtualised. Thumbnail caching does not change these facts.
+Current formats are JPEG, PNG, WebP, BMP, first-frame GIF, primary-image HEIC/HEIF/AVIF and first-frame JPEG XL. EXIF/encoded orientation, basic read-only metadata and source-profile-to-sRGB normalisation are implemented. Video, monitor-profile/HDR colour-management parity, GPU decoding, filesystem watching, file operations and drag/drop are future work. Filenames are fully enumerated/sorted before publication; the directory tree is lazy, not virtualised. Thumbnail caching does not change these facts.
 
-Neighbour preview preloading is implemented in L002c4, EXIF orientation/basic metadata in L003a, source-profile normalisation in L003b and HEIC/HEIF/AVIF in L003c. The next codec milestone is JPEG XL; monitor-profile output/HDR remains a separate colour-pipeline milestone. Disk caching, incremental file publication and measured real 100k-image throughput remain unimplemented. A repeated-path synthetic allocation test is not a real large-folder performance benchmark. Do not retain full-resolution images for every tab.
+Neighbour preview preloading is implemented in L002c4, EXIF orientation/basic metadata in L003a, source-profile normalisation in L003b, HEIC/HEIF/AVIF in L003c and first-frame JPEG XL in L003d. The originally targeted advanced still-image codecs are now present at baseline decode level; monitor-profile/HDR remains a separate colour-pipeline milestone. Disk caching, incremental file publication and measured real 100k-image throughput remain unimplemented. A repeated-path synthetic allocation test is not a real large-folder performance benchmark. Do not retain full-resolution images for every tab.
 
 This is GNOME-compatible, not GTK/libadwaita. The selected backend is X11 through XWayland in a GNOME Wayland session. Native Wayland, fractional scaling and hardware performance need separate validation.
 
 ## Tests and acceptance
 
-bash linux/check.sh checks Windows isolation, compilation and core/session/browser/viewer/cache policies including portable orientation rules. bash linux/smoke.sh additionally needs Xvfb and Python 3, uses disposable generated fixtures/state, checks cache reuse/pixels/invalidation/cancellation, tab-strip inputs, rendered sampling, all eight synthetic EXIF orientation transforms, the Info metadata panel, a tagged Display P3→sRGB pixel reference, generated real HEIC/AVIF decode/thumbnail/metadata/cache behavior, viewer behavior and fresh-process session restoration without a starting-folder override. MYOKEN_TEST_OUTPUT optionally captures fixture screenshots; this is not a human GNOME visual review.
+bash linux/check.sh checks Windows isolation, compilation and core/session/browser/viewer/cache policies including portable orientation rules. bash linux/smoke.sh additionally needs Xvfb and Python 3, uses disposable generated fixtures/state, checks cache reuse/pixels/invalidation/cancellation, tab-strip inputs, rendered sampling, all eight synthetic EXIF orientation transforms, the Info metadata panel, a tagged Display P3→sRGB pixel reference, real generated HEIC/AVIF behavior, a real lossless-alpha JPEG XL decode/thumbnail/cache/registry path, viewer behavior and fresh-process session restoration without a starting-folder override. MYOKEN_TEST_OUTPUT optionally captures fixture screenshots; this is not a human GNOME visual review.
 
-Source authoring, compilation, CI and user desktop validation are separate. Historical linux/VALIDATION.md and L002a/b/c1 records remain intact. Thumbnail/preview/preload validation remains in the L002c records. Orientation/metadata validation is in linux/L003A-ORIENTATION-METADATA.md and source-profile colour validation in linux/L003B-COLOR-MANAGEMENT.md. Current HEIC/AVIF validation and its pending Nova check are in linux/L003C-HEIC-AVIF.md. Read linux/AGENTS.md before development.
+Source authoring, compilation, CI and user desktop validation are separate. Historical linux/VALIDATION.md and L002a/b/c1 records remain intact. Thumbnail/preview/preload validation remains in the L002c records. Orientation/metadata validation is in linux/L003A-ORIENTATION-METADATA.md and source-profile colour validation in linux/L003B-COLOR-MANAGEMENT.md. HEIC/AVIF validation is in linux/L003C-HEIC-AVIF.md. Current JPEG XL validation and its pending Nova check are in linux/L003D-JPEG-XL.md. Read linux/AGENTS.md before development.
