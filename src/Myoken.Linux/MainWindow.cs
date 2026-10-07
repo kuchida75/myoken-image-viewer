@@ -34,7 +34,7 @@ internal sealed partial class MainWindow : Window
 
     public MainWindow()
     {
-        Title = "Myoken Ubuntu/GNOME - Linux preview L003a";
+        Title = "Myoken Ubuntu/GNOME - Linux preview L003b";
         _preloader = new PreviewPreloader(_previewCache);
         Width = 1200; Height = 820; MinWidth = 820; MinHeight = 480;
         var root = new DockPanel();
@@ -152,6 +152,7 @@ internal sealed partial class MainWindow : Window
                     await RunPreviewCacheChecksAsync();
                     await RunPreviewPreloadChecksAsync();
                     await RunOrientationAndMetadataChecksAsync(_folder);
+                    await RunColorManagementChecksAsync(_folder);
                 }
                 await RunUiChecksAsync(Program.TestMode);
                 ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).Shutdown(0);

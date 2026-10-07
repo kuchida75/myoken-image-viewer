@@ -41,6 +41,8 @@ internal sealed class ImageViewer : UserControl, IDisposable
     internal bool ActualSizeEnabled => _actual.IsEnabled;
     internal bool PreviewCacheHit => _previewWasHit && _previewLease != null;
     internal ImageOrientation EncodedOrientation => _image?.Orientation ?? ImageOrientation.TopLeft;
+    internal bool ColorConvertedToSrgb => _image?.ColorConvertedToSrgb == true;
+    internal string SourceColorSpace => _image?.SourceColorSpace ?? "Unknown";
     internal bool MetadataVisible => _metadata.IsVisible;
     internal string MetadataText => _metadata.Text;
     internal Task MetadataTask => _metadata.LoadTask;
@@ -49,6 +51,7 @@ internal sealed class ImageViewer : UserControl, IDisposable
         : $"{System.IO.Path.GetFileName(_path)} | {View.SourceWidth} × {View.SourceHeight} | {View.Zoom * 100:0.#}%{(View.IsFit ? " Fit" : "")} | "
             + (IsFullResolution ? "full resolution" : _detailLoading ? "preview — loading full resolution…" : "preview")
             + (PreviewCacheHit ? " | cache hit" : "")
+            + (_image?.ColorConvertedToSrgb == true ? " | color→sRGB" : "")
             + (View.Zoom > 1 ? (_surface.PixelMode ? " | pixels" : " | smooth") : "")
             + (string.IsNullOrEmpty(_warning) ? "" : " | " + _warning);
 

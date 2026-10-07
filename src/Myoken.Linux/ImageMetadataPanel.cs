@@ -21,6 +21,8 @@ internal sealed class ImageMetadataPanel : Border, IDisposable
     private string? _error;
     private int _displayWidth, _displayHeight, _encodedWidth, _encodedHeight;
     private ImageOrientation _orientation = ImageOrientation.TopLeft;
+    private string _sourceColorSpace = "Unknown";
+    private bool _sourceColorSpaceKnown, _colorConvertedToSrgb;
 
     public ImageMetadataPanel(string path)
     {
@@ -49,6 +51,9 @@ internal sealed class ImageMetadataPanel : Border, IDisposable
         _encodedWidth = image.EncodedWidth;
         _encodedHeight = image.EncodedHeight;
         _orientation = image.Orientation;
+        _sourceColorSpace = image.SourceColorSpace;
+        _sourceColorSpaceKnown = image.SourceColorSpaceKnown;
+        _colorConvertedToSrgb = image.ColorConvertedToSrgb;
         RenderText();
     }
 
@@ -125,6 +130,14 @@ internal sealed class ImageMetadataPanel : Border, IDisposable
             sb.AppendLine($"  Display: {_displayWidth} × {_displayHeight}");
             sb.AppendLine($"  Encoded: {_encodedWidth} × {_encodedHeight}");
             sb.AppendLine("  Orientation: " + ImageOrientationInfo.DisplayName(_orientation));
+            sb.AppendLine();
+            sb.AppendLine("Color");
+            sb.AppendLine("  Source: " + _sourceColorSpace);
+            sb.AppendLine("  Working: sRGB");
+            sb.AppendLine("  Source → sRGB: " + (_colorConvertedToSrgb ? "applied" : "not required"));
+            if (!_sourceColorSpaceKnown)
+                sb.AppendLine("  Note: source was untagged/unspecified and is treated as sRGB.");
+            sb.AppendLine("  Display profile: not applied by Myoken yet.");
         }
 
         if (_metadata != null)

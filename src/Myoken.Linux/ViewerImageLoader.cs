@@ -9,7 +9,10 @@ internal sealed record ViewerImage(
     int Height,
     int EncodedWidth,
     int EncodedHeight,
-    ImageOrientation Orientation)
+    ImageOrientation Orientation,
+    string SourceColorSpace,
+    bool SourceColorSpaceKnown,
+    bool ColorConvertedToSrgb)
 {
     public bool IsFullResolution => Bitmap.PixelSize.Width == Width && Bitmap.PixelSize.Height == Height;
 }
@@ -26,7 +29,8 @@ internal static class ViewerImageLoader
         {
             var decoded = OrientedImageDecoder.Decode(path, ViewerDecodePolicy.PreviewEdge, full, token);
             return new ViewerImage(decoded.Bitmap, decoded.Width, decoded.Height,
-                decoded.EncodedWidth, decoded.EncodedHeight, decoded.Orientation);
+                decoded.EncodedWidth, decoded.EncodedHeight, decoded.Orientation,
+                decoded.SourceColorSpace, decoded.SourceColorSpaceKnown, decoded.ColorConvertedToSrgb);
         }, token);
     }
 }
