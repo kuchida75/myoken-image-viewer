@@ -51,11 +51,11 @@ internal static class HeifAvifDecoder
         }
 
         using var pipeline = MagicImageProcessor.BuildPipeline(path, settings);
-        pipeline.AddTransform(new FormatConversionTransform(PixelFormats.Bgra32bpp));
+        pipeline.AddTransform(new FormatConversionTransform(PhotoSauce.MagicScaler.PixelFormats.Bgra32bpp));
         var source = pipeline.PixelSource;
         token.ThrowIfCancellationRequested();
 
-        if (source.Format != PixelFormats.Bgra32bpp)
+        if (source.Format != PhotoSauce.MagicScaler.PixelFormats.Bgra32bpp)
             throw new InvalidDataException("HEIF decoder did not produce the expected BGRA32 working format.");
         if (source.Width <= 0 || source.Height <= 0)
             throw new InvalidDataException("HEIF decoder returned invalid dimensions.");
