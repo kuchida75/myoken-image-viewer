@@ -202,3 +202,24 @@ All L003a EXIF-orientation/metadata regressions remained passing, as did L002c t
 Relative to L003a, changes are Linux decode/UI/test/version files only. A comparison against the Windows v0.2.167 baseline found no Windows source/build/version/script changes. L003b adds no package dependency.
 
 **Scope boundary:** L003b normalises Skia-recognised tagged source colour spaces into an sRGB working space. It does not apply the active monitor's ICC profile, calibrate physical display output, guarantee GNOME/XWayland/compositor colour behaviour, or implement HDR/tone mapping. The automated Display P3 fixture proves source conversion, not end-to-end display accuracy. Native Nova visual/performance acceptance remains pending.
+
+
+## L003c automated HEIC / HEIF / AVIF decoding - 7 October 2026
+
+Tested application/test-source commit: `e29f4c53c1fa13f012f939c5a322f0bd2b318a0a`.
+
+Passing GitHub Actions run: https://github.com/kuchida75/myoken-image-viewer/actions/runs/37634344732 ; job `112836484365`. The completed Ubuntu job and full log were reviewed. `bash linux/check.sh` and `bash linux/smoke.sh` passed. Compilation had zero errors and retained the single pre-existing obsolete Bitmap.Save warning in the generated-screenshot helper.
+
+The test workflow generated a 64×48 four-quadrant PNG, then used Ubuntu's `heif-enc` test tool to produce a real HEVC-backed **HEIC** fixture and a real AV1-backed **AVIF** fixture. The application itself did not use those Ubuntu decoder libraries: Myoken's tested runtime path used **PhotoSauce.NativeCodecs.Libheif 1.23.5-preview1**, whose NuGet package carries its Linux native decoder dependencies. The Ubuntu heif encoder packages are CI fixture-generation dependencies only.
+
+Both generated containers passed primary full-resolution decode at 64×48, expected red-quadrant pixel checks, and 32-pixel-long-edge thumbnail decoding through the common ImageDecoder path. Browser support policy includes `.heic`, `.heif` and `.avif`. Both decoder results reported the libheif/MagicScaler sRGB-normalization path.
+
+Real ImageViewer tabs opened HEIC and AVIF. The HEIC viewer used the primary dimensions, both **HEIC and AVIF Info panels completed the existing MetadataExtractor read without a metadata error**, and both reported decoder-managed sRGB working output. Switching away and back to the HEIC tab produced an existing PreviewCache hit without another preview decode. Fresh-process session restoration and every inherited L003a/L003b/L002 regression remained passing.
+
+The first L003c candidate was not promoted because compilation exposed only an ambiguous `PixelFormats` name between Avalonia and PhotoSauce. It was corrected by explicitly qualifying PhotoSauce's BGRA format; no codec assertion was removed. A later test-only follow-up strengthened coverage to require successful Info-panel metadata parsing for **both** formats; that is the tested revision recorded above.
+
+Runtime scope is intentionally limited. L003c exposes the primary still image only. The current PhotoSauce libheif decoder publishes an 8-bit RGB pixel source, so HEIF alpha planes and >8-bit/HDR precision are not claimed. The libheif source decodes the primary image before MagicScaler downsizes it, meaning a thumbnail can still incur full native decode work/memory even though Myoken's retained thumbnail bitmap is bounded. Existing 120M input and 64M full-resolution guards apply to reported primary dimensions but are not total native decoder-memory guarantees.
+
+A comparison against Windows v0.2.167 found no Windows source/build/version/script changes. Myoken.Core and the Linux session schema are unchanged. L003c adds the Linux-only PhotoSauce libheif package and modifies the Linux CI workflow solely to generate test fixtures.
+
+Distribution must review the codec/native dependency licences and notices. HEVC/HEIC patent-licensing obligations may vary by jurisdiction/distribution. JPEG XL, HEIF sequences/auxiliary images, alpha/high-bit-depth preservation, HDR/tone mapping and native Nova performance remain outside this automated result.
