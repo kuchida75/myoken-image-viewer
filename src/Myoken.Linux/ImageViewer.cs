@@ -40,7 +40,7 @@ internal sealed class ImageViewer : UserControl, IDisposable
     internal PixelSize DecodedSize => _image?.Bitmap.PixelSize ?? default;
     internal bool ActualSizeEnabled => _actual.IsEnabled;
     internal bool PreviewCacheHit => _previewWasHit && _previewLease != null;
-    internal ImageOrientation Orientation => _image?.Orientation ?? ImageOrientation.TopLeft;
+    internal ImageOrientation EncodedOrientation => _image?.Orientation ?? ImageOrientation.TopLeft;
     internal bool MetadataVisible => _metadata.IsVisible;
     internal string MetadataText => _metadata.Text;
     internal Task MetadataTask => _metadata.LoadTask;
