@@ -35,7 +35,8 @@ internal static class FileOperationDialogs
         {
             box.Focus();
             var stem = Path.GetFileNameWithoutExtension(current);
-            box.Select(0, stem.Length);
+            box.SelectionStart = 0;
+            box.SelectionEnd = stem.Length;
         };
         return await dialog.ShowDialog<string?>(owner);
     }
