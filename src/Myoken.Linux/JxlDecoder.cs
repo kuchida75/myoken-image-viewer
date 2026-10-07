@@ -44,7 +44,7 @@ internal static class JxlDecoder
             OrientationMode = OrientationMode.Normalize,
             ColorProfileMode = ColorProfileMode.ConvertToSrgb,
             HybridMode = HybridScaleMode.FavorSpeed,
-            DecoderOptions = new MultiFrameDecoderOptions(0..1)
+            DecoderOptions = new PhotoSauce.NativeCodecs.Libjxl.JxlDecoderOptions(0..1)
         };
         if (!full)
         {
