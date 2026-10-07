@@ -57,7 +57,7 @@ Console.WriteLine("All viewer geometry and decode-policy checks passed.");
 var preloadTargets = PreviewPreloadPolicy.Targets(new[] { "a", "b", "c", "d", "e" }, "c");
 Check(preloadTargets.SequenceEqual(new[] { "d", "b", "e" }), "preload policy selects next, previous and second-next");
 Check(PreviewPreloadPolicy.Targets(new[] { "a", "b" }, "b").SequenceEqual(new[] { "a" }), "preload policy does not wrap at list edge");
-using (var gate = new PriorityAsyncGate())
+{ var gate = new PriorityAsyncGate();
 {
     using var held = await gate.EnterAsync(ViewerDecodePriority.Foreground);
     var background = gate.EnterAsync(ViewerDecodePriority.Background).AsTask();
