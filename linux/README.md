@@ -5,7 +5,7 @@ Independent Linux development track in the existing Myoken repository.
 - Development branch: **linux/ubuntu-gnome**; Linux feature branches are checked in CI before a fast-forward update.
 - Windows baseline: **v0.2.167**, commit ea785b3770383278f1a3bf67762d35014e8bda26. Isolation checks are not a claim of GitHub branch-protection settings.
 - Target: Ubuntu 24.04 LTS and newer with GNOME, initially x64.
-- Linux UI: C# / .NET 10 / Avalonia 12.1.2. Current source version: **0.1.0-alpha.12**, window label **L004a**.
+- Linux UI: C# / .NET 10 / Avalonia 12.1.2. Current source version: **0.1.0-alpha.13**, window label **L004b**.
 - Portable core: .NET Standard 2.0, not yet referenced by Windows .NET Framework 4.8/WPF.
 
 ## Isolation contract
@@ -40,7 +40,11 @@ Close Myoken normally first. This block stops on a wrong branch, local changes, 
 
 No new APT packages, Ubuntu release upgrade, NVIDIA/CUDA changes or Python changes are required to update an already-working checkout. Run the viewer as your normal user, never sudo. The first NuGet restore requires network access. For a new machine, install git, dotnet-sdk-10.0, libx11-6, libice6, libsm6, libfontconfig1, libxrandr2, libxi6, libxcursor1, libgl1 and xwayland from configured Ubuntu feeds after reviewing APT's proposal, then clone linux/ubuntu-gnome into a new, separate directory. Do not delete an existing checkout to make cloning succeed.
 
-## L004a live folder updates + rename/delete
+## L004b move and Trash
+
+The normal Delete key and **Move to Trash…** toolbar action now use GNOME GIO Trash with confirmation and no permanent-delete fallback. **Move to folder…** preserves the existing image tab/viewer while refusing overwrites. **Delete permanently…** is a separate explicitly confirmed action. `gio` is supplied by Ubuntu libglib2.0-bin. See **linux/L004B-MOVE-TRASH.md** for tests and pending desktop checks.
+
+## L004a live folder updates + rename/delete (historical)
 
 Myoken now watches the **currently browsed folder** with Linux/FileSystemWatcher notifications. Create, rename, content-change and delete events are debounced into short batches, then the Browser is rescanned without forcing a tab switch or resetting the whole thumbnail cache.
 
@@ -176,9 +180,9 @@ A second writer is excluded; corrupt, unreadable or newer-schema sessions are pr
 
 ## Scope limits and next work
 
-Current formats are JPEG, PNG, WebP, BMP, first-frame GIF, primary-image HEIC/HEIF/AVIF and first-frame JPEG XL. EXIF/encoded orientation, basic read-only metadata and source-profile-to-sRGB normalisation are implemented. L004a adds current-folder live watching plus same-folder rename and explicit permanent delete. Video, monitor-profile/HDR colour-management parity, GPU decoding, move/trash integration and drag/drop remain future work. Filenames are fully enumerated/sorted before publication; the directory tree is lazy, not virtualised. Thumbnail caching does not change these facts.
+Current formats are JPEG, PNG, WebP, BMP, first-frame GIF, primary-image HEIC/HEIF/AVIF and first-frame JPEG XL. EXIF/encoded orientation, basic read-only metadata and source-profile-to-sRGB normalisation are implemented. L004a adds current-folder live watching plus same-folder rename and explicit permanent delete. Video, monitor-profile/HDR colour-management parity, GPU decoding, drag/drop remain future work. Filenames are fully enumerated/sorted before publication; the directory tree is lazy, not virtualised. Thumbnail caching does not change these facts.
 
-Neighbour preview preloading is implemented in L002c4, EXIF orientation/basic metadata in L003a, source-profile normalisation in L003b, HEIC/HEIF/AVIF in L003c, first-frame JPEG XL in L003d and live current-folder rename/delete synchronization in L004a. The next file-operation pass is move + Trash integration; monitor-profile/HDR remains a separate colour-pipeline milestone. Disk caching, incremental file publication and measured real 100k-image throughput remain unimplemented. A repeated-path synthetic allocation test is not a real large-folder performance benchmark. Do not retain full-resolution images for every tab.
+Neighbour preview preloading is implemented in L002c4, EXIF orientation/basic metadata in L003a, source-profile normalisation in L003b, HEIC/HEIF/AVIF in L003c, first-frame JPEG XL in L003d and live current-folder rename/delete synchronization in L004a. L004b implements move + Trash integration; monitor-profile/HDR remains a separate colour-pipeline milestone. Disk caching, incremental file publication and measured real 100k-image throughput remain unimplemented. A repeated-path synthetic allocation test is not a real large-folder performance benchmark. Do not retain full-resolution images for every tab.
 
 This is GNOME-compatible, not GTK/libadwaita. The selected backend is X11 through XWayland in a GNOME Wayland session. Native Wayland, fractional scaling and hardware performance need separate validation.
 

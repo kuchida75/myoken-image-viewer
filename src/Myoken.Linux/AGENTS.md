@@ -10,3 +10,5 @@ L003d: JPEG XL support lives in JxlDecoder and AdvancedCodecRegistry. PhotoSauce
 
 
 L004a: MainWindow owns file mutation policy and current-folder reconciliation; FolderWatcher only batches filesystem events. External rename must update the existing DocumentTab/ImageViewer path rather than create a duplicate viewer. Per-path cache invalidation is preferred over global clears. Delete is intentionally permanent and requires explicit UI confirmation; never describe it as Trash. Same-folder rename only in this pass; move/Trash remain separate.
+
+L004b supersedes the L004a delete/move scope: normal Delete uses GIO Trash without fallback, permanent delete is separate, and cross-folder moves rebind tabs in place. See ../../linux/L004B-MOVE-TRASH.md.

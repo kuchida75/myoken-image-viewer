@@ -56,6 +56,51 @@ internal sealed partial class MainWindow
         CheckUi(!File.Exists(renamed) && !_files.Any(p => StringComparer.Ordinal.Equals(p, renamed)),
             "Myoken permanent-delete core removes the fixture and Browser entry");
 
+        var destinationFolder = Path.Combine(root, "destination 日本");
+        Directory.CreateDirectory(destinationFolder);
+        var conflict = Path.Combine(destinationFolder, Path.GetFileName(c));
+        File.Copy(source0, conflict, overwrite: true);
+        var conflictBytes = File.ReadAllBytes(conflict);
+        try { await MoveFileCoreAsync(c, destinationFolder); throw new InvalidOperationException("Move overwrote collision"); }
+        catch (IOException) { }
+        CheckUi(File.Exists(c) && File.ReadAllBytes(conflict).SequenceEqual(conflictBytes)
+            && tab.Path == c, "move collision preserves source, destination and tab");
+        File.Delete(conflict);
+        CheckUi(await MoveFileCoreAsync(c, root) == c, "same-folder move is a no-op");
+        try { await MoveFileCoreAsync(c, Path.Combine(root, "missing")); throw new InvalidOperationException("Missing folder accepted"); }
+        catch (DirectoryNotFoundException) { }
+        var moved = await MoveFileCoreAsync(c, destinationFolder);
+        await Task.Delay(650); // Drain source-folder watcher notifications.
+        CheckUi(!File.Exists(c) && File.Exists(moved) && tab.Path == moved
+            && _tabItems.Contains(tab) && ReferenceEquals(tab.Content, viewer)
+            && !_files.Contains(c), "cross-folder move keeps the existing tab after watcher drain");
+        await WaitUiAsync(() => viewer.HasImage, "moved viewer decoded");
+        CheckUi(Math.Abs(viewer.View.Zoom - zoom) < 1e-9, "move preserves zoom");
+        SaveSession();
+        CheckUi(_sessions!.Load().ImagePaths.Contains(moved)
+            && !_sessions.Load().ImagePaths.Contains(c), "session saves moved path without stale source");
+        await NavigateAsync(destinationFolder);
+        CheckUi(_files.Contains(moved), "destination Browser lists moved image");
+        try { await DesktopTrash.MoveAsync(moved, "/nonexistent/myoken-gio"); throw new InvalidOperationException("Missing gio accepted"); }
+        catch (IOException) { }
+        try { await DesktopTrash.MoveAsync(moved, "/usr/bin/false"); throw new InvalidOperationException("Failed gio accepted"); }
+        catch (IOException) { }
+        CheckUi(File.Exists(moved) && _tabItems.Contains(tab), "Trash failure has no permanent-delete fallback or tab mutation");
+        await TrashFileCoreAsync(moved);
+        await Task.Delay(650);
+        CheckUi(!File.Exists(moved) && !_files.Contains(moved) && !_tabItems.Contains(tab),
+            "real GIO Trash removes Browser entry and closes matching tab");
+        var dataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME")!;
+        var trashFiles = Directory.GetFiles(Path.Combine(dataHome, "Trash", "files"));
+        var trashInfo = Directory.GetFiles(Path.Combine(dataHome, "Trash", "info"));
+        CheckUi(trashFiles.Any(f => File.ReadAllBytes(f).SequenceEqual(File.ReadAllBytes(source1)))
+            && trashInfo.Any(f => File.ReadAllText(f).Contains("DeletionDate=")),
+            "GIO retains recoverable image contents and trashinfo in isolated desktop Trash");
+        SaveSession();
+        CheckUi(!_sessions.Load().ImagePaths.Contains(moved), "session excludes trashed tab");
+        await NavigateAsync(root);
+        File.Copy(source0, c);
+        tab = AddImageTab(c);
         File.Delete(c);
         await WaitUiAsync(() => !_tabItems.Contains(tab) && !_files.Any(p => StringComparer.Ordinal.Equals(p, c)),
             "external delete closes the matching tab and removes the Browser entry");
@@ -63,6 +108,6 @@ internal sealed partial class MainWindow
         await NavigateAsync(originalFolder);
         CheckUi(StringComparer.Ordinal.Equals(_folder, originalFolder) && _files.Length >= 3,
             "file-operation checks return to the original folder");
-        Console.WriteLine("PASS: L004a live create/rename/change/delete and in-place tab synchronization regressions");
+        Console.WriteLine("PASS: L004b move/Trash/failure/session plus L004a live create/rename/change/delete and in-place tab synchronization regressions");
     }
 }

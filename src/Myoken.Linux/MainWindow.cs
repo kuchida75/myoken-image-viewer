@@ -25,7 +25,7 @@ internal sealed partial class MainWindow : Window
     private readonly ObservableCollection<DocumentTab> _tabItems = new();
     private readonly DocumentTab _browser;
     private readonly DispatcherTimer _saveTimer = new() { Interval = TimeSpan.FromSeconds(2) };
-    private Button _renameButton = null!, _deleteButton = null!;
+    private Button _renameButton = null!, _deleteButton = null!, _moveButton = null!, _permanentDeleteButton = null!;
     private CancellationTokenSource? _browseCts;
     private CancellationTokenSource? _watchReloadCts;
     private SessionStore? _sessions;
@@ -37,7 +37,7 @@ internal sealed partial class MainWindow : Window
 
     public MainWindow()
     {
-        Title = "Myoken Ubuntu/GNOME - Linux preview L004a";
+        Title = "Myoken Ubuntu/GNOME - Linux preview L004b";
         _preloader = new PreviewPreloader(_previewCache);
         Width = 1200; Height = 820; MinWidth = 820; MinHeight = 480;
         var root = new DockPanel();
@@ -48,8 +48,11 @@ internal sealed partial class MainWindow : Window
         actions.Children.Add(ActionButton("Choose folder", PickFolderAsync));
         actions.Children.Add(ActionButton("Refresh", RefreshAsync));
         _renameButton = ActionButton("Rename…", RenameSelectedAsync);
-        _deleteButton = ActionButton("Delete…", DeleteSelectedAsync);
-        actions.Children.Add(_renameButton); actions.Children.Add(_deleteButton);
+        _deleteButton = ActionButton("Move to Trash…", DeleteSelectedAsync);
+        _moveButton = ActionButton("Move to folder…", MoveSelectedAsync);
+        _permanentDeleteButton = ActionButton("Delete permanently…", PermanentDeleteSelectedAsync);
+        actions.Children.Add(_renameButton); actions.Children.Add(_moveButton);
+        actions.Children.Add(_deleteButton); actions.Children.Add(_permanentDeleteButton);
         actions.Children.Add(ActionButton("Go", async () => await NavigateAsync(_path.Text ?? string.Empty)));
         DockPanel.SetDock(actions, Dock.Left); toolbar.Children.Add(actions);
         _path.Margin = new Thickness(8, 0, 0, 0); toolbar.Children.Add(_path);
@@ -349,6 +352,8 @@ internal sealed partial class MainWindow : Window
         var enabled = CurrentOperationTarget() is { } path && File.Exists(path);
         if (_renameButton != null) _renameButton.IsEnabled = enabled;
         if (_deleteButton != null) _deleteButton.IsEnabled = enabled;
+        if (_moveButton != null) _moveButton.IsEnabled = enabled;
+        if (_permanentDeleteButton != null) _permanentDeleteButton.IsEnabled = enabled;
     }
 
     private async Task RenameSelectedAsync()
@@ -361,7 +366,29 @@ internal sealed partial class MainWindow : Window
         Status($"Renamed to {Path.GetFileName(renamed)}");
     }
 
+    private async Task MoveSelectedAsync()
+    {
+        var path = CurrentOperationTarget();
+        if (path == null) return;
+        var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        { Title = "Move image to folder", AllowMultiple = false });
+        if (folders.Count == 0) return;
+        var folder = folders[0].TryGetLocalPath()
+            ?? throw new IOException("Choose a local filesystem folder.");
+        var destination = await MoveFileCoreAsync(path, folder);
+        Status($"Moved to {destination}");
+    }
+
     private async Task DeleteSelectedAsync()
+    {
+        var path = CurrentOperationTarget();
+        if (path == null) return;
+        if (!await FileOperationDialogs.ConfirmTrashAsync(this, path)) return;
+        await TrashFileCoreAsync(path);
+        Status($"Moved to Trash: {Path.GetFileName(path)}");
+    }
+
+    private async Task PermanentDeleteSelectedAsync()
     {
         var path = CurrentOperationTarget();
         if (path == null) return;
@@ -389,6 +416,29 @@ internal sealed partial class MainWindow : Window
         if (StringComparer.Ordinal.Equals(Path.GetDirectoryName(path), _folder))
             await ReloadCurrentFolderAsync(destination);
         return destination;
+    }
+
+    internal async Task<string> MoveFileCoreAsync(string path, string folder)
+    {
+        path = Path.GetFullPath(path); folder = Path.GetFullPath(folder);
+        if (!File.Exists(path)) throw new FileNotFoundException("Image no longer exists.", path);
+        if (!Directory.Exists(folder)) throw new DirectoryNotFoundException("Destination folder no longer exists.");
+        var destination = Path.Combine(folder, Path.GetFileName(path));
+        if (StringComparer.Ordinal.Equals(path, destination)) return path;
+        // File.Move handles cross-filesystem moves; overwrite remains disabled.
+        File.Move(path, destination, overwrite: false);
+        await ApplyRenameAsync(path, destination);
+        await ReloadCurrentFolderAsync(destination);
+        return destination;
+    }
+
+    internal async Task TrashFileCoreAsync(string path)
+    {
+        path = Path.GetFullPath(path);
+        if (!File.Exists(path)) throw new FileNotFoundException("Image no longer exists.", path);
+        await DesktopTrash.MoveAsync(path);
+        ApplyDelete(path);
+        await ReloadCurrentFolderAsync();
     }
 
     internal async Task DeleteFileCoreAsync(string path)

@@ -64,5 +64,7 @@ cjxl "$fixture/codecs/source-alpha.png" "$fixture/codecs/sample.jxl" -d 0 -e 3 >
 test -s "$fixture/codecs/sample.jxl"
 export MYOKEN_TEST_ROOT="$fixture"
 export XDG_STATE_HOME="$fixture/state"
+export XDG_DATA_HOME="$fixture/data"
+mkdir -p "$XDG_DATA_HOME"
 xvfb-run -a timeout 120s bash run.sh --browser-test "$fixture/pictures"
 xvfb-run -a timeout 60s bash run.sh --restore-test "$fixture/pictures"

@@ -41,9 +41,15 @@ internal static class FileOperationDialogs
         return await dialog.ShowDialog<string?>(owner);
     }
 
-    public static async Task<bool> ConfirmPermanentDeleteAsync(Window owner, string path)
+    public static Task<bool> ConfirmTrashAsync(Window owner, string path) =>
+        ConfirmDeleteAsync(owner, path, false);
+
+    public static Task<bool> ConfirmPermanentDeleteAsync(Window owner, string path) =>
+        ConfirmDeleteAsync(owner, path, true);
+
+    private static async Task<bool> ConfirmDeleteAsync(Window owner, string path, bool permanent)
     {
-        var yes = new Button { Content = "Delete permanently", MinWidth = 130 };
+        var yes = new Button { Content = permanent ? "Delete permanently" : "Move to Trash", MinWidth = 130 };
         var no = new Button { Content = "Cancel", MinWidth = 90 };
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8,
             HorizontalAlignment = HorizontalAlignment.Right };
@@ -51,16 +57,18 @@ internal static class FileOperationDialogs
         var panel = new StackPanel { Margin = new Thickness(16), Spacing = 12 };
         panel.Children.Add(new TextBlock
         {
-            Text = "Permanently delete this image?\n\n" + path
-                + "\n\nThis bypasses the desktop Trash and cannot be undone by Myoken.",
+            Text = (permanent ? "Permanently delete this image?\n\n" : "Move this image to Trash?\n\n") + path
+                + (permanent ? "\n\nThis bypasses the desktop Trash and cannot be undone by Myoken."
+                    : "\n\nYou can restore it using the desktop Trash."),
             TextWrapping = Avalonia.Media.TextWrapping.Wrap
         });
         panel.Children.Add(buttons);
         var dialog = new Window
         {
-            Title = "Delete image permanently", Width = 560, Height = 240, CanResize = false,
+            Title = permanent ? "Delete image permanently" : "Move image to Trash", Width = 560, Height = 240, CanResize = false,
             WindowStartupLocation = WindowStartupLocation.CenterOwner, Content = panel
         };
+        dialog.Opened += (_, _) => no.Focus();
         yes.Click += (_, _) => dialog.Close(true);
         no.Click += (_, _) => dialog.Close(false);
         dialog.KeyDown += (_, e) =>
