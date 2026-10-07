@@ -5,7 +5,7 @@ Independent Linux development track in the existing Myoken repository.
 - Development branch: **linux/ubuntu-gnome**; Linux feature branches are checked in CI before a fast-forward update.
 - Windows baseline: **v0.2.167**, commit ea785b3770383278f1a3bf67762d35014e8bda26. Isolation checks are not a claim of GitHub branch-protection settings.
 - Target: Ubuntu 24.04 LTS and newer with GNOME, initially x64.
-- Linux UI: C# / .NET 10 / Avalonia 12.1.2. Current source version: **0.1.0-alpha.8**, window label **L003a**.
+- Linux UI: C# / .NET 10 / Avalonia 12.1.2. Current source version: **0.1.0-alpha.9**, window label **L003b**.
 - Portable core: .NET Standard 2.0, not yet referenced by Windows .NET Framework 4.8/WPF.
 
 ## Isolation contract
@@ -40,6 +40,18 @@ Close Myoken normally first. This block stops on a wrong branch, local changes, 
 
 No new APT packages, Ubuntu release upgrade, NVIDIA/CUDA changes or Python changes are required to update an already-working checkout. Run the viewer as your normal user, never sudo. The first NuGet restore requires network access. For a new machine, install git, dotnet-sdk-10.0, libx11-6, libice6, libsm6, libfontconfig1, libxrandr2, libxi6, libxcursor1, libgl1 and xwayland from configured Ubuntu feeds after reviewing APT's proposal, then clone linux/ubuntu-gnome into a new, separate directory. Do not delete an existing checkout to make cloning succeed.
 
+## L003b source-profile-aware sRGB normalization
+
+Skia-recognised tagged/embedded **non-sRGB source colour spaces** are now decoded into Myoken's sRGB working space before thumbnails, preview-cache entries or full viewer pixels are published. The source classifier labels sRGB, Display P3, Adobe RGB, Rec.2020, sRGB primaries with a non-sRGB transfer function, and other custom/ICC spaces. Untagged/unspecified sources continue to be treated as sRGB.
+
+For the common **TopLeft + sRGB/untagged** case, Myoken keeps the existing Avalonia decode path. Non-sRGB tagged sources use Skia's profile-aware decode with an sRGB target. Images already requiring the L003a orientation transform share that sRGB Skia path. Resizing/orientation intermediates stay tagged sRGB before their bytes are copied into Avalonia, so the thumbnail and preview caches retain already-normalised pixels.
+
+Image status adds **color→sRGB** when a source conversion occurred. **Info** now distinguishes Source colour, Working colour (**sRGB**), whether Source → sRGB was applied, and explicitly states that a display/monitor profile is **not applied by Myoken yet**. This avoids confusing the EXIF colour-space text with actual pixel conversion.
+
+The passing fixture encoded raw Display P3 values **220/90/40** and the managed path produced the same sRGB reference as Skia: **238/78/4**. The thumbnail path matched the same reference. See **linux/L003B-COLOR-MANAGEMENT.md** for exact validation.
+
+**This is source-profile normalisation, not end-to-end monitor calibration.** GNOME/XWayland/compositor/display-profile behaviour is still outside Myoken's own output pipeline, and HDR/tone mapping is also not implemented. No new package is introduced by L003b; the existing SkiaSharp backend performs the conversion.
+
 ## L003a EXIF orientation and basic metadata
 
 Current JPEG/PNG/WebP/BMP/GIF decoding now normalises the decoder's encoded orientation before a thumbnail or viewer preview enters either RAM cache. EXIF/encoded orientations **1-8** are supported, including mirrored/transposed cases. The normal TopLeft path keeps the established Avalonia decode path; images requiring an orientation transform use the Linux Skia path before publication. Viewer geometry and 100%/zoom calculations use the visually oriented dimensions while **Info** reports both display and encoded dimensions.
@@ -48,7 +60,7 @@ Image tabs add an **Info** button; with viewer focus, **I** toggles the same sid
 
 Portable metadata DTOs, orientation policy and the metadata reader live in Myoken.Core (netstandard2.0). The reader uses **MetadataExtractor 2.9.3**; UI and pixel transforms remain Linux-specific, so Windows WPF is still untouched and does not yet reference Myoken.Core. Distribution packaging must include the resolved third-party licence/notices.
 
-**ICC/profile transforms and colour-management parity are not implemented in L003a.** Reporting an EXIF colour-space field is metadata display only; it does not mean pixels are colour-managed. HEIC, AVIF and JXL also remain separate work. See **linux/L003A-ORIENTATION-METADATA.md** for exact automated coverage and Nova acceptance.
+**L003a itself only added metadata/orientation; L003b now adds source-profile-to-sRGB pixel conversion.** Monitor/display-profile output, HDR/tone mapping and full end-to-end colour-management parity remain separate work. HEIC, AVIF and JXL also remain separate. See **linux/L003A-ORIENTATION-METADATA.md** for exact automated coverage and Nova acceptance.
 
 ## L002c4 low-priority neighbour preloading
 
@@ -106,14 +118,14 @@ A second writer is excluded; corrupt, unreadable or newer-schema sessions are pr
 
 ## Scope limits and next work
 
-Initial formats remain JPEG, PNG, WebP, BMP and the first GIF frame. EXIF/encoded orientation and basic read-only metadata are now implemented. Advanced codecs, video, ICC/colour-management parity, GPU decoding, filesystem watching, file operations and drag/drop are future work. Filenames are fully enumerated/sorted before publication; the directory tree is lazy, not virtualised. Thumbnail caching does not change these facts.
+Initial formats remain JPEG, PNG, WebP, BMP and the first GIF frame. EXIF/encoded orientation, basic read-only metadata and source-profile-to-sRGB normalisation are implemented. Advanced codecs, video, monitor-profile/HDR colour-management parity, GPU decoding, filesystem watching, file operations and drag/drop are future work. Filenames are fully enumerated/sorted before publication; the directory tree is lazy, not virtualised. Thumbnail caching does not change these facts.
 
-Neighbour preview preloading is implemented in L002c4 and EXIF orientation/basic metadata in L003a. Next image-correctness work is ICC/colour management, followed by advanced codecs. Disk caching, incremental file publication and measured real 100k-image throughput remain unimplemented. A repeated-path synthetic allocation test is not a real large-folder performance benchmark. Do not retain full-resolution images for every tab.
+Neighbour preview preloading is implemented in L002c4, EXIF orientation/basic metadata in L003a and source-profile normalisation in L003b. Next major work is advanced codecs; monitor-profile output/HDR remains a separate colour pipeline milestone. Disk caching, incremental file publication and measured real 100k-image throughput remain unimplemented. A repeated-path synthetic allocation test is not a real large-folder performance benchmark. Do not retain full-resolution images for every tab.
 
 This is GNOME-compatible, not GTK/libadwaita. The selected backend is X11 through XWayland in a GNOME Wayland session. Native Wayland, fractional scaling and hardware performance need separate validation.
 
 ## Tests and acceptance
 
-bash linux/check.sh checks Windows isolation, compilation and core/session/browser/viewer/cache policies including portable orientation rules. bash linux/smoke.sh additionally needs Xvfb and Python 3, uses disposable generated fixtures/state, checks cache reuse/pixels/invalidation/cancellation, tab-strip inputs, rendered sampling, all eight synthetic EXIF orientation transforms, the Info metadata panel, viewer behaviour and fresh-process session restoration without a starting-folder override. MYOKEN_TEST_OUTPUT optionally captures fixture screenshots; this is not a human GNOME visual review.
+bash linux/check.sh checks Windows isolation, compilation and core/session/browser/viewer/cache policies including portable orientation rules. bash linux/smoke.sh additionally needs Xvfb and Python 3, uses disposable generated fixtures/state, checks cache reuse/pixels/invalidation/cancellation, tab-strip inputs, rendered sampling, all eight synthetic EXIF orientation transforms, the Info metadata panel, a tagged Display P3→sRGB pixel reference, viewer behaviour and fresh-process session restoration without a starting-folder override. MYOKEN_TEST_OUTPUT optionally captures fixture screenshots; this is not a human GNOME visual review.
 
-Source authoring, compilation, CI and user desktop validation are separate. Historical linux/VALIDATION.md and L002a/b/c1 records remain intact. Thumbnail/preview/preload validation remains in the L002c records. Current orientation/metadata validation and its pending Nova check are in linux/L003A-ORIENTATION-METADATA.md. Read linux/AGENTS.md before development.
+Source authoring, compilation, CI and user desktop validation are separate. Historical linux/VALIDATION.md and L002a/b/c1 records remain intact. Thumbnail/preview/preload validation remains in the L002c records. Orientation/metadata validation is in linux/L003A-ORIENTATION-METADATA.md; current source-profile colour validation and its pending Nova check are in linux/L003B-COLOR-MANAGEMENT.md. Read linux/AGENTS.md before development.

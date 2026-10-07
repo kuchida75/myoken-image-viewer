@@ -185,3 +185,20 @@ Earlier L003a candidates were not promoted: CI first exposed a MetadataExtractor
 The incremental diff from L002c4 changes only Myoken.Core portable orientation/metadata code plus Linux decode/UI/tests/version. A comparison against Windows v0.2.167 found no Windows baseline source/build/version files changed. Myoken.Core adds the **MetadataExtractor 2.9.3** dependency; Windows still does not reference the core project. Distribution packaging must account for third-party licence/notices.
 
 **Colour management is not implemented.** A reported EXIF colour-space value does not imply ICC/profile conversion, and these tests do not establish colour accuracy. HEIC/AVIF/JXL, RAW orientation behaviour, native Wayland, hardware performance and Nova visual acceptance remain outside this automated result.
+
+
+## L003b automated source-profile sRGB normalization - 7 October 2026
+
+Tested application/test-source commit: `a486886ad88240448bcbd5e3664c142b8f735c1b`.
+
+Passing GitHub Actions run: https://github.com/kuchida75/myoken-image-viewer/actions/runs/37631683377 ; job `112827293000`. The completed Ubuntu job and full log were reviewed. `bash linux/check.sh` and `bash linux/smoke.sh` passed. Compilation had zero errors and retained the one existing obsolete Bitmap.Save warning in the generated-screenshot helper.
+
+The L003b test generated a lossless PNG whose source SKColorSpace is recognised as **Display P3** and whose raw tagged RGB values are **220/90/40**. OrientedImageDecoder classified it as Display P3, selected the non-sRGB profile-aware path and decoded to an sRGB target. The resulting Avalonia pixels matched an independent Skia sRGB-target decode exactly within the test tolerance: **238/78/4**. The assertion also confirmed those numbers differ materially from the original tagged values, demonstrating that a transform actually occurred rather than only relabelling the data.
+
+The thumbnail path produced the same sRGB-normalised pixel result before cache publication. A real ImageViewer tab exposed `ColorConvertedToSrgb`, and its Info panel reported **Source: Display P3**, **Working: sRGB**, **Source → sRGB: applied**, plus the explicit boundary **Display profile: not applied by Myoken yet**.
+
+All L003a EXIF-orientation/metadata regressions remained passing, as did L002c thumbnail/preview cache and preload checks, single-row tabs, Smooth/Pixels/100% rendering, full-resolution viewing, pointer-centred zoom, drag/pan and fresh-process folder/tab/session restoration.
+
+Relative to L003a, changes are Linux decode/UI/test/version files only. A comparison against the Windows v0.2.167 baseline found no Windows source/build/version/script changes. L003b adds no package dependency.
+
+**Scope boundary:** L003b normalises Skia-recognised tagged source colour spaces into an sRGB working space. It does not apply the active monitor's ICC profile, calibrate physical display output, guarantee GNOME/XWayland/compositor colour behaviour, or implement HDR/tone mapping. The automated Display P3 fixture proves source conversion, not end-to-end display accuracy. Native Nova visual/performance acceptance remains pending.
