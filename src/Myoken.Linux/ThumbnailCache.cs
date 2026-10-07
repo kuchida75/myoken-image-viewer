@@ -84,6 +84,15 @@ internal sealed class ThumbnailCache : IDisposable
         if (_disposed || generation != _generation)
             throw new OperationCanceledException("Thumbnail cache was cleared or closed.", token);
     }
+    public void InvalidatePath(string path)
+    {
+        var fullPath = Path.GetFullPath(path);
+        lock (_sync)
+        {
+            if (_disposed) return;
+            _memory.RemoveWhere(k => StringComparer.Ordinal.Equals(k.Path, fullPath));
+        }
+    }
     public void Clear()
     {
         lock (_sync) { if (_disposed) return; _generation++; _memory.Clear(); }

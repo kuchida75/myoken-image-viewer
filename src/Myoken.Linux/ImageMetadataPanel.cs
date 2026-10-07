@@ -7,7 +7,7 @@ namespace Myoken.Linux;
 
 internal sealed class ImageMetadataPanel : Border, IDisposable
 {
-    private readonly string _path;
+    private string _path;
     private readonly TextBlock _text = new()
     {
         TextWrapping = Avalonia.Media.TextWrapping.Wrap,
@@ -56,6 +56,14 @@ internal sealed class ImageMetadataPanel : Border, IDisposable
         _sourceColorSpaceKnown = image.SourceColorSpaceKnown;
         _colorConvertedToSrgb = image.ColorConvertedToSrgb;
         RenderText();
+    }
+
+    public void SetPath(string path)
+    {
+        path = Path.GetFullPath(path);
+        if (StringComparer.Ordinal.Equals(_path, path)) { Invalidate(); return; }
+        _path = path;
+        Invalidate();
     }
 
     public void Toggle()

@@ -58,6 +58,16 @@ internal sealed class DocumentTabs : UserControl, IDisposable
             PointerCaptureLost += (_, _) => _middle = null;
             DetachedFromVisualTree += (_, _) => ReleaseCapture();
         }
+
+        public void Update(DocumentTab tab)
+        {
+            var name = System.IO.Path.GetFileName(tab.Path!);
+            if (Select.Content is TextBlock text) text.Text = ThumbnailLayout.TabCaption(name);
+            AutomationProperties.SetName(Select, "View " + name);
+            AutomationProperties.SetName(Close, "Close " + name);
+            ToolTip.SetTip(Select, tab.Path);
+            ToolTip.SetTip(Close, "Close " + name + " (Ctrl+W)");
+        }
         private void ReleaseCapture()
         {
             var pointer = _middle; _middle = null;
@@ -209,6 +219,15 @@ internal sealed class DocumentTabs : UserControl, IDisposable
         if (_items?.Contains(tab) != true) return;
         SelectedItem = tab; FocusSelectedHeader();
     }
+    public void RefreshTab(DocumentTab tab)
+    {
+        if (_disposed || tab.Path == null || _items?.Contains(tab) != true) return;
+        _menu.Close(); _menu.Items.Clear();
+        if (_headers.TryGetValue(tab, out var header)) header.Update(tab);
+        ToolTip.SetTip(_open, $"Open tabs: {_headers.Count} images (full filenames and parent folders)");
+        QueueReveal();
+    }
+
     public void FocusSelectedHeader()
     {
         if (ReferenceEquals(_selected, _browser)) _browserButton.Focus();

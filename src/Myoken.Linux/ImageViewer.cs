@@ -12,7 +12,7 @@ namespace Myoken.Linux;
 // previews; only the active tab owns a preview lease or an uncached full decode.
 internal sealed class ImageViewer : UserControl, IDisposable
 {
-    private readonly string _path;
+    private string _path;
     private readonly PreviewCache _previewCache;
     private readonly bool _ownsPreviewCache;
     private readonly ImageSurface _surface = new();
@@ -195,6 +195,17 @@ internal sealed class ImageViewer : UserControl, IDisposable
     internal void InvokeSamplingButton() => _sampling.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
     internal void InvokeInfoButton() => _info.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
     internal void InvalidateMetadata() => _metadata.Invalidate();
+
+    internal async Task RebindPathAsync(string path, bool reactivate)
+    {
+        if (_disposed) return;
+        _path = Path.GetFullPath(path);
+        _metadata.SetPath(_path);
+        Suspend();
+        if (reactivate) await ActivateAsync();
+    }
+
+    internal Task ReloadAsync(bool reactivate) => RebindPathAsync(_path, reactivate);
 
     private void OnViewerKeyDown(object? sender, KeyEventArgs e)
     {

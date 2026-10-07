@@ -57,6 +57,7 @@ internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
     private bool _queued, _active = true, _disposed;
     private int _selected = -1;
     public event Action<string>? ImageActivated;
+    public event Action<string?>? SelectionChanged;
     internal int RealizedCount => _tiles.Count;
     internal int LoadedCount => _tiles.Values.Count(t => t.Image.Source != null);
     internal int FailedCount => _tiles.Values.Count(t => t.Failed);
@@ -64,6 +65,7 @@ internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
     internal int EndRealized => _range.End;
     internal int Columns => _range.Columns;
     internal ThumbnailCache Cache => _cache;
+    internal string? SelectedPath => _selected >= 0 && _selected < _files.Length ? _files[_selected] : null;
 
     public VirtualThumbnailBrowser()
     {
@@ -80,14 +82,48 @@ internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
     }
 
-    public void SetFiles(string[] files)
+    public void SetFiles(string[] files) => UpdateFiles(files, preserveView: false);
+
+    public void UpdateFiles(string[] files, bool preserveView, string? preferredSelection = null)
     {
         ArgumentNullException.ThrowIfNull(files);
-        Clear(); _files = files; _selected = -1; _range = default;
-        _scroll.Offset = default;
+        var oldIndex = _selected;
+        var oldSelected = SelectedPath;
+        var oldOffset = _scroll.Offset;
+        Clear(); _files = files; _range = default;
+
+        var wanted = preferredSelection ?? oldSelected;
+        _selected = wanted == null ? -1 : Array.FindIndex(files, p => StringComparer.Ordinal.Equals(p, wanted));
+        if (_selected < 0 && preserveView && oldIndex >= 0 && files.Length > 0)
+            _selected = Math.Clamp(oldIndex, 0, files.Length - 1);
+
         _empty.IsVisible = files.Length == 0;
-        _canvas.Height = ThumbnailLayout.Calculate(files.Length, Math.Max(1, _scroll.Viewport.Width), 0, 0).ExtentHeight;
+        var layout = ThumbnailLayout.Calculate(files.Length, Math.Max(1, _scroll.Viewport.Width), 0, 0);
+        _canvas.Height = layout.ExtentHeight;
+        _scroll.Offset = preserveView
+            ? new Vector(0, Math.Clamp(oldOffset.Y, 0, Math.Max(0, layout.ExtentHeight - _scroll.Viewport.Height)))
+            : default;
+        SelectionChanged?.Invoke(SelectedPath);
         QueueRefresh();
+    }
+
+    public bool SelectPath(string path)
+    {
+        var full = Path.GetFullPath(path);
+        var index = Array.FindIndex(_files, p => StringComparer.Ordinal.Equals(p, full));
+        if (index < 0) return false;
+        SetSelected(index); ScrollToIndex(index); return true;
+    }
+
+    public void InvalidatePath(string path)
+    {
+        var full = Path.GetFullPath(path);
+        _cache.InvalidatePath(full);
+        foreach (var index in _tiles.Where(p => StringComparer.Ordinal.Equals(p.Value.Path, full)).Select(p => p.Key).ToArray())
+        {
+            var tile = _tiles[index]; _canvas.Children.Remove(tile.Button); tile.Dispose(); _tiles.Remove(index);
+        }
+        UpdateCacheInfo(); QueueRefresh();
     }
     public void SetActive(bool active)
     {
@@ -166,8 +202,8 @@ internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
         var panel = new StackPanel { Spacing = 4 }; panel.Children.Add(image); panel.Children.Add(caption);
         var button = new Button { Content = panel, Width = 176, Height = 176, Padding = new Thickness(6) };
         ToolTip.SetTip(button, path);
-        button.GotFocus += (_, _) => _selected = index;
-        button.Click += (_, _) => { _selected = index; ImageActivated?.Invoke(path); };
+        button.GotFocus += (_, _) => SetSelected(index);
+        button.Click += (_, _) => { SetSelected(index); ImageActivated?.Invoke(path); };
         return new Tile { Path = path, Button = button, Image = image, Caption = caption };
     }
     private async Task LoadAsync(Tile tile, CancellationToken token)
@@ -204,7 +240,7 @@ internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
         if (e.Key is Key.Enter or Key.Space && _selected >= 0)
         { e.Handled = true; ImageActivated?.Invoke(_files[_selected]); return; }
         if (e.Key is not (Key.Right or Key.Left or Key.Down or Key.Up or Key.PageDown or Key.PageUp or Key.Home or Key.End)) return;
-        e.Handled = true; _selected = Math.Clamp(next, 0, _files.Length - 1);
+        e.Handled = true; SetSelected(Math.Clamp(next, 0, _files.Length - 1));
         ScrollToIndex(_selected);
         Dispatcher.UIThread.Post(() =>
         {
@@ -222,8 +258,15 @@ internal sealed class VirtualThumbnailBrowser : UserControl, IDisposable
         else if (bottom > offset + _scroll.Viewport.Height) offset = bottom - _scroll.Viewport.Height;
         _scroll.Offset = new Vector(0, Math.Max(0, offset)); QueueRefresh();
     }
+    private void SetSelected(int index)
+    {
+        index = _files.Length == 0 ? -1 : Math.Clamp(index, 0, _files.Length - 1);
+        if (index == _selected) return;
+        _selected = index; SelectionChanged?.Invoke(SelectedPath);
+    }
     internal Task WaitForLoadsAsync() => Task.WhenAll(_tiles.Values.Select(t => t.Loading));
     internal void ActivateForTest(int index) => _tiles[index].Button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+    internal void SelectForTest(int index) => SetSelected(index);
     private void Clear()
     {
         _canvas.Children.Clear();

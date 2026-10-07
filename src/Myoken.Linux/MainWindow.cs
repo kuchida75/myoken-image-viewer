@@ -20,21 +20,24 @@ internal sealed partial class MainWindow : Window
     private readonly VirtualThumbnailBrowser _thumbnails = new();
     private readonly PreviewCache _previewCache = new();
     private readonly PreviewPreloader _preloader;
+    private readonly FolderWatcher _folderWatcher = new();
     private readonly DocumentTabs _tabs = new();
     private readonly ObservableCollection<DocumentTab> _tabItems = new();
     private readonly DocumentTab _browser;
     private readonly DispatcherTimer _saveTimer = new() { Interval = TimeSpan.FromSeconds(2) };
+    private Button _renameButton = null!, _deleteButton = null!;
     private CancellationTokenSource? _browseCts;
+    private CancellationTokenSource? _watchReloadCts;
     private SessionStore? _sessions;
     private string[] _files = Array.Empty<string>();
     private string _folder = string.Empty;
     private string _browserStatus = "Choose an image folder.";
-    private string? _persistenceWarning;
+    private string? _persistenceWarning, _watcherWarning;
     private bool _starting = true, _closed, _dirty, _preloadTestEnabled;
 
     public MainWindow()
     {
-        Title = "Myoken Ubuntu/GNOME - Linux preview L003d";
+        Title = "Myoken Ubuntu/GNOME - Linux preview L004a";
         _preloader = new PreviewPreloader(_previewCache);
         Width = 1200; Height = 820; MinWidth = 820; MinHeight = 480;
         var root = new DockPanel();
@@ -44,6 +47,9 @@ internal sealed partial class MainWindow : Window
         actions.Children.Add(ActionButton("Up", async () => await NavigateAsync(Directory.GetParent(_folder)?.FullName ?? _folder)));
         actions.Children.Add(ActionButton("Choose folder", PickFolderAsync));
         actions.Children.Add(ActionButton("Refresh", RefreshAsync));
+        _renameButton = ActionButton("Rename…", RenameSelectedAsync);
+        _deleteButton = ActionButton("Delete…", DeleteSelectedAsync);
+        actions.Children.Add(_renameButton); actions.Children.Add(_deleteButton);
         actions.Children.Add(ActionButton("Go", async () => await NavigateAsync(_path.Text ?? string.Empty)));
         DockPanel.SetDock(actions, Dock.Left); toolbar.Children.Add(actions);
         _path.Margin = new Thickness(8, 0, 0, 0); toolbar.Children.Add(_path);
@@ -64,10 +70,16 @@ internal sealed partial class MainWindow : Window
             if (e.Key == Key.Enter) { e.Handled = true; await NavigateAsync(_path.Text ?? string.Empty); }
         };
         _folders.FolderSelected += path => { _ = NavigateAsync(path); };
-        _thumbnails.ImageActivated += path => { _tabs.SelectedItem = AddImageTab(path); _dirty = true; };
+        _thumbnails.ImageActivated += path => { _tabs.SelectedItem = AddImageTab(path); _dirty = true; UpdateFileOperationButtons(); };
+        _thumbnails.SelectionChanged += _ => UpdateFileOperationButtons();
+        _folderWatcher.BatchReady += batch => Dispatcher.UIThread.Post(async () =>
+        {
+            try { await ApplyFolderChangesAsync(batch); }
+            catch (Exception ex) { Status("Live folder update failed: " + ex.Message); }
+        });
         _tabs.SelectionChanged += async (_, _) =>
         {
-            if (!_starting && !_closed) { _dirty = true; await ShowSelectedImageAsync(); }
+            if (!_starting && !_closed) { _dirty = true; await ShowSelectedImageAsync(); UpdateFileOperationButtons(); }
         };
         _tabs.CloseRequested += CloseTab;
         AddHandler(KeyDownEvent, (_, e) =>
@@ -88,7 +100,17 @@ internal sealed partial class MainWindow : Window
         }, RoutingStrategies.Tunnel);
         KeyDown += async (_, e) =>
         {
-            if (e.Key == Key.F11)
+            if (!_path.IsKeyboardFocusWithin && e.KeyModifiers == KeyModifiers.None && e.Key == Key.F2)
+            {
+                e.Handled = true;
+                try { await RenameSelectedAsync(); } catch (Exception ex) { Status(ex.Message); }
+            }
+            else if (!_path.IsKeyboardFocusWithin && e.KeyModifiers == KeyModifiers.None && e.Key == Key.Delete)
+            {
+                e.Handled = true;
+                try { await DeleteSelectedAsync(); } catch (Exception ex) { Status(ex.Message); }
+            }
+            else if (e.Key == Key.F11)
             { WindowState = WindowState == WindowState.FullScreen ? WindowState.Normal : WindowState.FullScreen; e.Handled = true; }
             else if (e.Key == Key.L && e.KeyModifiers.HasFlag(KeyModifiers.Control))
             { _path.Focus(); _path.SelectAll(); e.Handled = true; }
@@ -102,11 +124,12 @@ internal sealed partial class MainWindow : Window
         _saveTimer.Tick += (_, _) => SaveSession();
         Closed += (_, _) =>
         {
-            _closed = true; _saveTimer.Stop(); SaveSession(); Cancel(ref _browseCts);
-            _preloader.Dispose(); _tabs.Dispose(); _thumbnails.Dispose(); _folders.Dispose();
+            _closed = true; _saveTimer.Stop(); SaveSession(); Cancel(ref _browseCts); Cancel(ref _watchReloadCts);
+            _folderWatcher.Dispose(); _preloader.Dispose(); _tabs.Dispose(); _thumbnails.Dispose(); _folders.Dispose();
             foreach (var tab in _tabItems) (tab.Content as ImageViewer)?.Dispose();
             _previewCache.Dispose(); _sessions?.Dispose();
         };
+        UpdateFileOperationButtons();
     }
 
     private static string Home => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
@@ -155,6 +178,7 @@ internal sealed partial class MainWindow : Window
                     await RunColorManagementChecksAsync(_folder);
                     await RunHeifAvifChecksAsync();
                     await RunJxlChecksAsync();
+                    await RunFileOperationChecksAsync(_folder);
                 }
                 await RunUiChecksAsync(Program.TestMode);
                 ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).Shutdown(0);
@@ -189,27 +213,20 @@ internal sealed partial class MainWindow : Window
     private async Task NavigateAsync(string path)
     {
         if (_closed) return;
-        Cancel(ref _browseCts); _browseCts = new CancellationTokenSource();
+        Cancel(ref _browseCts); Cancel(ref _watchReloadCts); _browseCts = new CancellationTokenSource();
         var token = _browseCts.Token;
         try
         {
             var full = DirectoryCatalog.Normalize(path);
             _browserStatus = "Reading " + full;
             _tabs.SelectedItem = _browser; _thumbnails.SetActive(true); UpdateBrowserStatus();
-            var files = await Task.Run(() =>
-            {
-                token.ThrowIfCancellationRequested();
-                var options = new EnumerationOptions { IgnoreInaccessible = false, RecurseSubdirectories = false, AttributesToSkip = 0 };
-                var result = new List<string>();
-                foreach (var entry in Directory.EnumerateFiles(full, "*", options))
-                { token.ThrowIfCancellationRequested(); if (ImageDecoder.IsSupported(entry)) result.Add(entry); }
-                result.Sort((a, b) => NaturalNameComparer.Instance.Compare(Path.GetFileName(a), Path.GetFileName(b)));
-                token.ThrowIfCancellationRequested(); return result.ToArray();
-            }, token);
+            var files = await EnumerateImagesAsync(full, token);
             if (token.IsCancellationRequested || _closed) return;
             _folder = full; _path.Text = full; _files = files;
             _browserStatus = $"{_files.Length:N0} images in {_folder}";
-            _thumbnails.SetFiles(_files); _dirty = true; UpdateBrowserStatus();
+            _thumbnails.SetFiles(_files); _dirty = true;
+            _folderWatcher.Watch(full); _watcherWarning = _folderWatcher.Warning;
+            UpdateBrowserStatus(); UpdateFileOperationButtons();
             await _folders.RevealAsync(full, token);
         }
         catch (OperationCanceledException) { }
@@ -221,6 +238,167 @@ internal sealed partial class MainWindow : Window
                 _path.Text = _folder; UpdateBrowserStatus();
             }
         }
+    }
+
+    private static Task<string[]> EnumerateImagesAsync(string folder, CancellationToken token) => Task.Run(() =>
+    {
+        token.ThrowIfCancellationRequested();
+        var options = new EnumerationOptions { IgnoreInaccessible = false, RecurseSubdirectories = false, AttributesToSkip = 0 };
+        var result = new List<string>();
+        foreach (var entry in Directory.EnumerateFiles(folder, "*", options))
+        {
+            token.ThrowIfCancellationRequested();
+            if (ImageDecoder.IsSupported(entry)) result.Add(Path.GetFullPath(entry));
+        }
+        result.Sort((a, b) => NaturalNameComparer.Instance.Compare(Path.GetFileName(a), Path.GetFileName(b)));
+        token.ThrowIfCancellationRequested(); return result.ToArray();
+    }, token);
+
+    private async Task ReloadCurrentFolderAsync(string? preferredSelection = null)
+    {
+        if (_closed || string.IsNullOrEmpty(_folder) || !Directory.Exists(_folder)) return;
+        Cancel(ref _watchReloadCts); _watchReloadCts = new CancellationTokenSource();
+        var token = _watchReloadCts.Token; var folder = _folder;
+        try
+        {
+            var files = await EnumerateImagesAsync(folder, token);
+            if (_closed || token.IsCancellationRequested || !StringComparer.Ordinal.Equals(folder, _folder)) return;
+            _files = files; _browserStatus = $"{_files.Length:N0} images in {_folder}";
+            _thumbnails.UpdateFiles(_files, preserveView: true, preferredSelection);
+            UpdateBrowserStatus(); UpdateFileOperationButtons();
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    private async Task ApplyFolderChangesAsync(FolderChangeBatch batch)
+    {
+        if (_closed || !StringComparer.Ordinal.Equals(Path.GetFullPath(batch.Folder), _folder)) return;
+        string? preferredSelection = _thumbnails.SelectedPath;
+
+        foreach (var rename in batch.Changes.Where(c => c.Kind == FolderChangeKind.Renamed && c.OldPath != null)
+                     .GroupBy(c => (Old: Path.GetFullPath(c.OldPath!), New: Path.GetFullPath(c.Path)))
+                     .Select(g => g.First()))
+        {
+            if (preferredSelection != null && StringComparer.Ordinal.Equals(preferredSelection, rename.OldPath))
+                preferredSelection = rename.Path;
+            await ApplyRenameAsync(rename.OldPath!, rename.Path);
+        }
+
+        foreach (var path in batch.Changes.Where(c => c.Kind == FolderChangeKind.Deleted)
+                     .Select(c => Path.GetFullPath(c.Path)).Distinct(StringComparer.Ordinal))
+            ApplyDelete(path);
+
+        foreach (var path in batch.Changes.Where(c => c.Kind == FolderChangeKind.Changed)
+                     .Select(c => Path.GetFullPath(c.Path)).Distinct(StringComparer.Ordinal))
+            if (File.Exists(path)) await ApplyChangedAsync(path);
+
+        await ReloadCurrentFolderAsync(preferredSelection);
+        if (batch.Overflowed) Status("Live folder watcher recovered with a full rescan.");
+    }
+
+    private async Task ApplyRenameAsync(string oldPath, string newPath)
+    {
+        oldPath = Path.GetFullPath(oldPath); newPath = Path.GetFullPath(newPath);
+        _thumbnails.InvalidatePath(oldPath); _thumbnails.InvalidatePath(newPath);
+        _previewCache.InvalidatePath(oldPath); _previewCache.InvalidatePath(newPath);
+
+        var tab = _tabItems.FirstOrDefault(t => t.Path != null && StringComparer.Ordinal.Equals(t.Path, oldPath));
+        if (tab == null) return;
+        if (!ImageDecoder.IsSupported(newPath))
+        {
+            CloseTab(tab); return;
+        }
+
+        var duplicate = _tabItems.FirstOrDefault(t => !ReferenceEquals(t, tab) && t.Path != null
+            && StringComparer.Ordinal.Equals(t.Path, newPath));
+        if (duplicate != null)
+        {
+            var wasSelected = ReferenceEquals(_tabs.SelectedItem, tab);
+            CloseTab(tab);
+            if (wasSelected) _tabs.SelectedItem = duplicate;
+            return;
+        }
+
+        tab.Path = newPath; _tabs.RefreshTab(tab); _dirty = true;
+        if (tab.Content is ImageViewer viewer)
+            await viewer.RebindPathAsync(newPath, ReferenceEquals(_tabs.SelectedItem, tab));
+    }
+
+    private void ApplyDelete(string path)
+    {
+        path = Path.GetFullPath(path);
+        _thumbnails.InvalidatePath(path); _previewCache.InvalidatePath(path);
+        foreach (var tab in _tabItems.Where(t => t.Path != null && StringComparer.Ordinal.Equals(t.Path, path)).ToArray())
+            CloseTab(tab);
+    }
+
+    private async Task ApplyChangedAsync(string path)
+    {
+        path = Path.GetFullPath(path);
+        _thumbnails.InvalidatePath(path); _previewCache.InvalidatePath(path);
+        var tab = _tabItems.FirstOrDefault(t => t.Path != null && StringComparer.Ordinal.Equals(t.Path, path));
+        if (tab?.Content is ImageViewer viewer)
+            await viewer.ReloadAsync(ReferenceEquals(_tabs.SelectedItem, tab));
+    }
+
+    private string? CurrentOperationTarget() => ReferenceEquals(_tabs.SelectedItem, _browser)
+        ? _thumbnails.SelectedPath : _tabs.SelectedItem?.Path;
+
+    private void UpdateFileOperationButtons()
+    {
+        var enabled = CurrentOperationTarget() is { } path && File.Exists(path);
+        if (_renameButton != null) _renameButton.IsEnabled = enabled;
+        if (_deleteButton != null) _deleteButton.IsEnabled = enabled;
+    }
+
+    private async Task RenameSelectedAsync()
+    {
+        var path = CurrentOperationTarget();
+        if (path == null) return;
+        var name = await FileOperationDialogs.PromptRenameAsync(this, path);
+        if (name == null) return;
+        var renamed = await RenameFileCoreAsync(path, name);
+        Status($"Renamed to {Path.GetFileName(renamed)}");
+    }
+
+    private async Task DeleteSelectedAsync()
+    {
+        var path = CurrentOperationTarget();
+        if (path == null) return;
+        if (!await FileOperationDialogs.ConfirmPermanentDeleteAsync(this, path)) return;
+        await DeleteFileCoreAsync(path);
+        Status($"Deleted permanently: {Path.GetFileName(path)}");
+    }
+
+    internal async Task<string> RenameFileCoreAsync(string path, string newName)
+    {
+        path = Path.GetFullPath(path);
+        if (!File.Exists(path)) throw new FileNotFoundException("Image no longer exists.", path);
+        newName = newName.Trim();
+        if (string.IsNullOrWhiteSpace(newName) || newName is "." or ".."
+            || !StringComparer.Ordinal.Equals(newName, Path.GetFileName(newName)))
+            throw new IOException("Enter a filename only, without a folder path.");
+        var destination = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path)!, newName));
+        if (!ImageDecoder.IsSupported(destination))
+            throw new IOException("The renamed file must keep a supported image extension.");
+        if (StringComparer.Ordinal.Equals(path, destination)) return path;
+        if (File.Exists(destination)) throw new IOException("A file with that name already exists.");
+
+        File.Move(path, destination);
+        await ApplyRenameAsync(path, destination);
+        if (StringComparer.Ordinal.Equals(Path.GetDirectoryName(path), _folder))
+            await ReloadCurrentFolderAsync(destination);
+        return destination;
+    }
+
+    internal async Task DeleteFileCoreAsync(string path)
+    {
+        path = Path.GetFullPath(path);
+        if (!File.Exists(path)) throw new FileNotFoundException("Image no longer exists.", path);
+        File.Delete(path);
+        ApplyDelete(path);
+        if (StringComparer.Ordinal.Equals(Path.GetDirectoryName(path), _folder))
+            await ReloadCurrentFolderAsync();
     }
 
     private DocumentTab AddImageTab(string path)
@@ -293,7 +471,12 @@ internal sealed partial class MainWindow : Window
     {
         if (ReferenceEquals(_tabs.SelectedItem, _browser)) Status(_browserStatus);
     }
-    private void Status(string text) => _status.Text = string.IsNullOrEmpty(_persistenceWarning) ? text : text + " | " + _persistenceWarning;
+    private void Status(string text)
+    {
+        if (!string.IsNullOrEmpty(_persistenceWarning)) text += " | " + _persistenceWarning;
+        if (!string.IsNullOrEmpty(_watcherWarning)) text += " | " + _watcherWarning;
+        _status.Text = text;
+    }
     private static void Cancel(ref CancellationTokenSource? source)
     {
         source?.Cancel(); source?.Dispose(); source = null;
