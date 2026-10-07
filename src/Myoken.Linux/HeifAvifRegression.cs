@@ -50,12 +50,19 @@ internal sealed partial class MainWindow
         heicViewer.InvokeInfoButton();
         await heicViewer.MetadataTask.WaitAsync(TimeSpan.FromSeconds(10));
         CheckUi(heicViewer.MetadataText.Contains("HEIC/HEIF container profile", StringComparison.Ordinal)
-            && heicViewer.MetadataText.Contains("Working: sRGB", StringComparison.Ordinal),
-            "HEIC Info panel reports decoder-managed sRGB working output");
+            && heicViewer.MetadataText.Contains("Working: sRGB", StringComparison.Ordinal)
+            && !heicViewer.MetadataText.Contains("Metadata:", StringComparison.Ordinal),
+            "HEIC Info panel reports decoder-managed sRGB output and parses container metadata");
 
         await SelectForTestAsync(avifTab);
         var avifViewer = (ImageViewer)avifTab.Content;
         await WaitUiAsync(() => avifViewer.HasImage, "AVIF viewer preview failed");
+        avifViewer.InvokeInfoButton();
+        await avifViewer.MetadataTask.WaitAsync(TimeSpan.FromSeconds(10));
+        CheckUi(avifViewer.MetadataText.Contains("AVIF container profile", StringComparison.Ordinal)
+            && avifViewer.MetadataText.Contains("Working: sRGB", StringComparison.Ordinal)
+            && !avifViewer.MetadataText.Contains("Metadata:", StringComparison.Ordinal),
+            "AVIF Info panel reports decoder-managed sRGB output and parses container metadata");
         var before = _previewCache.Snapshot;
         await SelectForTestAsync(heicTab);
         var after = _previewCache.Snapshot;
