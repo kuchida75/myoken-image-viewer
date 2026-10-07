@@ -5,7 +5,7 @@ Independent Linux development track in the existing Myoken repository.
 - Development branch: **linux/ubuntu-gnome**; Linux feature branches are checked in CI before a fast-forward update.
 - Windows baseline: **v0.2.167**, commit ea785b3770383278f1a3bf67762d35014e8bda26. Isolation checks are not a claim of GitHub branch-protection settings.
 - Target: Ubuntu 24.04 LTS and newer with GNOME, initially x64.
-- Linux UI: C# / .NET 10 / Avalonia 12.1.2. Current source version: **0.1.0-alpha.6**, window label **L002c3**.
+- Linux UI: C# / .NET 10 / Avalonia 12.1.2. Current source version: **0.1.0-alpha.7**, window label **L002c4**.
 - Portable core: .NET Standard 2.0, not yet referenced by Windows .NET Framework 4.8/WPF.
 
 ## Isolation contract
@@ -39,6 +39,14 @@ Close Myoken normally first. This block stops on a wrong branch, local changes, 
 ```
 
 No new APT packages, Ubuntu release upgrade, NVIDIA/CUDA changes or Python changes are required to update an already-working checkout. Run the viewer as your normal user, never sudo. The first NuGet restore requires network access. For a new machine, install git, dotnet-sdk-10.0, libx11-6, libice6, libsm6, libfontconfig1, libxrandr2, libxi6, libxcursor1, libgl1 and xwayland from configured Ubuntu feeds after reviewing APT's proposal, then clone linux/ubuntu-gnome into a new, separate directory. Do not delete an existing checkout to make cloning succeed.
+
+## L002c4 low-priority neighbour preloading
+
+After the selected image preview is ready, Myoken waits briefly (150 ms) and warms up to three neighbouring **open image tabs** into the existing bounded PreviewCache: next image first, previous image second, then the second-next image. The target list does not wrap. Preloading stores only normal initial previews; it never requests or retains full-resolution upgrades.
+
+Every selection change, Browser switch, Refresh and shutdown cancels the old preload schedule. Pending viewer decodes use a foreground-first gate so a selected-image request is dequeued before pending background preload work. A native decode that has already started cannot be forcibly pre-empted; its cancellation result is discarded safely. Preloading is sequential and uses the same bounded 512 MiB / 256-entry preview cache, so it does not create a second unbounded image store.
+
+There is no new user setting in this pass. A successfully warmed neighbour should appear as a **cache hit** when selected. See **linux/L002C-PRELOAD.md** for completed CI coverage and Nova acceptance.
 
 ## L002c3 viewer preview RAM cache
 
@@ -90,7 +98,7 @@ A second writer is excluded; corrupt, unreadable or newer-schema sessions are pr
 
 Initial formats remain JPEG, PNG, WebP, BMP and the first GIF frame. Advanced codecs, video, metadata/EXIF orientation/colour-management parity, GPU decoding, filesystem watching, file operations and drag/drop are future work. Filenames are fully enumerated/sorted before publication; the directory tree is lazy, not virtualised. Thumbnail caching does not change these facts.
 
-Next pass: low-priority preview preloading. The preview cache itself is now implemented; disk caching, incremental file publication and measured real 100k-image throughput remain unimplemented. Disk caching, incremental file publication and measured real 100k-image throughput remain unimplemented. A repeated-path synthetic allocation test is not a real large-folder performance benchmark. Do not retain full-resolution images for every tab.
+Neighbour preview preloading is now implemented in L002c4. Disk caching, incremental file publication, advanced codecs and measured real 100k-image throughput remain unimplemented. A repeated-path synthetic allocation test is not a real large-folder performance benchmark. Do not retain full-resolution images for every tab.
 
 This is GNOME-compatible, not GTK/libadwaita. The selected backend is X11 through XWayland in a GNOME Wayland session. Native Wayland, fractional scaling and hardware performance need separate validation.
 

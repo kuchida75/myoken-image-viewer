@@ -151,3 +151,18 @@ The new preview-cache checks passed warm bitmap reuse without a second preview d
 The existing viewer regression also confirmed that explicit full-resolution upgrades are **not** retained in PreviewCache: switching away releases the full bitmap, switching back reacquires the cached initial preview, and full detail is decoded again only when the retained zoom demands it. Existing thumbnail-cache, browser, single-row tabs, rendered Smooth/Pixels output, pointer-centred zoom, drag/pan, cancellation and fresh-process ordered-tab/session restoration tests all passed.
 
 L002c3 uses a 512 MiB accounted preview-storage budget with a 256-entry cap. This is not total process/GPU memory and does not include decoder scratch space, graphics copies, outstanding retired leases or uncached full-resolution upgrades. The cache is process-local and writes no files. Native Nova responsiveness and visual acceptance of L002c3 remain pending; no user screenshot has yet been relabelled as acceptance of this build.
+
+
+## L002c4 automated low-priority preview preloading - 7 October 2026
+
+Tested application/test-source commit: `e8134f2a0c1ed9b1c5f30bf00174f2454d46dfd8`.
+
+Passing GitHub Actions run: https://github.com/kuchida75/myoken-image-viewer/actions/runs/37619928355 ; job `112787314852`. The completed Ubuntu job and log were reviewed. `bash linux/check.sh` and `bash linux/smoke.sh` passed. The initial L002c4 candidate exposed test-lifetime mistakes in the new priority-gate regressions; those test defects were corrected before this passing source and no failing candidate was promoted.
+
+The preload policy passed: for an interior selected image the targets are next, previous and second-next; targets do not wrap at list edges. The real-window test selected an image tab, waited for the idle preload pass, and confirmed that the previous one plus next two previews entered the bounded PreviewCache. Activating a warmed neighbour was a cache hit with **no new preview decode**.
+
+Priority-gate tests confirmed that a queued selected-image foreground decode is released before an already-queued background preload, and a cancelled queued preload cannot block later foreground work. This is queue priority, not native-operation pre-emption: a decode that has already entered the native codec must return before the serial gate can serve the next request.
+
+All inherited L002c2 thumbnail-cache and L002c3 preview-cache checks passed, including changed/deleted/corrupt files, eviction/lease safety, cancellation and cache clearing. Existing single-row tab/menu/keyboard/middle-close, Smooth/Pixels rendered output, source-resolution viewing, pointer-centred zoom, drag/pan, full-resolution non-caching and fresh-process folder/tab/session restoration regressions also passed.
+
+L002c4 preloading is process-local, sequential and limited by the existing 512 MiB / 256-entry preview cache. It warms only normal previews of neighbouring **open tabs**; it does not scan ahead through unopened folder images, preload full-resolution bitmaps, add a disk cache or establish a Nova performance improvement. Native Nova responsiveness/acceptance remains pending.
