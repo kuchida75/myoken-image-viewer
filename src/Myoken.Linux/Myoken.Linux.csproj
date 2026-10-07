@@ -4,12 +4,13 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>0.1.0-alpha.9</Version>
+    <Version>0.1.0-alpha.10</Version>
     <AssemblyName>Myoken.Linux</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Myoken.Core/Myoken.Core.csproj" />
     <PackageReference Include="Avalonia.Desktop" Version="12.1.2" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.2" />
+    <PackageReference Include="PhotoSauce.NativeCodecs.Libheif" Version="1.23.5-preview1" />
   </ItemGroup>
 </Project>

@@ -137,6 +137,8 @@ internal sealed class ImageMetadataPanel : Border, IDisposable
             sb.AppendLine("  Source → sRGB: " + (_colorConvertedToSrgb ? "applied" : "not required"));
             if (!_sourceColorSpaceKnown)
                 sb.AppendLine("  Note: source was untagged/unspecified and is treated as sRGB.");
+            else if (_sourceColorSpace.Contains("libheif/MagicScaler", StringComparison.Ordinal))
+                sb.AppendLine("  Note: HEIF/AVIF source profile details are decoder-managed; output is normalized to sRGB.");
             sb.AppendLine("  Display profile: not applied by Myoken yet.");
         }
 

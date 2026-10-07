@@ -4,7 +4,7 @@ cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
 command -v xvfb-run >/dev/null || { printf 'Install xvfb to run the optional X11 integration checks.\n' >&2; exit 1; }
 fixture=$(mktemp -d)
 trap 'rm -rf -- "$fixture"' EXIT
-mkdir -p "$fixture/pictures/nested folder/日本" "$fixture/state"
+mkdir -p "$fixture/pictures/nested folder/日本" "$fixture/state" "$fixture/codecs"
 python3 - "$fixture" <<'PY'
 import pathlib, struct, sys, zlib
 root = pathlib.Path(sys.argv[1])
@@ -17,6 +17,20 @@ for i in range(120):
     rows = b''.join(b'\x00' + bytes(((i * 17) % 256, (y * 4) % 256, (255 - i) % 256)) * width for y in range(height))
     (root / 'pictures' / f'image{i}.png').write_bytes(png(width, height, zlib.compress(rows)))
 (root / 'corrupt.png').write_bytes(b'not an image')
+# Lossless source used to generate HEIC/AVIF fixtures with the Ubuntu heif-enc
+# test dependency. Four quadrants make gross channel/decoder mistakes visible.
+width, height = 64, 48
+rows = []
+for y in range(height):
+    row = bytearray([0])
+    for x in range(width):
+        if x < width // 2 and y < height // 2: rgb = (220, 30, 30)
+        elif x >= width // 2 and y < height // 2: rgb = (30, 220, 30)
+        elif x < width // 2: rgb = (30, 30, 220)
+        else: rgb = (220, 220, 30)
+        row.extend(rgb)
+    rows.append(bytes(row))
+(root / 'codecs' / 'source.png').write_bytes(png(width, height, zlib.compress(b''.join(rows))))
 # A wider-than-preview source with one-pixel stripes, streamed through zlib.
 width, height = 6000, 2000
 compressor = zlib.compressobj()
@@ -27,6 +41,11 @@ for y in range(height):
 parts.append(compressor.flush())
 (root / 'large.png').write_bytes(png(width, height, b''.join(parts)))
 PY
+command -v heif-enc >/dev/null || { printf 'Install libheif-examples for L003c smoke fixtures.\n' >&2; exit 1; }
+heif-enc "$fixture/codecs/source.png" -q 92 -o "$fixture/codecs/sample.heic" >/dev/null
+heif-enc "$fixture/codecs/source.png" -A -q 92 -o "$fixture/codecs/sample.avif" >/dev/null
+test -s "$fixture/codecs/sample.heic"
+test -s "$fixture/codecs/sample.avif"
 export MYOKEN_TEST_ROOT="$fixture"
 export XDG_STATE_HOME="$fixture/state"
 xvfb-run -a timeout 120s bash run.sh --browser-test "$fixture/pictures"

@@ -25,6 +25,8 @@ internal static class OrientedImageDecoder
     {
         if (!full && edge < 1) throw new ArgumentOutOfRangeException(nameof(edge));
         token.ThrowIfCancellationRequested();
+        if (HeifAvifDecoder.IsSupported(path))
+            return HeifAvifDecoder.Decode(path, edge, full, token);
 
         int encodedWidth, encodedHeight;
         ImageOrientation orientation;

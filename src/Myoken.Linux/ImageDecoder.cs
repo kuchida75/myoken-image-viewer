@@ -6,7 +6,7 @@ internal static class ImageDecoder
 {
     private static readonly SemaphoreSlim Gate = new(2);
     private static readonly HashSet<string> Extensions = new(StringComparer.OrdinalIgnoreCase)
-        { ".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif" };
+        { ".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif", ".heic", ".heif", ".avif" };
 
     public static bool IsSupported(string path) => Extensions.Contains(Path.GetExtension(path));
 
