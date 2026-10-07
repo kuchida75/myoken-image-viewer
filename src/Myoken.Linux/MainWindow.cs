@@ -18,6 +18,7 @@ internal sealed partial class MainWindow : Window
     private readonly TextBlock _status = new() { Margin = new Thickness(8), TextWrapping = TextWrapping.Wrap };
     private readonly FolderTree _folders = new();
     private readonly VirtualThumbnailBrowser _thumbnails = new();
+    private readonly PreviewCache _previewCache = new();
     private readonly DocumentTabs _tabs = new();
     private readonly ObservableCollection<DocumentTab> _tabItems = new();
     private readonly DocumentTab _browser;
@@ -32,7 +33,7 @@ internal sealed partial class MainWindow : Window
 
     public MainWindow()
     {
-        Title = "Myoken Ubuntu/GNOME - Linux preview L002c2";
+        Title = "Myoken Ubuntu/GNOME - Linux preview L002c3";
         Width = 1200; Height = 820; MinWidth = 820; MinHeight = 480;
         var root = new DockPanel();
         var toolbar = new DockPanel { Margin = new Thickness(8), LastChildFill = true };
@@ -67,7 +68,6 @@ internal sealed partial class MainWindow : Window
             if (!_starting && !_closed) { _dirty = true; await ShowSelectedImageAsync(); }
         };
         _tabs.CloseRequested += CloseTab;
-        // Tunnel before a text box or image control can consume the tab chord.
         AddHandler(KeyDownEvent, (_, e) =>
         {
             var modifiers = e.KeyModifiers;
@@ -103,7 +103,7 @@ internal sealed partial class MainWindow : Window
             _closed = true; _saveTimer.Stop(); SaveSession(); Cancel(ref _browseCts);
             _tabs.Dispose(); _thumbnails.Dispose(); _folders.Dispose();
             foreach (var tab in _tabItems) (tab.Content as ImageViewer)?.Dispose();
-            _sessions?.Dispose();
+            _previewCache.Dispose(); _sessions?.Dispose();
         };
     }
 
@@ -144,7 +144,11 @@ internal sealed partial class MainWindow : Window
             if (Program.TestMode != null)
             {
                 _saveTimer.Stop();
-                if (Program.TestMode == "--browser-test") await RunThumbnailCacheChecksAsync();
+                if (Program.TestMode == "--browser-test")
+                {
+                    await RunThumbnailCacheChecksAsync();
+                    await RunPreviewCacheChecksAsync();
+                }
                 await RunUiChecksAsync(Program.TestMode);
                 ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).Shutdown(0);
             }
@@ -156,18 +160,22 @@ internal sealed partial class MainWindow : Window
                 ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).Shutdown(1);
         }
     }
+
     private async Task PickFolderAsync()
     {
         var selected = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             { Title = "Choose an image folder", AllowMultiple = false });
         if (selected.FirstOrDefault()?.TryGetLocalPath() is string path) await NavigateAsync(path);
     }
+
     private async Task RefreshAsync()
     {
         _thumbnails.InvalidateCache();
+        _previewCache.Clear();
         await _folders.RefreshSelectedAsync();
         await NavigateAsync(string.IsNullOrEmpty(_folder) ? Home : _folder);
     }
+
     private async Task NavigateAsync(string path)
     {
         if (_closed) return;
@@ -204,12 +212,13 @@ internal sealed partial class MainWindow : Window
             }
         }
     }
+
     private DocumentTab AddImageTab(string path)
     {
         path = Path.GetFullPath(path);
         var existing = _tabItems.FirstOrDefault(t => StringComparer.Ordinal.Equals(t.Path, path));
         if (existing != null) return existing;
-        var viewer = new ImageViewer(path);
+        var viewer = new ImageViewer(path, _previewCache);
         var tab = new DocumentTab { Path = path, Content = viewer };
         viewer.StatusChanged += () =>
         {
@@ -217,6 +226,7 @@ internal sealed partial class MainWindow : Window
         };
         _tabItems.Add(tab); return tab;
     }
+
     private async Task ShowSelectedImageAsync()
     {
         var selected = _tabs.SelectedItem;
@@ -229,6 +239,7 @@ internal sealed partial class MainWindow : Window
         await viewer.ActivateAsync();
         if (!_closed && ReferenceEquals(_tabs.SelectedItem, selected)) Status(viewer.StatusText);
     }
+
     private void CloseTab(DocumentTab tab)
     {
         if (tab == _browser || !_tabItems.Contains(tab)) return;
@@ -236,6 +247,7 @@ internal sealed partial class MainWindow : Window
         _tabItems.Remove(tab); _dirty = true;
         if (_tabs.SelectedItem == null) _tabs.SelectedItem = _browser;
     }
+
     private void SaveSession()
     {
         if (!_dirty || _starting || _sessions?.CanWrite != true) return;
@@ -251,6 +263,7 @@ internal sealed partial class MainWindow : Window
         }
         catch (Exception ex) { _persistenceWarning = "Session save failed: " + ex.Message; Status("Session save failed."); }
     }
+
     private void UpdateBrowserStatus()
     {
         if (ReferenceEquals(_tabs.SelectedItem, _browser)) Status(_browserStatus);

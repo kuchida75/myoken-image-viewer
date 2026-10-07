@@ -67,6 +67,7 @@ internal sealed partial class MainWindow
         viewer.RaiseEvent(new KeyEventArgs { RoutedEvent = KeyDownEvent, Key = Key.Right });
         viewer.RaiseEvent(new KeyEventArgs { RoutedEvent = KeyDownEvent, Key = Key.Down });
         var zoom = viewer.View.Zoom; var x = viewer.View.X; var y = viewer.View.Y;
+        var firstFullBitmap = viewer.Surface.Bitmap;
         CaptureForTest("viewer-zoom-pan");
         viewer.InvokeSamplingButton();
         var other = AddImageTab(_files[1]); await SelectForTestAsync(other);
@@ -76,6 +77,8 @@ internal sealed partial class MainWindow
         await WaitUiAsync(() => viewer.IsFullResolution, "reactivated zoomed tab did not reload source pixels");
         CheckUi(Math.Abs(viewer.View.Zoom - zoom) < 1e-9 && Math.Abs(viewer.View.X - x) < 1e-6
             && Math.Abs(viewer.View.Y - y) < 1e-6, "zoom and pan survive tab switching without retaining hidden bitmaps");
+        CheckUi(viewer.PreviewCacheHit == false && !ReferenceEquals(firstFullBitmap, viewer.Surface.Bitmap),
+            "full-resolution upgrades are not retained in the preview cache");
         CheckUi(surface.PixelMode, "sampling choice survives in-process tab switching");
         viewer.InvokeSamplingButton();
         viewer.InvokeFitButton();

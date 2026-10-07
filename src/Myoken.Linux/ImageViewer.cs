@@ -7,10 +7,13 @@ using Avalonia.Media;
 
 namespace Myoken.Linux;
 
-// Each tab retains its small viewport model. Only the active tab owns decoded pixels.
+// Each tab retains its small viewport model. The shared cache owns bounded initial
+// previews; only the active tab owns a preview lease or an uncached full decode.
 internal sealed class ImageViewer : UserControl, IDisposable
 {
     private readonly string _path;
+    private readonly PreviewCache _previewCache;
+    private readonly bool _ownsPreviewCache;
     private readonly ImageSurface _surface = new();
     private readonly TextBlock _zoom = new() { VerticalAlignment = VerticalAlignment.Center, MinWidth = 130 };
     private readonly TextBlock _message = new()
@@ -21,9 +24,10 @@ internal sealed class ImageViewer : UserControl, IDisposable
     };
     private readonly Button _fit, _actual, _minus, _plus, _sampling;
     private ViewerImage? _image;
+    private PreviewCache.Lease? _previewLease;
     private CancellationTokenSource? _loadCts;
     private Task _detailTask = Task.CompletedTask;
-    private bool _active, _disposed, _detailLoading, _detailFailed;
+    private bool _active, _disposed, _detailLoading, _detailFailed, _previewWasHit;
     private int _generation;
     private string? _warning;
     public event Action? StatusChanged;
@@ -33,16 +37,20 @@ internal sealed class ImageViewer : UserControl, IDisposable
     internal bool IsFullResolution => _image?.IsFullResolution == true;
     internal PixelSize DecodedSize => _image?.Bitmap.PixelSize ?? default;
     internal bool ActualSizeEnabled => _actual.IsEnabled;
+    internal bool PreviewCacheHit => _previewWasHit && _previewLease != null;
     internal Task DetailTask => _detailTask;
     internal string StatusText => _image == null ? (_message.Text ?? "Opening image…")
         : $"{System.IO.Path.GetFileName(_path)} | {View.SourceWidth} × {View.SourceHeight} | {View.Zoom * 100:0.#}%{(View.IsFit ? " Fit" : "")} | "
             + (IsFullResolution ? "full resolution" : _detailLoading ? "preview — loading full resolution…" : "preview")
+            + (PreviewCacheHit ? " | cache hit" : "")
             + (View.Zoom > 1 ? (_surface.PixelMode ? " | pixels" : " | smooth") : "")
             + (string.IsNullOrEmpty(_warning) ? "" : " | " + _warning);
 
-    public ImageViewer(string path)
+    public ImageViewer(string path, PreviewCache? previewCache = null)
     {
         _path = path;
+        _previewCache = previewCache ?? new PreviewCache();
+        _ownsPreviewCache = previewCache == null;
         _fit = MakeButton("Fit", Fit, "Fit without enlarging small images (0)");
         _actual = MakeButton("100%", ActualSize, "One source pixel per application render-target pixel (1)");
         _minus = MakeButton("−", () => ZoomBy(1 / 1.2), "Zoom out (−)");
@@ -70,6 +78,7 @@ internal sealed class ImageViewer : UserControl, IDisposable
         AddHandler(KeyDownEvent, OnViewerKeyDown, RoutingStrategies.Bubble);
         UpdateView();
     }
+
     private Button MakeButton(string caption, Action action, string tip)
     {
         var button = new Button { Content = caption };
@@ -77,6 +86,7 @@ internal sealed class ImageViewer : UserControl, IDisposable
         button.Click += (_, _) => { action(); _surface.Focus(); };
         return button;
     }
+
     private double PreviewScale => _image == null ? 1 : Math.Min(
         (double)_image.Bitmap.PixelSize.Width / _image.Width, (double)_image.Bitmap.PixelSize.Height / _image.Height);
 
@@ -87,11 +97,13 @@ internal sealed class ImageViewer : UserControl, IDisposable
         var generation = _generation;
         _loadCts = new CancellationTokenSource(); var token = _loadCts.Token;
         _message.Text = "Opening " + System.IO.Path.GetFileName(_path) + "…";
-        _warning = null; _detailFailed = false; UpdateView();
+        _warning = null; _detailFailed = false; _previewWasHit = false; UpdateView();
         try
         {
-            var image = await ViewerImageLoader.LoadAsync(_path, false, token);
-            if (!IsCurrent(generation, token)) { image.Bitmap.Dispose(); return; }
+            var lease = await _previewCache.AcquireAsync(_path, token);
+            var image = lease.Image;
+            if (!IsCurrent(generation, token)) { lease.Dispose(); return; }
+            _previewLease = lease; _previewWasHit = lease.FromCache;
             _image = image; _surface.Bitmap = image.Bitmap; View.SetSource(image.Width, image.Height);
             _message.Text = string.Empty;
             if (!ViewerDecodePolicy.CanDecodeFull(image.Width, image.Height))
@@ -106,8 +118,10 @@ internal sealed class ImageViewer : UserControl, IDisposable
             { _message.Text = "Cannot open image: " + ex.Message; UpdateView(); }
         }
     }
+
     private bool IsCurrent(int generation, CancellationToken token) => !_disposed && _active
         && generation == _generation && !token.IsCancellationRequested;
+
     private void UpdateView()
     {
         _fit.IsEnabled = _minus.IsEnabled = _plus.IsEnabled = _sampling.IsEnabled = _active && HasImage;
@@ -115,7 +129,6 @@ internal sealed class ImageViewer : UserControl, IDisposable
         _actual.IsEnabled = _active && _image != null && ViewerDecodePolicy.CanDecodeFull(_image.Width, _image.Height);
         _message.IsVisible = !HasImage;
         _zoom.Text = HasImage ? $"{View.Zoom * 100:0.#}%{(View.IsFit ? " · Fit" : "")}{(IsFullResolution ? "" : " · preview")}" : "";
-        // Fit has no meaningful demand until the surface has a real viewport.
         if (_active && _image != null && View.Width > 0 && View.Height > 0
             && !IsFullResolution && !_detailLoading && !_detailFailed
             && ViewerDecodePolicy.CanDecodeFull(_image.Width, _image.Height) && View.Zoom > PreviewScale + 1e-6)
@@ -125,6 +138,7 @@ internal sealed class ImageViewer : UserControl, IDisposable
         }
         StatusChanged?.Invoke();
     }
+
     private async Task UpgradeAsync(int generation, CancellationToken token)
     {
         try
@@ -136,8 +150,11 @@ internal sealed class ImageViewer : UserControl, IDisposable
                 full.Bitmap.Dispose();
                 throw new InvalidDataException("Image dimensions changed while open; switch tabs to reload.");
             }
-            var old = _image; _image = full; _surface.Bitmap = full.Bitmap;
-            old?.Bitmap.Dispose(); _surface.InvalidateVisual();
+            var oldImage = _image; var oldLease = _previewLease;
+            _previewLease = null; _previewWasHit = false;
+            _image = full; _surface.Bitmap = full.Bitmap;
+            if (oldLease != null) oldLease.Dispose(); else oldImage?.Bitmap.Dispose();
+            _surface.InvalidateVisual();
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)
@@ -149,6 +166,7 @@ internal sealed class ImageViewer : UserControl, IDisposable
             if (IsCurrent(generation, token)) { _detailLoading = false; UpdateView(); }
         }
     }
+
     internal void Fit() { _surface.StopDrag(); View.Fit(); _surface.NotifyViewChanged(); }
     internal void ActualSize()
     {
@@ -159,6 +177,7 @@ internal sealed class ImageViewer : UserControl, IDisposable
     internal void InvokeActualSizeButton() => _actual.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
     internal void InvokeFitButton() => _fit.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
     internal void InvokeSamplingButton() => _sampling.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
     private void OnViewerKeyDown(object? sender, KeyEventArgs e)
     {
         if (!_active || !HasImage || e.KeyModifiers.HasFlag(KeyModifiers.Control)
@@ -177,18 +196,28 @@ internal sealed class ImageViewer : UserControl, IDisposable
         }
         e.Handled = true;
     }
+
+    private void ReleaseCurrentImage()
+    {
+        _surface.Bitmap = null;
+        var lease = _previewLease; _previewLease = null;
+        var image = _image; _image = null; _previewWasHit = false;
+        if (lease != null) lease.Dispose(); else image?.Bitmap.Dispose();
+    }
+
     public void Suspend()
     {
         _active = false; _generation++;
         _loadCts?.Cancel(); _loadCts?.Dispose(); _loadCts = null;
         _detailLoading = false; _detailTask = Task.CompletedTask;
-        _surface.StopDrag(); _surface.Bitmap = null;
-        _image?.Bitmap.Dispose(); _image = null;
+        _surface.StopDrag(); ReleaseCurrentImage();
         _surface.InvalidateVisual(); UpdateView();
     }
+
     public void Dispose()
     {
         if (_disposed) return;
         _disposed = true; Suspend();
+        if (_ownsPreviewCache) _previewCache.Dispose();
     }
 }
