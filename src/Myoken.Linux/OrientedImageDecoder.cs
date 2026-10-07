@@ -149,7 +149,7 @@ internal static class OrientedImageDecoder
 
         using var canvas = new SKCanvas(target);
         canvas.SetMatrix(matrix);
-        canvas.DrawBitmap(source, 0, 0, new SKSamplingOptions(SKFilterMode.Nearest));
+        canvas.DrawBitmap(source, new SKPoint(0, 0), new SKSamplingOptions(SKFilterMode.Nearest), null);
         canvas.Flush();
         return target;
     }
