@@ -27,6 +27,8 @@ internal static class OrientedImageDecoder
         token.ThrowIfCancellationRequested();
         if (HeifAvifDecoder.IsSupported(path))
             return HeifAvifDecoder.Decode(path, edge, full, token);
+        if (JxlDecoder.IsSupported(path))
+            return JxlDecoder.Decode(path, edge, full, token);
 
         int encodedWidth, encodedHeight;
         ImageOrientation orientation;

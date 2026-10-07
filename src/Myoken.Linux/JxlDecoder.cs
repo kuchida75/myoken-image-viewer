@@ -9,28 +9,32 @@ using PhotoSauce.MagicScaler.Transforms;
 
 namespace Myoken.Linux;
 
-// HEIC/HEIF/AVIF decoder using PhotoSauce's libheif plugin. The NuGet package
-// carries Linux x64/arm64 native decoders, so the application does not depend on
-// the host's libheif packages. libheif normalizes item orientation; MagicScaler
-// normalizes any exposed ICC profile into the sRGB working space.
-internal static class HeifAvifDecoder
+// JPEG XL decoder backed by PhotoSauce/libjxl. Myoken intentionally exposes the
+// first frame only for L003d, while preserving alpha and normalising orientation
+// plus source profiles into the same SDR sRGB working space as other formats.
+internal static class JxlDecoder
 {
-    private static readonly HashSet<string> Extensions = new(StringComparer.OrdinalIgnoreCase)
-        { ".heic", ".heif", ".avif" };
-    public static bool IsSupported(string path) => Extensions.Contains(Path.GetExtension(path));
+    public static bool IsSupported(string path) =>
+        string.Equals(Path.GetExtension(path), ".jxl", StringComparison.OrdinalIgnoreCase);
 
     public static OrientedDecodeResult Decode(string path, int edge, bool full, CancellationToken token)
     {
-        if (!IsSupported(path)) throw new NotSupportedException("Not a HEIC/HEIF/AVIF path.");
+        if (!IsSupported(path)) throw new NotSupportedException("Not a JPEG XL path.");
         if (!full && edge < 1) throw new ArgumentOutOfRangeException(nameof(edge));
         token.ThrowIfCancellationRequested();
         AdvancedCodecRegistry.EnsureRegistered();
 
         var info = ImageFileInfo.Load(path);
-        if (info.Frames.Count == 0) throw new InvalidDataException("HEIF container has no image frame.");
+        if (info.Frames.Count == 0) throw new InvalidDataException("JPEG XL container has no image frame.");
         var frame = info.Frames[0];
+
+        // ImageFileInfo reports corrected visual dimensions. Its orientation enum
+        // deliberately matches EXIF values, so derive stored dimensions for Info.
+        var encodedOrientation = ImageOrientationInfo.Normalize((int)frame.ExifOrientation);
         var width = frame.Width;
         var height = frame.Height;
+        var encodedWidth = ImageOrientationInfo.SwapsAxes(encodedOrientation) ? height : width;
+        var encodedHeight = ImageOrientationInfo.SwapsAxes(encodedOrientation) ? width : height;
         ViewerDecodePolicy.Validate(width, height, full);
 
         var settings = new ProcessImageSettings
@@ -39,7 +43,8 @@ internal static class HeifAvifDecoder
             ResizeMode = CropScaleMode.Max,
             OrientationMode = OrientationMode.Normalize,
             ColorProfileMode = ColorProfileMode.ConvertToSrgb,
-            HybridMode = HybridScaleMode.FavorSpeed
+            HybridMode = HybridScaleMode.FavorSpeed,
+            DecoderOptions = new MultiFrameDecoderOptions(0..1)
         };
         if (!full)
         {
@@ -53,11 +58,11 @@ internal static class HeifAvifDecoder
         token.ThrowIfCancellationRequested();
 
         if (source.Format != PhotoSauce.MagicScaler.PixelFormats.Bgra32bpp)
-            throw new InvalidDataException("HEIF decoder did not produce the expected BGRA32 working format.");
+            throw new InvalidDataException("JPEG XL decoder did not produce the expected BGRA32 working format.");
         if (source.Width <= 0 || source.Height <= 0)
-            throw new InvalidDataException("HEIF decoder returned invalid dimensions.");
+            throw new InvalidDataException("JPEG XL decoder returned invalid dimensions.");
         if (full && (source.Width != width || source.Height != height))
-            throw new InvalidDataException("Full-resolution HEIF decode dimensions differ from the primary image.");
+            throw new InvalidDataException("Full-resolution JPEG XL decode dimensions differ from the first image frame.");
 
         var stride = checked(source.Width * 4);
         var bytes = new byte[checked(stride * source.Height)];
@@ -75,11 +80,9 @@ internal static class HeifAvifDecoder
         finally { handle.Free(); }
 
         token.ThrowIfCancellationRequested();
-        var format = info.MimeType == ImageMimeTypes.Avif ? "AVIF" : "HEIC/HEIF";
-        return new OrientedDecodeResult(bitmap, width, height, width, height,
+        return new OrientedDecodeResult(bitmap, width, height, encodedWidth, encodedHeight,
             ImageOrientation.TopLeft,
-            format + " container profile (libheif/MagicScaler)",
+            "JPEG XL container profile (libjxl/MagicScaler)",
             true, true);
     }
-
 }

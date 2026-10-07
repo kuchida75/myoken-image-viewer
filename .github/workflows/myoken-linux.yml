@@ -32,7 +32,7 @@ jobs:
       - name: Check isolation, compile and run core/session/browser/viewer/cache policy checks
         run: bash linux/check.sh
       - name: Install headless display dependencies
-        run: sudo apt-get update && sudo apt-get install -y xvfb libx11-6 libice6 libsm6 libfontconfig1 libxrandr2 libxi6 libxcursor1 libgl1 libheif-examples libheif-plugin-x265 libheif-plugin-aomenc
+        run: sudo apt-get update && sudo apt-get install -y xvfb libx11-6 libice6 libsm6 libfontconfig1 libxrandr2 libxi6 libxcursor1 libgl1 libheif-examples libheif-plugin-x265 libheif-plugin-aomenc libjxl-tools
       - name: Run X11 cache, browser, viewer and fresh-process session regressions
         env:
           MYOKEN_TEST_OUTPUT: '${{ github.workspace }}/artifacts/linux-ui'

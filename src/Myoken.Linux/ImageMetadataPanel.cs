@@ -18,6 +18,7 @@ internal sealed class ImageMetadataPanel : Border, IDisposable
     private bool _started, _disposed;
     private int _loadGeneration;
     private ImageMetadataSnapshot? _metadata;
+    private string? _metadataNote;
     private string? _error;
     private int _displayWidth, _displayHeight, _encodedWidth, _encodedHeight;
     private ImageOrientation _orientation = ImageOrientation.TopLeft;
@@ -74,6 +75,7 @@ internal sealed class ImageMetadataPanel : Border, IDisposable
         _loadTask = Task.CompletedTask;
         _started = false;
         _metadata = null;
+        _metadataNote = null;
         _error = null;
         RenderText();
         if (IsVisible) EnsureLoaded();
@@ -84,6 +86,7 @@ internal sealed class ImageMetadataPanel : Border, IDisposable
         if (_started || _disposed) return;
         _started = true;
         _error = null;
+        _metadataNote = null;
         _loadCts = new CancellationTokenSource();
         var generation = _loadGeneration;
         _text.Text = BuildText() + "\n\nReading metadata…";
@@ -94,6 +97,18 @@ internal sealed class ImageMetadataPanel : Border, IDisposable
     {
         try
         {
+            if (JxlDecoder.IsSupported(_path))
+            {
+                // MetadataExtractor 2.9.3 does not expose JPEG XL container EXIF/XMP.
+                // libjxl carries those boxes, but wiring them into the portable DTO is
+                // deliberately left for a separate metadata pass.
+                _metadataNote = "JPEG XL EXIF/XMP detail extraction is not exposed in this panel yet.";
+                await Task.Yield();
+                if (!token.IsCancellationRequested && !_disposed && generation == _loadGeneration)
+                    RenderText();
+                return;
+            }
+
             var metadata = await Task.Run(() => PortableImageMetadataReader.Read(_path), token);
             if (token.IsCancellationRequested || _disposed || generation != _loadGeneration) return;
             _metadata = metadata;
@@ -139,6 +154,8 @@ internal sealed class ImageMetadataPanel : Border, IDisposable
                 sb.AppendLine("  Note: source was untagged/unspecified and is treated as sRGB.");
             else if (_sourceColorSpace.Contains("libheif/MagicScaler", StringComparison.Ordinal))
                 sb.AppendLine("  Note: HEIF/AVIF source profile details are decoder-managed; output is normalized to sRGB.");
+            else if (_sourceColorSpace.Contains("libjxl/MagicScaler", StringComparison.Ordinal))
+                sb.AppendLine("  Note: JPEG XL source profile details are decoder-managed; output is normalized to sRGB.");
             sb.AppendLine("  Display profile: not applied by Myoken yet.");
         }
 
@@ -165,6 +182,13 @@ internal sealed class ImageMetadataPanel : Border, IDisposable
                 foreach (var tag in _metadata.Tags)
                     sb.AppendLine($"  {tag.DirectoryName} · {tag.Name}: {tag.Description}");
             }
+        }
+
+        if (!string.IsNullOrEmpty(_metadataNote))
+        {
+            sb.AppendLine();
+            sb.AppendLine("Metadata");
+            sb.AppendLine("  " + _metadataNote);
         }
 
         if (!string.IsNullOrEmpty(_error))
