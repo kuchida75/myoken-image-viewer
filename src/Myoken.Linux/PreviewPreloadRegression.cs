@@ -33,23 +33,25 @@ internal sealed partial class MainWindow
                 "activating a preloaded neighbour is a cache hit with no new preview decode");
 
             var gate = new PriorityAsyncGate();
-            using var held = await gate.EnterAsync(ViewerDecodePriority.Foreground);
+            var held = await gate.EnterAsync(ViewerDecodePriority.Foreground);
             var background = gate.EnterAsync(ViewerDecodePriority.Background).AsTask();
             var foreground = gate.EnterAsync(ViewerDecodePriority.Foreground).AsTask();
             held.Dispose();
             var first = await Task.WhenAny(background, foreground).WaitAsync(TimeSpan.FromSeconds(5));
             CheckUi(ReferenceEquals(first, foreground), "queued selected-image decode outranks queued background preload");
-            using var foregroundLease = await foreground;
+            var foregroundLease = await foreground;
             foregroundLease.Dispose();
-            using var backgroundLease = await background.WaitAsync(TimeSpan.FromSeconds(5));
+            var backgroundLease = await background.WaitAsync(TimeSpan.FromSeconds(5));
+            backgroundLease.Dispose();
 
-            using var blocker = await gate.EnterAsync(ViewerDecodePriority.Foreground);
+            var blocker = await gate.EnterAsync(ViewerDecodePriority.Foreground);
             using var cancelled = new CancellationTokenSource();
             var stale = gate.EnterAsync(ViewerDecodePriority.Background, cancelled.Token).AsTask();
             cancelled.Cancel(); blocker.Dispose();
             try { await stale; throw new Exception("Cancelled background preload acquired decode gate."); }
             catch (OperationCanceledException) { Console.WriteLine("PASS: cancelled queued preload does not block later foreground work"); }
-            using var finalForeground = await gate.EnterAsync(ViewerDecodePriority.Foreground).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            var finalForeground = await gate.EnterAsync(ViewerDecodePriority.Foreground).AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            finalForeground.Dispose();
         }
         finally
         {
