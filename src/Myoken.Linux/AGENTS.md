@@ -7,3 +7,6 @@ L003c: HEIC/HEIF/AVIF support lives in HeifAvifDecoder and must remain a Linux a
 
 
 L003d: JPEG XL support lives in JxlDecoder and AdvancedCodecRegistry. PhotoSauce CodecManager is global; register libheif + libjxl together and regression-test coexistence. Runtime libjxl comes from the NuGet package; Ubuntu libjxl-tools is CI fixture-generation only. Preserve first-frame-only JxlDecoderOptions(0..1), 8-bit-output/HDR limitations, alpha preservation, full-native-frame-before-thumbnail caveat and explicit lack of detailed JXL EXIF/XMP panel extraction.
+
+
+L004a: MainWindow owns file mutation policy and current-folder reconciliation; FolderWatcher only batches filesystem events. External rename must update the existing DocumentTab/ImageViewer path rather than create a duplicate viewer. Per-path cache invalidation is preferred over global clears. Delete is intentionally permanent and requires explicit UI confirmation; never describe it as Trash. Same-folder rename only in this pass; move/Trash remain separate.

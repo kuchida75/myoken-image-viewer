@@ -5,7 +5,7 @@ Independent Linux development track in the existing Myoken repository.
 - Development branch: **linux/ubuntu-gnome**; Linux feature branches are checked in CI before a fast-forward update.
 - Windows baseline: **v0.2.167**, commit ea785b3770383278f1a3bf67762d35014e8bda26. Isolation checks are not a claim of GitHub branch-protection settings.
 - Target: Ubuntu 24.04 LTS and newer with GNOME, initially x64.
-- Linux UI: C# / .NET 10 / Avalonia 12.1.2. Current source version: **0.1.0-alpha.11**, window label **L003d**.
+- Linux UI: C# / .NET 10 / Avalonia 12.1.2. Current source version: **0.1.0-alpha.12**, window label **L004a**.
 - Portable core: .NET Standard 2.0, not yet referenced by Windows .NET Framework 4.8/WPF.
 
 ## Isolation contract
@@ -39,6 +39,29 @@ Close Myoken normally first. This block stops on a wrong branch, local changes, 
 ```
 
 No new APT packages, Ubuntu release upgrade, NVIDIA/CUDA changes or Python changes are required to update an already-working checkout. Run the viewer as your normal user, never sudo. The first NuGet restore requires network access. For a new machine, install git, dotnet-sdk-10.0, libx11-6, libice6, libsm6, libfontconfig1, libxrandr2, libxi6, libxcursor1, libgl1 and xwayland from configured Ubuntu feeds after reviewing APT's proposal, then clone linux/ubuntu-gnome into a new, separate directory. Do not delete an existing checkout to make cloning succeed.
+
+## L004a live folder updates + rename/delete
+
+Myoken now watches the **currently browsed folder** with Linux/FileSystemWatcher notifications. Create, rename, content-change and delete events are debounced into short batches, then the Browser is rescanned without forcing a tab switch or resetting the whole thumbnail cache.
+
+Supported changes are reconciled with open tabs:
+
+- externally **renaming** an open image mutates that existing `DocumentTab` and `ImageViewer` to the new case-sensitive path instead of closing/reopening it;
+- if dimensions stay the same, the viewer keeps its in-process zoom/pan and Smooth/Pixels state;
+- externally **changing** an open file invalidates only that path's thumbnail/preview cache entries and reloads the existing viewer;
+- externally **deleting** a file closes its matching image tab;
+- new supported files appear in Browser without F5;
+- watcher overflow falls back to a full current-folder rescan.
+
+Browser selection and vertical position are preserved as far as possible during live list updates. ThumbnailCache and PreviewCache now support **per-path invalidation**, so a changed file does not flush unrelated cached images.
+
+The top toolbar adds **Rename…** and **Delete…**. **F2** invokes Rename and **Delete** invokes Delete when the folder-path box is not being edited. The active image tab is the operation target; when Browser is active, its selected thumbnail is the target.
+
+Rename is currently same-directory only and must result in another supported image filename. Existing target files are never overwritten. Linux path identity remains ordinal/case-sensitive, so case-only renames are supported when the filesystem permits them.
+
+**Delete in L004a is permanent.** The confirmation dialog explicitly says **Delete permanently** and states that the operation bypasses GNOME Trash and cannot be undone by Myoken. Trash integration and move-to-another-folder are deliberately deferred to the next file-operations pass rather than hidden behind this implementation.
+
+No session-schema change is needed: renamed tabs simply serialize their updated paths on the next normal session save. See **linux/L004A-LIVE-FILEOPS.md** for exact automated coverage and Nova acceptance.
 
 ## L003d JPEG XL decoding
 
@@ -153,14 +176,14 @@ A second writer is excluded; corrupt, unreadable or newer-schema sessions are pr
 
 ## Scope limits and next work
 
-Current formats are JPEG, PNG, WebP, BMP, first-frame GIF, primary-image HEIC/HEIF/AVIF and first-frame JPEG XL. EXIF/encoded orientation, basic read-only metadata and source-profile-to-sRGB normalisation are implemented. Video, monitor-profile/HDR colour-management parity, GPU decoding, filesystem watching, file operations and drag/drop are future work. Filenames are fully enumerated/sorted before publication; the directory tree is lazy, not virtualised. Thumbnail caching does not change these facts.
+Current formats are JPEG, PNG, WebP, BMP, first-frame GIF, primary-image HEIC/HEIF/AVIF and first-frame JPEG XL. EXIF/encoded orientation, basic read-only metadata and source-profile-to-sRGB normalisation are implemented. L004a adds current-folder live watching plus same-folder rename and explicit permanent delete. Video, monitor-profile/HDR colour-management parity, GPU decoding, move/trash integration and drag/drop remain future work. Filenames are fully enumerated/sorted before publication; the directory tree is lazy, not virtualised. Thumbnail caching does not change these facts.
 
-Neighbour preview preloading is implemented in L002c4, EXIF orientation/basic metadata in L003a, source-profile normalisation in L003b, HEIC/HEIF/AVIF in L003c and first-frame JPEG XL in L003d. The originally targeted advanced still-image codecs are now present at baseline decode level; monitor-profile/HDR remains a separate colour-pipeline milestone. Disk caching, incremental file publication and measured real 100k-image throughput remain unimplemented. A repeated-path synthetic allocation test is not a real large-folder performance benchmark. Do not retain full-resolution images for every tab.
+Neighbour preview preloading is implemented in L002c4, EXIF orientation/basic metadata in L003a, source-profile normalisation in L003b, HEIC/HEIF/AVIF in L003c, first-frame JPEG XL in L003d and live current-folder rename/delete synchronization in L004a. The next file-operation pass is move + Trash integration; monitor-profile/HDR remains a separate colour-pipeline milestone. Disk caching, incremental file publication and measured real 100k-image throughput remain unimplemented. A repeated-path synthetic allocation test is not a real large-folder performance benchmark. Do not retain full-resolution images for every tab.
 
 This is GNOME-compatible, not GTK/libadwaita. The selected backend is X11 through XWayland in a GNOME Wayland session. Native Wayland, fractional scaling and hardware performance need separate validation.
 
 ## Tests and acceptance
 
-bash linux/check.sh checks Windows isolation, compilation and core/session/browser/viewer/cache policies including portable orientation rules. bash linux/smoke.sh additionally needs Xvfb and Python 3, uses disposable generated fixtures/state, checks cache reuse/pixels/invalidation/cancellation, tab-strip inputs, rendered sampling, all eight synthetic EXIF orientation transforms, the Info metadata panel, a tagged Display P3→sRGB pixel reference, real generated HEIC/AVIF behavior, a real lossless-alpha JPEG XL decode/thumbnail/cache/registry path, viewer behavior and fresh-process session restoration without a starting-folder override. MYOKEN_TEST_OUTPUT optionally captures fixture screenshots; this is not a human GNOME visual review.
+bash linux/check.sh checks Windows isolation, compilation and core/session/browser/viewer/cache policies including portable orientation rules. bash linux/smoke.sh additionally needs Xvfb and Python 3, uses disposable generated fixtures/state, checks cache reuse/pixels/invalidation/cancellation, tab-strip inputs, rendered sampling, all eight synthetic EXIF orientation transforms, the Info metadata panel, a tagged Display P3→sRGB pixel reference, real generated HEIC/AVIF behavior, a real lossless-alpha JPEG XL decode/thumbnail/cache/registry path, real Linux watcher create/rename/change/delete events with in-place tab synchronization, viewer behavior and fresh-process session restoration without a starting-folder override. MYOKEN_TEST_OUTPUT optionally captures fixture screenshots; this is not a human GNOME visual review.
 
-Source authoring, compilation, CI and user desktop validation are separate. Historical linux/VALIDATION.md and L002a/b/c1 records remain intact. Thumbnail/preview/preload validation remains in the L002c records. Orientation/metadata validation is in linux/L003A-ORIENTATION-METADATA.md and source-profile colour validation in linux/L003B-COLOR-MANAGEMENT.md. HEIC/AVIF validation is in linux/L003C-HEIC-AVIF.md. Current JPEG XL validation and its pending Nova check are in linux/L003D-JPEG-XL.md. Read linux/AGENTS.md before development.
+Source authoring, compilation, CI and user desktop validation are separate. Historical linux/VALIDATION.md and L002a/b/c1 records remain intact. Thumbnail/preview/preload validation remains in the L002c records. Orientation/metadata validation is in linux/L003A-ORIENTATION-METADATA.md and source-profile colour validation in linux/L003B-COLOR-MANAGEMENT.md. HEIC/AVIF validation is in linux/L003C-HEIC-AVIF.md and JPEG XL validation in linux/L003D-JPEG-XL.md. Current live-folder/file-operation validation and its pending Nova check are in linux/L004A-LIVE-FILEOPS.md. Read linux/AGENTS.md before development.

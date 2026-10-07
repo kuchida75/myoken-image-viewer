@@ -246,3 +246,26 @@ The first L003d candidate was not promoted because it referenced PhotoSauce's in
 Runtime limits: first frame only; no JXL animation playback/page navigation. The current PhotoSauce/libjxl pixel output is 8-bit, so alpha is preserved but >8-bit/HDR precision is not claimed. The decoder materializes a native full frame before downstream resize, so thumbnail requests can have transient native RAM/CPU cost beyond Myoken's retained cache size. Detailed JXL EXIF/XMP bridging remains future work. Myoken uses the plugin only for reading, even though the package also exposes encoding.
 
 A comparison against Windows v0.2.167 found no Windows source/build/version/script changes. Myoken.Core and the Linux session schema are unchanged. L003d adds the Linux-only PhotoSauce libjxl package and CI-only `libjxl-tools` fixture generation. Native Nova acceptance and large real-world JXL performance remain pending.
+
+
+## L004a automated live folder updates and rename/delete - 7 October 2026
+
+Tested application/test-source commit: `86c4c5624eb50e9b11a704e0c53e318c79c7174d`.
+
+Passing GitHub Actions run: https://github.com/kuchida75/myoken-image-viewer/actions/runs/37647465253 ; job `112881872446`. The completed Ubuntu job and full log were reviewed. `bash linux/check.sh` and `bash linux/smoke.sh` passed. Compilation had zero errors and retained the single pre-existing obsolete Bitmap.Save warning in the generated-screenshot helper.
+
+The integration test created a disposable watched folder on the Ubuntu runner and exercised the real Linux FileSystemWatcher path. A supported image created externally appeared without F5. An externally renamed open image updated the Browser path and **the same existing DocumentTab/ImageViewer object**; after reload the test confirmed the viewer identity was unchanged and its zoom value was preserved. Replacing the file contents at the same path invalidated PreviewCache, triggered a new decode and preserved zoom because the replacement retained the same dimensions. External deletion removed the Browser entry and closed the matching tab.
+
+The same fixture exercised Myoken's operation cores. Same-folder rename moved the file on disk and immediately updated Browser state. The permanent-delete core removed only the disposable test image and Browser entry. The test then returned to the original generated folder before the inherited browser/viewer/session suite continued.
+
+L004a adds targeted `InvalidatePath` operations to ThumbnailCache and PreviewCache, avoiding a global cache flush for ordinary changed/renamed/deleted files. VirtualThumbnailBrowser live updates preserve selection/scroll where possible. FolderWatcher uses a generation token across navigations and debounces events into 300 ms batches; watcher overflow requests a full folder rescan.
+
+Open-tab rename reconciliation updates the mutable DocumentTab path, refreshes its existing header and rebinds the same ImageViewer. The ImageViewer's path and metadata source are mutable only through the controlled rebind method; decoded bitmap ownership is still released/reacquired according to the existing viewer/cache rules. Session schema/location are unchanged and subsequent normal saves serialize the new tab path.
+
+User-facing delete is **permanent** in L004a. The dialog labels the action `Delete permanently`, displays the target path and explicitly states that GNOME Trash is bypassed and Myoken cannot undo it. Automated tests invoke only the core on disposable generated fixtures; they do not delete user data. Trash/recycle integration and move-to-another-folder are not part of L004a.
+
+The first candidate was not promoted because Avalonia 12's TextBox did not expose the two-argument `Select` helper used by the rename dialog. The passing source uses `SelectionStart` / `SelectionEnd`; no watcher/file-operation assertion was removed.
+
+Every inherited L003d/L003c/L003b/L003a/L002 check remained passing, including HEIC/AVIF/JXL, color/orientation/metadata, thumbnail/preview caches, neighbour preloading, single-row tabs, Smooth/Pixels/100%, pointer zoom/pan and fresh-process session restoration.
+
+A comparison against Windows v0.2.167 found no Windows source/build/version/script changes. Myoken.Core, package versions and the session schema are unchanged. Native Nova UX/performance acceptance of watcher behavior and the new confirmation dialogs remains pending.
