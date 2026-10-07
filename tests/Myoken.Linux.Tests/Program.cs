@@ -25,6 +25,13 @@ foreach (var c in sample)
     if (comparer.Compare(a, b) <= 0 && comparer.Compare(b, c) <= 0 && comparer.Compare(a, c) > 0)
         throw new InvalidOperationException("Comparison transitivity failed.");
 Console.WriteLine("PASS: comparison transitivity");
+Check(ImageOrientationInfo.SwapsAxes(ImageOrientation.RightTop)
+    && ImageOrientationInfo.SwapsAxes(ImageOrientation.LeftBottom)
+    && !ImageOrientationInfo.SwapsAxes(ImageOrientation.BottomRight),
+    "portable EXIF orientation axis-swap policy");
+Check(ImageOrientationInfo.Normalize(99) == ImageOrientation.TopLeft
+    && ImageOrientationInfo.DisplayName(ImageOrientation.RightTop).Contains("90° CW"),
+    "portable EXIF orientation normalization and display name");
 
 var temp = Path.Combine(Path.GetTempPath(), "myoken-linux-tests-" + Guid.NewGuid().ToString("N"));
 try

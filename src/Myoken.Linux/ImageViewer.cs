@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Myoken.Core;
 
 namespace Myoken.Linux;
 
@@ -15,6 +16,7 @@ internal sealed class ImageViewer : UserControl, IDisposable
     private readonly PreviewCache _previewCache;
     private readonly bool _ownsPreviewCache;
     private readonly ImageSurface _surface = new();
+    private readonly ImageMetadataPanel _metadata;
     private readonly TextBlock _zoom = new() { VerticalAlignment = VerticalAlignment.Center, MinWidth = 130 };
     private readonly TextBlock _message = new()
     {
@@ -22,7 +24,7 @@ internal sealed class ImageViewer : UserControl, IDisposable
         TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center,
         Margin = new Thickness(24), IsHitTestVisible = false
     };
-    private readonly Button _fit, _actual, _minus, _plus, _sampling;
+    private readonly Button _fit, _actual, _minus, _plus, _sampling, _info;
     private ViewerImage? _image;
     private PreviewCache.Lease? _previewLease;
     private CancellationTokenSource? _loadCts;
@@ -38,6 +40,10 @@ internal sealed class ImageViewer : UserControl, IDisposable
     internal PixelSize DecodedSize => _image?.Bitmap.PixelSize ?? default;
     internal bool ActualSizeEnabled => _actual.IsEnabled;
     internal bool PreviewCacheHit => _previewWasHit && _previewLease != null;
+    internal ImageOrientation Orientation => _image?.Orientation ?? ImageOrientation.TopLeft;
+    internal bool MetadataVisible => _metadata.IsVisible;
+    internal string MetadataText => _metadata.Text;
+    internal Task MetadataTask => _metadata.LoadTask;
     internal Task DetailTask => _detailTask;
     internal string StatusText => _image == null ? (_message.Text ?? "Opening image…")
         : $"{System.IO.Path.GetFileName(_path)} | {View.SourceWidth} × {View.SourceHeight} | {View.Zoom * 100:0.#}%{(View.IsFit ? " Fit" : "")} | "
@@ -49,6 +55,7 @@ internal sealed class ImageViewer : UserControl, IDisposable
     public ImageViewer(string path, PreviewCache? previewCache = null)
     {
         _path = path;
+        _metadata = new ImageMetadataPanel(path);
         _previewCache = previewCache ?? new PreviewCache();
         _ownsPreviewCache = previewCache == null;
         _fit = MakeButton("Fit", Fit, "Fit without enlarging small images (0)");
@@ -57,9 +64,10 @@ internal sealed class ImageViewer : UserControl, IDisposable
         _plus = MakeButton("+", () => ZoomBy(1.2), "Zoom in (+)");
         _sampling = MakeButton("Smooth", () => _surface.SetPixelMode(!_surface.PixelMode),
             "Scaling: click to switch Smooth/Pixels. Pixels shows hard pixel edges when enlarged; 100% stays 1:1 in both modes. No image file is changed.");
+        _info = MakeButton("Info", () => _metadata.Toggle(), "Show file and image metadata (I)");
         var controls = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
         controls.Children.Add(_fit); controls.Children.Add(_actual); controls.Children.Add(_minus); controls.Children.Add(_plus);
-        controls.Children.Add(_sampling); controls.Children.Add(_zoom);
+        controls.Children.Add(_sampling); controls.Children.Add(_info); controls.Children.Add(_zoom);
         var toolbar = new DockPanel { Margin = new Thickness(8) };
         DockPanel.SetDock(controls, Dock.Left); toolbar.Children.Add(controls);
         toolbar.Children.Add(new TextBlock
@@ -69,8 +77,11 @@ internal sealed class ImageViewer : UserControl, IDisposable
             TextWrapping = TextWrapping.Wrap, Margin = new Thickness(8, 0, 0, 0)
         });
         var root = new DockPanel(); DockPanel.SetDock(toolbar, Dock.Top); root.Children.Add(toolbar);
+        var body = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
         var area = new Grid { ClipToBounds = true };
-        area.Children.Add(_surface); area.Children.Add(_message); root.Children.Add(area); Content = root;
+        area.Children.Add(_surface); area.Children.Add(_message); body.Children.Add(area);
+        Grid.SetColumn(_metadata, 1); body.Children.Add(_metadata);
+        root.Children.Add(body); Content = root;
         _surface.ViewChanged += UpdateView;
         _surface.ActualSizeRequested += ActualSize;
         _surface.LimitZoom = zoom => _image != null && !ViewerDecodePolicy.CanDecodeFull(_image.Width, _image.Height)
@@ -105,6 +116,7 @@ internal sealed class ImageViewer : UserControl, IDisposable
             if (!IsCurrent(generation, token)) { lease.Dispose(); return; }
             _previewLease = lease; _previewWasHit = lease.FromCache;
             _image = image; _surface.Bitmap = image.Bitmap; View.SetSource(image.Width, image.Height);
+            _metadata.SetDecodeInfo(image);
             _message.Text = string.Empty;
             if (!ViewerDecodePolicy.CanDecodeFull(image.Width, image.Height))
                 _warning = "Preview only: full-resolution limit is 64 million pixels.";
@@ -125,6 +137,7 @@ internal sealed class ImageViewer : UserControl, IDisposable
     private void UpdateView()
     {
         _fit.IsEnabled = _minus.IsEnabled = _plus.IsEnabled = _sampling.IsEnabled = _active && HasImage;
+        _info.IsEnabled = _active;
         _sampling.Content = _surface.PixelMode ? "Pixels" : "Smooth";
         _actual.IsEnabled = _active && _image != null && ViewerDecodePolicy.CanDecodeFull(_image.Width, _image.Height);
         _message.IsVisible = !HasImage;
@@ -152,7 +165,7 @@ internal sealed class ImageViewer : UserControl, IDisposable
             }
             var oldImage = _image; var oldLease = _previewLease;
             _previewLease = null; _previewWasHit = false;
-            _image = full; _surface.Bitmap = full.Bitmap;
+            _image = full; _surface.Bitmap = full.Bitmap; _metadata.SetDecodeInfo(full);
             if (oldLease != null) oldLease.Dispose(); else oldImage?.Bitmap.Dispose();
             _surface.InvalidateVisual();
         }
@@ -177,6 +190,8 @@ internal sealed class ImageViewer : UserControl, IDisposable
     internal void InvokeActualSizeButton() => _actual.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
     internal void InvokeFitButton() => _fit.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
     internal void InvokeSamplingButton() => _sampling.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+    internal void InvokeInfoButton() => _info.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+    internal void InvalidateMetadata() => _metadata.Invalidate();
 
     private void OnViewerKeyDown(object? sender, KeyEventArgs e)
     {
@@ -192,6 +207,7 @@ internal sealed class ImageViewer : UserControl, IDisposable
             case Key.Right: View.PanBy(-80, 0); _surface.NotifyViewChanged(); break;
             case Key.Up: View.PanBy(0, 80); _surface.NotifyViewChanged(); break;
             case Key.Down: View.PanBy(0, -80); _surface.NotifyViewChanged(); break;
+            case Key.I: _metadata.Toggle(); break;
             default: return;
         }
         e.Handled = true;
@@ -218,6 +234,7 @@ internal sealed class ImageViewer : UserControl, IDisposable
     {
         if (_disposed) return;
         _disposed = true; Suspend();
+        _metadata.Dispose();
         if (_ownsPreviewCache) _previewCache.Dispose();
     }
 }
