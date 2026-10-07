@@ -1,7 +1,6 @@
 using System.Text;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Layout;
 using Myoken.Core;
 
 namespace Myoken.Linux;
@@ -14,9 +13,10 @@ internal sealed class ImageMetadataPanel : Border, IDisposable
         TextWrapping = Avalonia.Media.TextWrapping.Wrap,
         FontSize = 12
     };
-    private readonly CancellationTokenSource _lifetime = new();
+    private CancellationTokenSource? _loadCts;
     private Task _loadTask = Task.CompletedTask;
     private bool _started, _disposed;
+    private int _loadGeneration;
     private ImageMetadataSnapshot? _metadata;
     private string? _error;
     private int _displayWidth, _displayHeight, _encodedWidth, _encodedHeight;
@@ -62,38 +62,44 @@ internal sealed class ImageMetadataPanel : Border, IDisposable
     public void Invalidate()
     {
         if (_disposed) return;
-        _lifetime.Cancel();
-        // The panel owns a lifetime token, so invalidation is intentionally
-        // implemented by dropping metadata and allowing a new panel load only
-        // after the current tab is recreated. Decode information still refreshes.
+        _loadGeneration++;
+        _loadCts?.Cancel();
+        _loadCts?.Dispose();
+        _loadCts = null;
+        _loadTask = Task.CompletedTask;
+        _started = false;
         _metadata = null;
-        _error = "Metadata invalidated by Refresh; close/reopen this tab to reread it.";
+        _error = null;
         RenderText();
+        if (IsVisible) EnsureLoaded();
     }
 
     private void EnsureLoaded()
     {
         if (_started || _disposed) return;
         _started = true;
+        _error = null;
+        _loadCts = new CancellationTokenSource();
+        var generation = _loadGeneration;
         _text.Text = BuildText() + "\n\nReading metadata…";
-        _loadTask = LoadAsync(_lifetime.Token);
+        _loadTask = LoadAsync(generation, _loadCts.Token);
     }
 
-    private async Task LoadAsync(CancellationToken token)
+    private async Task LoadAsync(int generation, CancellationToken token)
     {
         try
         {
             var metadata = await Task.Run(() => PortableImageMetadataReader.Read(_path), token);
-            if (token.IsCancellationRequested || _disposed) return;
+            if (token.IsCancellationRequested || _disposed || generation != _loadGeneration) return;
             _metadata = metadata;
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            if (!token.IsCancellationRequested && !_disposed)
+            if (!token.IsCancellationRequested && !_disposed && generation == _loadGeneration)
                 _error = ex.Message;
         }
-        if (!_disposed) RenderText();
+        if (!_disposed && generation == _loadGeneration) RenderText();
     }
 
     private void RenderText() => _text.Text = BuildText();
@@ -178,7 +184,9 @@ internal sealed class ImageMetadataPanel : Border, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
-        _lifetime.Cancel();
-        _lifetime.Dispose();
+        _loadGeneration++;
+        _loadCts?.Cancel();
+        _loadCts?.Dispose();
+        _loadCts = null;
     }
 }
