@@ -8,5 +8,7 @@
   <ItemGroup>
     <Compile Include="../../src/Myoken.Linux/ImageViewport.cs" Link="ImageViewport.cs" />
     <Compile Include="../../src/Myoken.Linux/ViewerDecodePolicy.cs" Link="ViewerDecodePolicy.cs" />
+    <Compile Include="../../src/Myoken.Linux/PriorityAsyncGate.cs" Link="PriorityAsyncGate.cs" />
+    <Compile Include="../../src/Myoken.Linux/PreviewPreloadPolicy.cs" Link="PreviewPreloadPolicy.cs" />
   </ItemGroup>
 </Project>

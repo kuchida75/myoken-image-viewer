@@ -53,3 +53,20 @@ catch (InvalidDataException) { Console.WriteLine("PASS: 120-million-pixel input 
 try { ViewerDecodePolicy.Validate(8001, 8000, true); throw new Exception("Full guard failed."); }
 catch (InvalidDataException) { Console.WriteLine("PASS: full-resolution size guard"); }
 Console.WriteLine("All viewer geometry and decode-policy checks passed.");
+
+var preloadTargets = PreviewPreloadPolicy.Targets(new[] { "a", "b", "c", "d", "e" }, "c");
+Check(preloadTargets.SequenceEqual(new[] { "d", "b", "e" }), "preload policy selects next, previous and second-next");
+Check(PreviewPreloadPolicy.Targets(new[] { "a", "b" }, "b").SequenceEqual(new[] { "a" }), "preload policy does not wrap at list edge");
+using (var gate = new PriorityAsyncGate())
+{
+    using var held = await gate.EnterAsync(ViewerDecodePriority.Foreground);
+    var background = gate.EnterAsync(ViewerDecodePriority.Background).AsTask();
+    var foreground = gate.EnterAsync(ViewerDecodePriority.Foreground).AsTask();
+    held.Dispose();
+    var first = await Task.WhenAny(background, foreground);
+    Check(ReferenceEquals(first, foreground), "foreground viewer decode is dequeued before pending preload");
+    using var fg = await foreground;
+    fg.Dispose();
+    using var bg = await background;
+}
+Console.WriteLine("All viewer preload-policy and decode-priority checks passed.");

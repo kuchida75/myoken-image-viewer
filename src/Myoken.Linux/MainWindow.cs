@@ -19,6 +19,7 @@ internal sealed partial class MainWindow : Window
     private readonly FolderTree _folders = new();
     private readonly VirtualThumbnailBrowser _thumbnails = new();
     private readonly PreviewCache _previewCache = new();
+    private readonly PreviewPreloader _preloader;
     private readonly DocumentTabs _tabs = new();
     private readonly ObservableCollection<DocumentTab> _tabItems = new();
     private readonly DocumentTab _browser;
@@ -29,11 +30,12 @@ internal sealed partial class MainWindow : Window
     private string _folder = string.Empty;
     private string _browserStatus = "Choose an image folder.";
     private string? _persistenceWarning;
-    private bool _starting = true, _closed, _dirty;
+    private bool _starting = true, _closed, _dirty, _preloadTestEnabled;
 
     public MainWindow()
     {
-        Title = "Myoken Ubuntu/GNOME - Linux preview L002c3";
+        Title = "Myoken Ubuntu/GNOME - Linux preview L002c4";
+        _preloader = new PreviewPreloader(_previewCache);
         Width = 1200; Height = 820; MinWidth = 820; MinHeight = 480;
         var root = new DockPanel();
         var toolbar = new DockPanel { Margin = new Thickness(8), LastChildFill = true };
@@ -101,7 +103,7 @@ internal sealed partial class MainWindow : Window
         Closed += (_, _) =>
         {
             _closed = true; _saveTimer.Stop(); SaveSession(); Cancel(ref _browseCts);
-            _tabs.Dispose(); _thumbnails.Dispose(); _folders.Dispose();
+            _preloader.Dispose(); _tabs.Dispose(); _thumbnails.Dispose(); _folders.Dispose();
             foreach (var tab in _tabItems) (tab.Content as ImageViewer)?.Dispose();
             _previewCache.Dispose(); _sessions?.Dispose();
         };
@@ -148,6 +150,7 @@ internal sealed partial class MainWindow : Window
                 {
                     await RunThumbnailCacheChecksAsync();
                     await RunPreviewCacheChecksAsync();
+                    await RunPreviewPreloadChecksAsync();
                 }
                 await RunUiChecksAsync(Program.TestMode);
                 ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).Shutdown(0);
@@ -170,6 +173,7 @@ internal sealed partial class MainWindow : Window
 
     private async Task RefreshAsync()
     {
+        _preloader.Cancel();
         _thumbnails.InvalidateCache();
         _previewCache.Clear();
         await _folders.RefreshSelectedAsync();
@@ -229,6 +233,7 @@ internal sealed partial class MainWindow : Window
 
     private async Task ShowSelectedImageAsync()
     {
+        _preloader.Cancel();
         var selected = _tabs.SelectedItem;
         foreach (var tab in _tabItems)
             if (tab != selected) (tab.Content as ImageViewer)?.Suspend();
@@ -237,7 +242,11 @@ internal sealed partial class MainWindow : Window
         if (ReferenceEquals(selected, _browser)) { UpdateBrowserStatus(); return; }
         if (selected?.Content is not ImageViewer viewer) return;
         await viewer.ActivateAsync();
-        if (!_closed && ReferenceEquals(_tabs.SelectedItem, selected)) Status(viewer.StatusText);
+        if (!_closed && ReferenceEquals(_tabs.SelectedItem, selected))
+        {
+            Status(viewer.StatusText);
+            SchedulePreloadsForSelection();
+        }
     }
 
     private void CloseTab(DocumentTab tab)
@@ -246,6 +255,16 @@ internal sealed partial class MainWindow : Window
         (tab.Content as ImageViewer)?.Dispose();
         _tabItems.Remove(tab); _dirty = true;
         if (_tabs.SelectedItem == null) _tabs.SelectedItem = _browser;
+        else if (!_closed && ReferenceEquals(_tabs.SelectedItem, _browser) == false) SchedulePreloadsForSelection();
+    }
+
+    private void SchedulePreloadsForSelection()
+    {
+        if (_closed || (Program.TestMode != null && !_preloadTestEnabled)) return;
+        var selectedPath = _tabs.SelectedItem?.Path;
+        if (string.IsNullOrEmpty(selectedPath)) { _preloader.Cancel(); return; }
+        var paths = _tabItems.Where(t => t.Path != null).Select(t => t.Path!).ToArray();
+        _preloader.Schedule(paths, selectedPath);
     }
 
     private void SaveSession()

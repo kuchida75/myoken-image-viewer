@@ -32,7 +32,7 @@ internal sealed class PreviewCache : IDisposable
     private readonly object _sync = new();
     private readonly SemaphoreSlim _requests = new(2);
     private readonly LeasedLruCache<PreviewKey, PreviewResource> _memory;
-    private readonly Func<string, CancellationToken, Task<ViewerImage>> _decode;
+    private readonly Func<string, CancellationToken, Task<ViewerImage>>? _decode;
     private long _generation, _decodeAttempts, _staleResults;
     private bool _disposed;
 
@@ -40,7 +40,7 @@ internal sealed class PreviewCache : IDisposable
         Func<string, CancellationToken, Task<ViewerImage>>? decoder = null)
     {
         _memory = new(budgetBytes, MaximumEntries);
-        _decode = decoder ?? ((path, token) => ViewerImageLoader.LoadAsync(path, false, token));
+        _decode = decoder;
     }
 
     public PreviewCacheSnapshot Snapshot
@@ -48,7 +48,16 @@ internal sealed class PreviewCache : IDisposable
         get { lock (_sync) return new(_memory.Snapshot, _decodeAttempts, _staleResults); }
     }
 
-    public async Task<Lease> AcquireAsync(string path, CancellationToken token = default)
+    public Task<Lease> AcquireAsync(string path, CancellationToken token = default)
+        => AcquireCoreAsync(path, ViewerDecodePriority.Foreground, token);
+
+    public async Task<bool> PreloadAsync(string path, CancellationToken token = default)
+    {
+        using var lease = await AcquireCoreAsync(path, ViewerDecodePriority.Background, token).ConfigureAwait(false);
+        return lease.FromCache;
+    }
+
+    private async Task<Lease> AcquireCoreAsync(string path, ViewerDecodePriority priority, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
         var fullPath = Path.GetFullPath(path);
@@ -78,7 +87,9 @@ internal sealed class PreviewCache : IDisposable
                 _decodeAttempts++;
             }
 
-            owned = await _decode(fullPath, token).ConfigureAwait(false);
+            owned = _decode != null
+                ? await _decode(fullPath, token).ConfigureAwait(false)
+                : await ViewerImageLoader.LoadAsync(fullPath, false, token, priority).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
             var after = await Task.Run(() => ThumbnailFileStamp.Read(fullPath), token).ConfigureAwait(false);
 

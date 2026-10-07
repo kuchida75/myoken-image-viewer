@@ -10,14 +10,14 @@ internal sealed record ViewerImage(Bitmap Bitmap, int Width, int Height)
 
 internal static class ViewerImageLoader
 {
-    // Serialise viewer decodes across tabs, including cancelled native operations
-    // that cannot be interrupted mid-call. Thumbnail decoding has its own existing gate.
-    private static readonly SemaphoreSlim Gate = new(1);
+    // Serialise viewer decodes across tabs. Foreground work is queued ahead of
+    // pending preloads; a native decode already running cannot be pre-empted.
+    private static readonly PriorityAsyncGate Gate = new();
 
-    public static async Task<ViewerImage> LoadAsync(string path, bool full, CancellationToken token)
+    public static async Task<ViewerImage> LoadAsync(string path, bool full, CancellationToken token,
+        ViewerDecodePriority priority = ViewerDecodePriority.Foreground)
     {
-        await Gate.WaitAsync(token);
-        try
+        using var gate = await Gate.EnterAsync(priority, token);
         {
             return await Task.Run(() =>
             {
@@ -51,6 +51,5 @@ internal static class ViewerImageLoader
                 finally { bitmap?.Dispose(); }
             }, token);
         }
-        finally { Gate.Release(); }
     }
 }
