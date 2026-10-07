@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MetadataExtractor;
 using MetadataExtractor.Formats.Exif;
 using MetadataDirectory = MetadataExtractor.Directory;
 
@@ -32,6 +33,7 @@ namespace Myoken.Core
                     if (tags.Count >= MaximumTags) break;
                     var description = tag.Description;
                     if (string.IsNullOrWhiteSpace(description)) continue;
+                    description = description!;
                     if (description.Length > MaximumDescriptionLength)
                         description = description.Substring(0, MaximumDescriptionLength) + "…";
                     tags.Add(new ImageMetadataTag(directory.Name, tag.Name, description));
@@ -62,7 +64,7 @@ namespace Myoken.Core
         {
             if (directory == null || !directory.ContainsTag(tag)) return null;
             var value = directory.GetDescription(tag);
-            return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+            return string.IsNullOrWhiteSpace(value) ? null : value!.Trim();
         }
     }
 }
