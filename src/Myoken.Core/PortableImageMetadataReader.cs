@@ -33,10 +33,10 @@ namespace Myoken.Core
                     if (tags.Count >= MaximumTags) break;
                     var description = tag.Description;
                     if (string.IsNullOrWhiteSpace(description)) continue;
-                    description = description!;
-                    if (description.Length > MaximumDescriptionLength)
-                        description = description.Substring(0, MaximumDescriptionLength) + "…";
-                    tags.Add(new ImageMetadataTag(directory.Name, tag.Name, description));
+                    var text = description!;
+                    if (text.Length > MaximumDescriptionLength)
+                        text = text.Substring(0, MaximumDescriptionLength) + "…";
+                    tags.Add(new ImageMetadataTag(directory.Name ?? "Metadata", tag.Name ?? "Tag", text));
                 }
                 if (tags.Count >= MaximumTags) break;
             }
