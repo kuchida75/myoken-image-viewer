@@ -15,3 +15,8 @@ Local linux/check.sh passed compilation, Windows baseline isolation and core/ses
 The existing real watcher create/rename/change/delete tests remain. Added integration checks cover destination collision preservation, same-folder no-op, missing destination, cross-folder move with delayed watcher events, viewer identity/zoom, moved session path, destination listing, missing/failed GIO without deletion fallback, real GIO recoverable contents/trashinfo in disposable XDG_DATA_HOME, and removal of trashed tabs from saved sessions. Existing explicit permanent deletion and fresh-process restoration remain covered.
 
 Human GNOME validation is pending: folder picker cancellation, moves between mounts, Trash restoration, unavailable/unsupported Trash errors, minimum-window toolbar layout, and permanent-delete confirmation. Automated headless checks do not establish native GNOME acceptance.
+
+
+## CI result — 2026-10-07
+
+Application source `4df01c641f72bb426562f5cdf6ce0c5bf38383d9` passed the complete Ubuntu isolation/build/policy/headless smoke/fresh-process suite in push run 37649622246 and PR run 37649629785. The real GIO recoverable-content/trashinfo assertions, move watcher-drain identity/zoom checks and session assertions passed. Human GNOME acceptance remains pending.

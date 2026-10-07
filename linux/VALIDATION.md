@@ -269,3 +269,10 @@ The first candidate was not promoted because Avalonia 12's TextBox did not expos
 Every inherited L003d/L003c/L003b/L003a/L002 check remained passing, including HEIC/AVIF/JXL, color/orientation/metadata, thumbnail/preview caches, neighbour preloading, single-row tabs, Smooth/Pixels/100%, pointer zoom/pan and fresh-process session restoration.
 
 A comparison against Windows v0.2.167 found no Windows source/build/version/script changes. Myoken.Core, package versions and the session schema are unchanged. Native Nova UX/performance acceptance of watcher behavior and the new confirmation dialogs remains pending.
+
+
+## L004b move and GNOME Trash — 2026-10-07
+
+Application source `4df01c641f72bb426562f5cdf6ce0c5bf38383d9` passed the complete Ubuntu isolation/build/policy/headless smoke/fresh-process suite in push run 37649622246 and PR run 37649629785. The real GIO recoverable-content/trashinfo assertions, move watcher-drain identity/zoom checks and session assertions passed. Human GNOME acceptance remains pending.
+
+Normal Delete uses confirmed GIO Trash without a permanent-delete fallback. Explicit permanent deletion remains separately labelled and confirmed. Move-to-folder refuses overwrites and updates the existing tab/viewer in place. Windows v0.2.167 isolation passed; main is unchanged. See linux/L004B-MOVE-TRASH.md.
