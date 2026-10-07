@@ -5,7 +5,7 @@ Independent Linux development track in the existing Myoken repository.
 - Development branch: **linux/ubuntu-gnome**; Linux feature branches are checked in CI before a fast-forward update.
 - Windows baseline: **v0.2.167**, commit ea785b3770383278f1a3bf67762d35014e8bda26. Isolation checks are not a claim of GitHub branch-protection settings.
 - Target: Ubuntu 24.04 LTS and newer with GNOME, initially x64.
-- Linux UI: C# / .NET 10 / Avalonia 12.1.2. Current source version: **0.1.0-alpha.5**, window label **L002c2**.
+- Linux UI: C# / .NET 10 / Avalonia 12.1.2. Current source version: **0.1.0-alpha.6**, window label **L002c3**.
 - Portable core: .NET Standard 2.0, not yet referenced by Windows .NET Framework 4.8/WPF.
 
 ## Isolation contract
@@ -39,6 +39,14 @@ Close Myoken normally first. This block stops on a wrong branch, local changes, 
 ```
 
 No new APT packages, Ubuntu release upgrade, NVIDIA/CUDA changes or Python changes are required to update an already-working checkout. Run the viewer as your normal user, never sudo. The first NuGet restore requires network access. For a new machine, install git, dotnet-sdk-10.0, libx11-6, libice6, libsm6, libfontconfig1, libxrandr2, libxi6, libxcursor1, libgl1 and xwayland from configured Ubuntu feeds after reviewing APT's proposal, then clone linux/ubuntu-gnome into a new, separate directory. Do not delete an existing checkout to make cloning succeed.
+
+## L002c3 viewer preview RAM cache
+
+Image tabs now share a process-local cache for the normal initial viewer decode. The default retained-storage budget is **512 MiB**, allocated on demand, with LRU eviction and a 256-entry cap. Inactive tabs release their preview leases; recently used previews can remain cached and be reacquired without another preview decode. The cache stores only the normal initial preview result (which can equal source resolution for small images). Explicit full-resolution upgrades requested for zoom/100% are **not retained** and are still released when the tab becomes inactive.
+
+Preview reuse preserves each tab's existing in-process zoom/pan and Smooth/Pixels state. When a cached preview is actually reused, the image status includes **cache hit**. File length/UTC mtime and exact case-sensitive path are checked before reuse and after a new decode. **Refresh/F5 clears both thumbnail and preview caches.** This is not filesystem watching or content hashing; same-size/same-mtime replacements still require Refresh.
+
+The 512 MiB budget is accounted decoded-preview storage, not total application/GPU memory. Active leases, decoder scratch buffers, graphics copies, full-resolution upgrades and the rest of the process can use additional memory. Preview caching is per process and writes no files. See **linux/L002C-PREVIEW-CACHE.md** for validation and Nova acceptance.
 
 ## L002c2 thumbnail RAM cache
 
@@ -82,7 +90,7 @@ A second writer is excluded; corrupt, unreadable or newer-schema sessions are pr
 
 Initial formats remain JPEG, PNG, WebP, BMP and the first GIF frame. Advanced codecs, video, metadata/EXIF orientation/colour-management parity, GPU decoding, filesystem watching, file operations and drag/drop are future work. Filenames are fully enumerated/sorted before publication; the directory tree is lazy, not virtualised. Thumbnail caching does not change these facts.
 
-Next passes: bounded viewer-preview cache, then low-priority preview preloading. Disk caching, incremental file publication and measured real 100k-image throughput remain unimplemented. A repeated-path synthetic allocation test is not a real large-folder performance benchmark. Do not retain full-resolution images for every tab.
+Next pass: low-priority preview preloading. The preview cache itself is now implemented; disk caching, incremental file publication and measured real 100k-image throughput remain unimplemented. Disk caching, incremental file publication and measured real 100k-image throughput remain unimplemented. A repeated-path synthetic allocation test is not a real large-folder performance benchmark. Do not retain full-resolution images for every tab.
 
 This is GNOME-compatible, not GTK/libadwaita. The selected backend is X11 through XWayland in a GNOME Wayland session. Native Wayland, fractional scaling and hardware performance need separate validation.
 
@@ -90,4 +98,4 @@ This is GNOME-compatible, not GTK/libadwaita. The selected backend is X11 throug
 
 bash linux/check.sh checks Windows isolation, compilation and original core/session/browser/viewer policies plus cache ownership/concurrency/metadata policies. bash linux/smoke.sh additionally needs Xvfb and Python 3, uses disposable generated fixtures/state, checks actual cache reuse/pixels/invalidation/cancellation, tab-strip inputs, rendered sampling, viewer behaviour and fresh-process session restoration without a starting-folder override. MYOKEN_TEST_OUTPUT optionally captures fixture screenshots; this is not a human GNOME visual review.
 
-Source authoring, compilation, CI and user desktop validation are separate. Historical linux/VALIDATION.md and L002a/b/c1 records remain intact. Current cache validation and its pending Nova check are in linux/L002C-CACHE.md. Read linux/AGENTS.md before development.
+Source authoring, compilation, CI and user desktop validation are separate. Historical linux/VALIDATION.md and L002a/b/c1 records remain intact. Thumbnail-cache validation is in linux/L002C-CACHE.md; viewer-preview-cache validation and its pending Nova check are in linux/L002C-PREVIEW-CACHE.md. Read linux/AGENTS.md before development.

@@ -59,3 +59,10 @@ The cache is per browser/process and writes no thumbnail files. No new system/dr
 Close Myoken normally. Update the clean linux/ubuntu-gnome checkout with the guarded README block, then run bash linux/check.sh and bash linux/run.sh. Expect L002c2 in the title and a Thumb cache footer in Browser.
 
 Use Pictures/Screenshots. Let the first view finish, scroll down, then return. Previously retained views should increase Hits without increasing Decodes; uncached regions and capacity-evicted entries still decode. Leave the folder and return to check reuse. Refresh/F5 deliberately clears thumbnails, so decoding after that is expected. Check tabs, zoom/pan, Smooth/Pixels and normal close/relaunch restore. Cache contents/counters reset on exit. Report responsiveness separately from counter reuse: thumbnail caching does not speed up the full filename scan or image-tab full-resolution loading.
+
+
+## Native Nova cache-counter check - 7 October 2026
+
+The user supplied an L002c2 Browser screenshot from Nova showing **798 images**, **17.1 MiB / 128 MiB estimated retained thumbnail storage**, **60 Hits** and **205 Decodes**. This demonstrates that the cache counters were active and had recorded reuse on the user's real Screenshots folder. The screenshot remains in the conversation and is not uploaded to the repository.
+
+The user did not provide a controlled before/after latency measurement, so this is not recorded as a quantified speedup. The screenshot also does not by itself establish eviction behaviour, all-file decoding success, total process/GPU memory, or long-session stability. Those remain covered only to the extent of the automated tests described above.

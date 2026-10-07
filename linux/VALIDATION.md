@@ -134,3 +134,20 @@ All prior core/session, 600 browser viewport combinations, 60 viewer geometry/sc
 The initial candidate's helper/type name conflict, overstrict centred-header test assumption and empty programmatically opened menu were corrected with the relevant assertions retained. Failing candidates were not promoted. The candidate diff against the Windows v0.2.167 baseline contains additions only. Changes relative to the previous Linux build are confined to document tabs, MainWindow integration, Linux version, tests and documentation; image decoding/sampling/geometry, core, dependencies and session schema are unchanged. The final follow-up is documentation only. See linux/L002C-TABS.md for exact coverage, limits and Nova acceptance.
 
 L002c1 status: implementation and automated validation passed; its own native Nova test remains pending. RAM/disk image caching and preloading are not part of this pass. Main and Windows profiles/releases are outside this work.
+
+
+## L002c2 native thumbnail-cache counter check - 7 October 2026
+
+The user supplied a native Nova screenshot of L002c2 browsing the Screenshots folder. Visible counters report 798 images, 17.1 MiB / 128 MiB estimated thumbnail-cache storage, 60 cache hits and 205 decodes. This is user-supplied desktop evidence that the cache is active and has reused thumbnails; it is not a controlled latency benchmark or total-memory measurement. The screenshot remains only in the conversation. See linux/L002C-CACHE.md for the automated cache validation and exact budget caveats.
+
+## L002c3 automated viewer-preview cache validation - 7 October 2026
+
+Tested application/test-source commit: `36634e086259357d59d11bf80698993e3495c805`.
+
+Passing GitHub Actions run: https://github.com/kuchida75/myoken-image-viewer/actions/runs/37618007337 ; job `112780954408`. The completed Ubuntu 24.04.5 job and log were reviewed. `bash linux/check.sh` and `bash linux/smoke.sh` passed. Compilation had zero errors; the existing obsolete Bitmap.Save warning in the screenshot helper remains.
+
+The new preview-cache checks passed warm bitmap reuse without a second preview decode, case-distinct/Unicode path identity, changed/deleted/corrupt-file handling, budget eviction with active-lease safety, cancellation/clear/shutdown/change rejection of late results, and shared application-cache reuse across real image-tab switches. Switching back reused the same cached preview without another preview decode and preserved the tab's zoom state. Inactive image tabs released all preview leases while bounded cache ownership could remain. Clearing the cache released unleased preview storage.
+
+The existing viewer regression also confirmed that explicit full-resolution upgrades are **not** retained in PreviewCache: switching away releases the full bitmap, switching back reacquires the cached initial preview, and full detail is decoded again only when the retained zoom demands it. Existing thumbnail-cache, browser, single-row tabs, rendered Smooth/Pixels output, pointer-centred zoom, drag/pan, cancellation and fresh-process ordered-tab/session restoration tests all passed.
+
+L002c3 uses a 512 MiB accounted preview-storage budget with a 256-entry cap. This is not total process/GPU memory and does not include decoder scratch space, graphics copies, outstanding retired leases or uncached full-resolution upgrades. The cache is process-local and writes no files. Native Nova responsiveness and visual acceptance of L002c3 remain pending; no user screenshot has yet been relabelled as acceptance of this build.
