@@ -32,7 +32,7 @@ internal sealed partial class MainWindow
             CheckUi(viewer.PreviewCacheHit && after.DecodeAttempts == before.DecodeAttempts,
                 "activating a preloaded neighbour is a cache hit with no new preview decode");
 
-            using var gate = new PriorityAsyncGate();
+            var gate = new PriorityAsyncGate();
             using var held = await gate.EnterAsync(ViewerDecodePriority.Foreground);
             var background = gate.EnterAsync(ViewerDecodePriority.Background).AsTask();
             var foreground = gate.EnterAsync(ViewerDecodePriority.Foreground).AsTask();
