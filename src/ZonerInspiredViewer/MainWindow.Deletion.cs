@@ -41,6 +41,7 @@ namespace ZonerInspiredViewer
             foreach (ImageTabState state in _tabs.Values.Concat(new[] { _homeBrowser, _latestBrowserView }).Where(state => state != null))
             {
                 state.SelectedPaths.RemoveAll(value => String.Equals(value, path, StringComparison.OrdinalIgnoreCase));
+                state.BrowserRotations.Remove(path);
                 if (String.Equals(state.SelectedPath, path, StringComparison.OrdinalIgnoreCase))
                 {
                     state.SelectedPath = next;

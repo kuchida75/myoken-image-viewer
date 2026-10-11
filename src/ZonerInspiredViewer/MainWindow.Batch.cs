@@ -16,11 +16,11 @@ namespace ZonerInspiredViewer
         private ContextMenu BuildBatchMenu()
         {
             var menu = new ContextMenu(); bool enabled = SelectedFilePaths().Length > 0 && !_fileTransferBusy && !_backupBusy && !_rotationSaving && !_enhancementSaving;
-            foreach (var kind in new[] { BatchKind.Rename, BatchKind.Resize, BatchKind.Convert })
+            foreach (var kind in new[] { BatchKind.Rename, BatchKind.Resize, BatchKind.Convert, BatchKind.AutoOrient })
             {
                 BatchKind selected = kind;
-                var item = WorkflowMenuItem(kind == BatchKind.Convert ? "Batch convert format..." : "Batch " + kind.ToString().ToLowerInvariant() + "...",
-                    kind == BatchKind.Rename ? "\uE8AC" : kind == BatchKind.Resize ? "\uE740" : "\uE8AB", null, delegate { ShowBatch(selected); }, enabled);
+                var item = WorkflowMenuItem(kind == BatchKind.AutoOrient ? "Auto-orient from EXIF..." : kind == BatchKind.Convert ? "Batch convert format..." : "Batch " + kind.ToString().ToLowerInvariant() + "...",
+                    kind == BatchKind.Rename ? "\uE8AC" : kind == BatchKind.Resize ? "\uE740" : kind == BatchKind.AutoOrient ? "\uE7AD" : "\uE8AB", null, delegate { ShowBatch(selected); }, enabled);
                 item.Tag = "batch-" + kind.ToString().ToLowerInvariant(); menu.Items.Add(item);
             }
             return menu;
@@ -47,7 +47,7 @@ namespace ZonerInspiredViewer
                 if (dialog.Result != null)
                 {
                     ApplyBatchResult(kind, dialog.Result);
-                    _transferStatus = dialog.Result.Completed.Count + (kind == BatchKind.Rename ? " renamed" : " written")
+                    _transferStatus = dialog.Result.Completed.Count + (kind == BatchKind.Rename ? " renamed" : kind == BatchKind.AutoOrient ? " oriented" : " written")
                         + ", " + dialog.Result.Skipped + " skipped, " + dialog.Result.Errors.Count + " errors" + (dialog.Result.Canceled ? ", canceled" : "");
                 }
                 if (Directory.Exists(_currentFolder)) RefreshFolder(); UpdateStatus(); ScheduleSessionSave();

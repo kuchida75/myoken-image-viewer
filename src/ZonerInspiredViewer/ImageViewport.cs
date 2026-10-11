@@ -51,6 +51,20 @@ namespace ZonerInspiredViewer
             };
         }
 
+        public static ImageView FitAdaptive(Size image, Size viewport)
+        {
+            if (!IsFinite(image.Width) || !IsFinite(image.Height) || !IsFinite(viewport.Width) || !IsFinite(viewport.Height)
+                || image.Width <= 0 || image.Height <= 0 || viewport.Width <= 0 || viewport.Height <= 0)
+                return new ImageView { Zoom = 1 };
+            double zoom = Math.Min(viewport.Width / image.Width, viewport.Height / image.Height);
+            return new ImageView
+            {
+                Zoom = zoom,
+                X = (viewport.Width - image.Width * zoom) / 2,
+                Y = (viewport.Height - image.Height * zoom) / 2
+            };
+        }
+
         public static ImageView Center(Size image, Size viewport, double zoom)
         {
             zoom = IsFinite(zoom) && zoom > 0 ? Math.Max(0.02, Math.Min(64, zoom)) : 1;

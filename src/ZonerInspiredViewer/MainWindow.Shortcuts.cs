@@ -90,12 +90,13 @@ namespace ZonerInspiredViewer
                 case "zoomIn": ZoomFromCenter(1.15); break;
                 case "zoomOut": ZoomFromCenter(1 / 1.15); break;
                 case "fit": FitImageToView(true); break;
+                case "adaptiveZoom": ToggleAdaptiveZoom(); break;
                 case "actual": SetZoomOneToOne(); break;
                 case "fitWidth": FitImageAxis(true); break;
                 case "fitHeight": FitImageAxis(false); break;
                 case "zoomLock": ToggleZoomLock(); break;
-                case "rotateLeft": RotateImage(-1); break;
-                case "rotateRight": RotateImage(1); break;
+                case "rotateLeft": RotateFromShortcut(-1); break;
+                case "rotateRight": RotateFromShortcut(1); break;
                 case "rename": RenameCurrent(); break;
                 case "delete": DeleteCurrent(); break;
                 case "copy": CopySelectedFiles(false); break;
@@ -105,7 +106,7 @@ namespace ZonerInspiredViewer
                 case "parent": case "browserParent": NavigateUp(); break;
                 case "forward": NavigateDown(); break;
                 case "enhance": _enhanceButton.IsChecked = !_quickEnhanceEnabled; ToggleQuickEnhance(); break;
-                case "slideshow": if (_slideshowPlaying) StopSlideshow(); else StartSlideshow(); break;
+                case "slideshow": if (_slideshowPlaying || _slideshowSelectionCancellation != null) StopSlideshow(); else StartSlideshow(); break;
                 case "pauseSlideshow": ToggleSlideshowPause(); break;
             }
             return true;
@@ -114,6 +115,12 @@ namespace ZonerInspiredViewer
         private static bool IsImageArrow(Key key)
         {
             return key == Key.Left || key == Key.Right || key == Key.Up || key == Key.Down;
+        }
+
+        private void RotateFromShortcut(int quarterTurns)
+        {
+            if (_imageView.Visibility == Visibility.Visible) { RotateImage(quarterTurns); return; }
+            RotateBrowserImage(quarterTurns);
         }
 
         private void BuildShortcutConfiguration()

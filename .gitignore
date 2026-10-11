@@ -70,4 +70,5 @@ backups/
 viewer-backup*.json
 .viewer-enhance-backups/
 .viewer-rotation-backups/
+.viewer-orientation-backups/
 .zen-batch-backups/

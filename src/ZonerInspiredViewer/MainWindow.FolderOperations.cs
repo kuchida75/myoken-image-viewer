@@ -114,6 +114,7 @@ namespace ZonerInspiredViewer
             foreach (ImageTabState state in _tabs.Values.Concat(new[] { _homeBrowser, _latestBrowserView }).Where(s => s != null))
             {
                 state.SelectedPaths.RemoveAll(path => affected(path));
+                foreach (string path in state.BrowserRotations.Keys.Where(affected).ToArray()) state.BrowserRotations.Remove(path);
                 state.ForwardFolders.RemoveAll(path => affected(path));
                 if (affected(state.SelectedPath)) state.SelectedPath = null;
                 if (!affected(state.Path) && !affected(state.FolderPath)) continue;

@@ -21,6 +21,7 @@ namespace ZonerInspiredViewer
             options.Validate();
             if (plan.Any(item => item.Included && item.Status.StartsWith("Error:", StringComparison.Ordinal))) throw new IOException("Fix or exclude preview errors before running the batch.");
             if (options.Kind == BatchKind.Rename) return Rename(plan, profile, token, progress);
+            if (options.Kind == BatchKind.AutoOrient) return AutoOrient(plan, token, progress);
             var result = new BatchResult { Skipped = plan.Count(item => !item.Ready || !item.Included) };
             try
             {
@@ -34,6 +35,29 @@ namespace ZonerInspiredViewer
                     }
                     catch (OperationCanceledException) { Report(item, "Canceled", progress); throw; }
                     catch (Exception error) { lock (result) result.Errors.Add(item.CurrentName + ": " + error.Message); Report(item, "Failed: " + error.Message, progress); }
+                });
+            }
+            catch (OperationCanceledException) { result.Canceled = true; }
+            return result;
+        }
+
+        private static BatchResult AutoOrient(IList<BatchItem> plan, CancellationToken token, Action<BatchItem, string> progress)
+        {
+            var result = new BatchResult { Skipped = plan.Count(item => !item.Ready || !item.Included) };
+            try
+            {
+                Parallel.ForEach(plan.Where(item => item.Ready && item.Included), new ParallelOptions
+                { MaxDegreeOfParallelism = Math.Max(1, Math.Min(4, Environment.ProcessorCount / 4)), CancellationToken = token }, item =>
+                {
+                    try
+                    {
+                        Report(item, "Orienting", progress);
+                        ExifOrientationBatch.Save(item, token);
+                        lock (result) result.Completed.Add(new TransferredItem { Source = item.Source, Destination = item.Source });
+                        Report(item, "Completed", progress);
+                    }
+                    catch (OperationCanceledException) { Report(item, "Canceled", progress); throw; }
+                    catch (Exception error) { lock (result) result.Errors.Add(item.Source + ": " + error.Message); Report(item, "Failed: " + error.Message, progress); }
                 });
             }
             catch (OperationCanceledException) { result.Canceled = true; }

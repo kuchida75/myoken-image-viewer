@@ -45,6 +45,7 @@ namespace ZonerInspiredViewer
 
     internal sealed class ImageTabState
     {
+        public Dictionary<string, BrowserRotationState> BrowserRotations { get; set; }
         public string StackId { get; set; }
         public FileRevision? SavedEnhanceRevision { get; set; }
         public ManualAdjustments ManualAdjustments { get; set; }
@@ -56,6 +57,7 @@ namespace ZonerInspiredViewer
         {
             ForwardFolders = new List<string>();
             SelectedPaths = new List<string>();
+            BrowserRotations = new Dictionary<string, BrowserRotationState>(StringComparer.OrdinalIgnoreCase);
         }
 
         public BrowserSortField SortField { get; set; }
@@ -81,9 +83,24 @@ namespace ZonerInspiredViewer
             var copy = (ImageTabState)MemberwiseClone();
             copy.ForwardFolders = new List<string>(ForwardFolders);
             copy.SelectedPaths = new List<string>(SelectedPaths);
+            copy.BrowserRotations = new Dictionary<string, BrowserRotationState>(BrowserRotations, StringComparer.OrdinalIgnoreCase);
             copy.ManualAdjustments = ZonerInspiredViewer.ManualAdjustments.Copy(ManualAdjustments);
             return copy;
         }
+    }
+
+    internal struct BrowserRotationState
+    {
+        public int Turns;
+        public FileRevision Revision;
+    }
+
+    [DataContract]
+    internal sealed class BrowserRotationDto
+    {
+        [DataMember] public string Path { get; set; }
+        [DataMember] public int Turns { get; set; }
+        [DataMember] public FileRevision Revision { get; set; }
     }
 
     internal sealed class MetadataRow
@@ -138,6 +155,7 @@ namespace ZonerInspiredViewer
         [DataMember] public int ImageGpuBudgetMb { get; set; }
         [DataMember] public bool ZoomLocked { get; set; }
         [DataMember] public double LockedZoom { get; set; }
+        [DataMember] public bool AdaptiveZoomEnabled { get; set; }
         [DataMember] public double SuperResolutionScale { get; set; }
         [DataMember] public string SuperResolutionModel { get; set; }
         [DataMember] public string ProcessingGpuKey { get; set; }
@@ -164,6 +182,7 @@ namespace ZonerInspiredViewer
         [DataMember] public bool? QuickEnhanceEnabled { get; set; }
         [DataMember] public bool AdvancedQuickEnhance { get; set; }
         [DataMember] public List<string> BrowserSelectedPaths { get; set; }
+        [DataMember] public List<BrowserRotationDto> HomeBrowserRotations { get; set; }
         [DataMember] public double SlideshowSeconds { get; set; }
         [DataMember] public bool SlideshowShuffle { get; set; }
         [DataMember]
@@ -261,6 +280,7 @@ namespace ZonerInspiredViewer
     [DataContract]
     internal sealed class SessionTabDto
     {
+        [DataMember] public List<BrowserRotationDto> BrowserRotations { get; set; }
         [DataMember] public string StackId { get; set; }
         [DataMember] public FileRevision? SavedEnhanceRevision { get; set; }
         [DataMember] public ManualAdjustments ManualAdjustments { get; set; }

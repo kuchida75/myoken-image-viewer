@@ -15,8 +15,8 @@ internal static partial class ViewerRegressionTests
     private static void RunBatchChecks()
     {
         string root = Path.Combine(Root, "batch-" + Guid.NewGuid().ToString("N").Substring(0, 8)); Directory.CreateDirectory(root);
-        BatchRenameChecks(root); BatchExportChecks(root); BatchThumbnailChecks(root); BatchUiChecks(root);
-        Console.WriteLine("PASS: batch rename/resize/convert preview, execution, collisions, rollback, copies/backups, cancellation, metadata/formats, presets, tab remapping and dark/light layouts.");
+        BatchRenameChecks(root); BatchExportChecks(root); BatchAutoOrientChecks(root); BatchThumbnailChecks(root); BatchUiChecks(root);
+        Console.WriteLine("PASS: batch rename/resize/convert/EXIF auto-orient, preview, execution, collisions, rollback, copies/backups, cancellation, metadata/formats, presets, tab remapping and dark/light layouts.");
     }
     private static List<BatchItem> BatchPreview(string[] paths, BatchOptions options)
     { return BatchPlan.Create(paths, options, CancellationToken.None); }
@@ -30,7 +30,8 @@ internal static partial class ViewerRegressionTests
         var plan = BatchPreview(new[] { b, a }, options);
         Assert(plan.All(row => row.Ready) && plan[0].NewName == "01.jpg", "rename sequence follows selection order and permits swaps");
         var result = BatchRun(plan, options, root);
-        Assert(result.Errors.Count == 0 && result.Completed.Count == 2 && File.ReadAllText(a) == "second" && File.ReadAllText(b) == "first", "staged swap keeps both originals");
+        Assert(result.Errors.Count == 0 && result.Completed.Count == 2 && File.ReadAllText(a) == "second" && File.ReadAllText(b) == "first",
+            "staged swap keeps both originals: " + String.Join("; ", result.Errors));
         Assert(File.Exists(result.Journal) && !Directory.GetFiles(folder, ".zen-rename-*").Any(), "durable recovery log and no leftover staging files");
         using (var cancel = new CancellationTokenSource())
         {
@@ -133,6 +134,59 @@ internal static partial class ViewerRegressionTests
         Console.WriteLine("PASS: resize geometry, six encoders, on-disk originals, metadata/orientation/ICC, dates, overwrite backups, stale inputs and cancellation.");
     }
 
+    private static void BatchAutoOrientChecks(string root)
+    {
+        string folder = Path.Combine(root, "Orient"), nested = Path.Combine(folder, "Nested");
+        Directory.CreateDirectory(nested);
+        string rotated = Path.Combine(nested, "Portrait.jpg"), mirrored = Path.Combine(folder, "Mirror.jpg");
+        string upright = Path.Combine(folder, "Upright.png"); MakeImage(upright, 70, 50, 96);
+        foreach (var fixture in new[] { new { Path = rotated, Orientation = (ushort)6, Type = OrientationType.RightTop },
+            new { Path = mirrored, Orientation = (ushort)2, Type = OrientationType.TopRight } })
+            using (var image = CodecFixture(MagickColors.Crimson, 80, 60))
+            {
+                var exif = new ExifProfile(); exif.SetValue(ExifTag.Make, "Orientation fixture");
+                exif.SetValue(ExifTag.Orientation, fixture.Orientation); image.SetProfile(exif);
+                image.Orientation = fixture.Type; image.Write(fixture.Path, MagickFormat.Jpeg);
+            }
+        byte[] original = File.ReadAllBytes(rotated);
+        var options = BatchOptions.Default(BatchKind.AutoOrient);
+        var plan = BatchPreview(new[] { folder, rotated }, options);
+        Assert(plan.Count == 3 && plan.Count(item => item.Ready) == 2 && plan.Single(item => item.Source == upright).Status.StartsWith("Unchanged"),
+            "recursive preview deduplicates selected children and skips already-upright files");
+        Assert(plan.Single(item => item.Source == rotated).OutputWidth == 60 && plan.Single(item => item.Source == rotated).OutputHeight == 80,
+            "EXIF orientation previews pixel dimensions");
+        var result = BatchRun(plan, options, root);
+        Assert(result.Completed.Count == 2 && result.Skipped == 1 && result.Errors.Count == 0,
+            "only flagged images are oriented: completed=" + result.Completed.Count + ", skipped=" + result.Skipped + ", errors=" + String.Join("; ", result.Errors));
+        using (var image = new MagickImage(rotated))
+            Assert(image.Width == 60 && image.Height == 80 && image.GetExifProfile().GetValue(ExifTag.Orientation).Value == 1
+                && image.GetExifProfile().GetValue(ExifTag.Make).Value == "Orientation fixture", "portrait pixels and EXIF normalized with metadata retained");
+        using (var image = new MagickImage(mirrored))
+            Assert(image.Width == 80 && image.Height == 60 && image.GetExifProfile().GetValue(ExifTag.Orientation).Value == 1,
+                "mirrored EXIF orientation is also normalized");
+        string backupFolder = Path.Combine(nested, ".viewer-orientation-backups");
+        Assert(Directory.GetFiles(backupFolder).Any(path => original.SequenceEqual(File.ReadAllBytes(path))), "byte-identical original backed up");
+        Assert(BatchPreview(new[] { folder }, options).All(item => !item.Ready) && BatchPreview(new[] { folder }, options).Count == 3,
+            "second pass is a no-op and excludes backup folders");
+        using (var image = CodecFixture(MagickColors.Blue, 40, 30))
+        {
+            var exif = new ExifProfile(); exif.SetValue(ExifTag.Orientation, (ushort)6);
+            image.SetProfile(exif); image.Orientation = OrientationType.RightTop; image.Write(rotated, MagickFormat.Jpeg);
+        }
+        plan = BatchPreview(new[] { rotated }, options);
+        File.AppendAllText(rotated, "changed");
+        byte[] changed = File.ReadAllBytes(rotated);
+        result = BatchRun(plan, options, root);
+        Assert(result.Completed.Count == 0 && result.Errors.Count == 1 && changed.SequenceEqual(File.ReadAllBytes(rotated)),
+            "changed source is not overwritten after preview");
+        using (var cancel = new CancellationTokenSource())
+        {
+            cancel.Cancel(); result = BatchExecutor.Execute(plan, options, Path.Combine(root, "Profile"), cancel.Token, null);
+            Assert(result.Canceled && result.Completed.Count == 0, "canceled batch leaves source untouched");
+        }
+        Console.WriteLine("PASS: recursive EXIF orientation, mirrored/rotated pixels, no-op skips, original backups, stale input and cancellation.");
+    }
+
     private static void BatchUiChecks(string root)
     {
         string photos = Path.Combine(root, "UI"); Directory.CreateDirectory(photos);
@@ -170,7 +224,7 @@ internal static partial class ViewerRegressionTests
             state.Tabs.Add(new SessionTabDto { Id = first, Path = first, FolderPath = photos }); state.Tabs.Add(new SessionTabDto { Id = second, Path = second, FolderPath = photos }); services.Sessions.Save(state);
             var window = new MainWindow(services); window.Show(); Wait(() => Ready(window, first), "batch main image"); WaitScan(window);
             Assert(Capture(window).BatchPresets.Single().Options.Width == 1280, "presets restore through automatic session");
-            var menu = (ContextMenu)Invoke(window, "BuildBatchMenu"); Assert(menu.Items.Count == 3 && menu.Items.Cast<MenuItem>().All(item => item.IsEnabled), "all batch menu commands available for an image");
+            var menu = (ContextMenu)Invoke(window, "BuildBatchMenu"); Assert(menu.Items.Count == 4 && menu.Items.Cast<MenuItem>().All(item => item.IsEnabled), "all batch menu commands available for an image");
             string renamedFirst = Path.Combine(photos, "Photo01_01.png");
             var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(40) }; Task executing = null;
             timer.Tick += delegate

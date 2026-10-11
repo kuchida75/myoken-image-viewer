@@ -50,7 +50,7 @@ namespace ZonerInspiredViewer
         {
             _kind = kind; _paths = paths; _profile = profile; _presets = presets; _savePresets = savePresets; _invalidate = invalidate;
             _defaultPreset = new BatchPreset { Name = "Default", Options = BatchOptions.Default(kind) };
-            Title = "Batch " + kind.ToString().ToLowerInvariant() + " - " + BuildInfo.AppName;
+            Title = (kind == BatchKind.AutoOrient ? "Auto-orient from EXIF" : "Batch " + kind.ToString().ToLowerInvariant()) + " - " + BuildInfo.AppName;
             Width = 1140; Height = 760; MinWidth = 900; MinHeight = 580; WindowStartupLocation = WindowStartupLocation.CenterOwner;
             ThemeManager.PrepareWindow(this); Build(); LoadOptions(BatchOptions.Default(kind));
             _timer.Tick += delegate { _timer.Stop(); Work = PreviewAsync(); };
@@ -67,7 +67,7 @@ namespace ZonerInspiredViewer
         {
             var root = new DockPanel { Margin = new Thickness(16) }; Content = root;
             ThemeManager.Bind(root, Panel.BackgroundProperty, ThemeKeys.WindowBackground);
-            var heading = new TextBlock { Text = _kind == BatchKind.Convert ? "Batch convert format" : "Batch " + _kind.ToString().ToLowerInvariant(), FontSize = 22, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 14) };
+            var heading = new TextBlock { Text = _kind == BatchKind.Convert ? "Batch convert format" : _kind == BatchKind.AutoOrient ? "Auto-orient from EXIF" : "Batch " + _kind.ToString().ToLowerInvariant(), FontSize = 22, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 14) };
             DockPanel.SetDock(heading, Dock.Top); root.Children.Add(heading);
             var footer = new StackPanel { Margin = new Thickness(0, 12, 0, 0) }; DockPanel.SetDock(footer, Dock.Bottom); root.Children.Add(footer);
             _details = new TextBox { IsReadOnly = true, TextWrapping = TextWrapping.Wrap, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Height = 72, Visibility = Visibility.Collapsed };
@@ -77,7 +77,7 @@ namespace ZonerInspiredViewer
             var buttons = new DockPanel(); footer.Children.Add(buttons);
             _close = CommandPresentation.Button("\uE8BB", "Close", "Esc", "Close, or cancel an active batch safely.", Close, true);
             DockPanel.SetDock(_close, Dock.Right); buttons.Children.Add(_close);
-            _run = CommandPresentation.Button("\uE73E", _kind.ToString(), null, "Apply the reviewed batch to the listed items.", StartConfirmed, true);
+            _run = CommandPresentation.Button("\uE73E", _kind == BatchKind.AutoOrient ? "Auto-orient" : _kind.ToString(), null, "Apply the reviewed batch to the listed items.", StartConfirmed, true);
             _run.MinWidth = 100; _run.IsEnabled = false; DockPanel.SetDock(_run, Dock.Right); buttons.Children.Add(_run);
             _summary = new TextBlock { VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 14, 0) }; buttons.Children.Add(_summary);
             var body = new Grid(); body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(340) }); body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); root.Children.Add(body);
@@ -90,7 +90,8 @@ namespace ZonerInspiredViewer
             DockPanel.SetDock(remove, Dock.Right); DockPanel.SetDock(save, Dock.Right); presets.Children.Add(remove); presets.Children.Add(save);
             _preset = new ComboBox { Height = 32, Margin = new Thickness(0, 0, 8, 0) }; AutomationProperties.SetName(_preset, "Batch preset"); presets.Children.Add(_preset); _fields.Children.Add(presets);
             RefreshPresets(); _preset.SelectionChanged += delegate { var value = _preset.SelectedItem as BatchPreset; _deletePreset.IsEnabled = value != null && value != _defaultPreset; if (!_loading && value != null) { LoadOptions(value.Options); Changed(); } };
-            if (_kind == BatchKind.Rename) BuildRename(); else BuildExport();
+            if (_kind == BatchKind.AutoOrient) { presets.Visibility = Visibility.Collapsed; BuildAutoOrient(); }
+            else if (_kind == BatchKind.Rename) BuildRename(); else BuildExport();
             var preview = new DockPanel(); Grid.SetColumn(preview, 1); body.Children.Add(preview);
             var title = new TextBlock { Text = "Preview  /  " + _paths.Length + " selected", FontSize = 16, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 10) }; DockPanel.SetDock(title, Dock.Top); preview.Children.Add(title);
             _grid = new DataGrid { AutoGenerateColumns = false, IsReadOnly = false, CanUserAddRows = false, CanUserDeleteRows = false,
@@ -105,8 +106,10 @@ namespace ZonerInspiredViewer
             var cellStyle = new Style(typeof(DataGridCell)); cellStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0))); cellStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(6)));
             _grid.CellStyle = cellStyle;
             _grid.Columns.Add(new DataGridCheckBoxColumn { Header = "Use", Binding = new Binding("Included") { UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged }, Width = 44 });
-            Column("Current name", "CurrentName", 1.4, "Source"); Column("New name", "NewName", 1.4, "Destination");
-            if (_kind != BatchKind.Rename) Column("Dimensions", "Dimensions", 1, "Dimensions"); Column("Status", "Status", 1.6, "Status");
+            Column("Current name", "CurrentName", 1.4, "Source");
+            if (_kind != BatchKind.AutoOrient) Column("New name", "NewName", 1.4, "Destination");
+            if (_kind != BatchKind.Rename) Column(_kind == BatchKind.AutoOrient ? "Pixels" : "Dimensions", "Dimensions", 1, "Dimensions");
+            Column("Status", "Status", 1.6, "Status");
             preview.Children.Add(_grid);
         }
 
@@ -164,6 +167,23 @@ namespace ZonerInspiredViewer
             Choice("Case", new[] { "Keep case", "lowercase", "UPPERCASE", "Title Case" }, o => (int)o.Case, (o, v) => o.Case = (BatchCase)v);
             Check("Strip spaces", o => o.StripSpaces, (o, v) => o.StripSpaces = v);
             Heading("Conflicts"); Conflict(false);
+        }
+        private void BuildAutoOrient()
+        {
+            Heading("Selected scope");
+            var explanation = new TextBlock
+            {
+                Text = "Selected folders are scanned recursively. Only single-frame images with EXIF Orientation 2-8 and a writable codec are included. Already-upright images are skipped.",
+                TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 14)
+            };
+            ThemeManager.Bind(explanation, TextBlock.ForegroundProperty, ThemeKeys.MutedText); _fields.Children.Add(explanation);
+            Heading("File safety");
+            var safety = new TextBlock
+            {
+                Text = "Pixels are transformed and the EXIF orientation is reset. Each original is backed up beside the image in .viewer-orientation-backups. JPEG is re-encoded at quality 95; this build processes pixels at 8-bit depth. Linked files, animations and backup folders are skipped.",
+                TextWrapping = TextWrapping.Wrap
+            };
+            ThemeManager.Bind(safety, TextBlock.ForegroundProperty, ThemeKeys.MutedText); _fields.Children.Add(safety);
         }
         private void BuildExport()
         {
@@ -268,10 +288,12 @@ namespace ZonerInspiredViewer
             if (!_run.IsEnabled || !PreviewReady) return;
             _grid.CommitEdit(DataGridEditingUnit.Cell, true); _grid.CommitEdit(DataGridEditingUnit.Row, true);
             int overwrite = Plan.Count(item => item.Ready && item.Included && item.Overwrite);
-            string message = _kind == BatchKind.Rename ? "Rename " + Plan.Count(item => item.Ready && item.Included) + " selected items using this preview?"
+            string message = _kind == BatchKind.AutoOrient
+                ? "Auto-orient " + Plan.Count(item => item.Ready && item.Included) + " images from their EXIF flags?\n\nOnly images marked as rotated or mirrored are rewritten. Byte-for-byte originals are kept in .viewer-orientation-backups beside each image. JPEG is re-encoded at quality 95; this build processes pixels at 8-bit depth."
+                : _kind == BatchKind.Rename ? "Rename " + Plan.Count(item => item.Ready && item.Included) + " selected items using this preview?"
                 : "Process " + Plan.Count(item => item.Ready && item.Included) + " images from their on-disk originals?\n\nViewer-only adjustments are excluded. Output is 8-bit; JPEG transparency becomes white and GIF is palette-limited. Metadata preservation depends on the output format."
                 + (overwrite == 0 ? "\n\nOriginal files will be kept." : "\n\n" + overwrite + " existing files will be overwritten. Backups are kept in .zen-batch-backups beside each destination.");
-            if (MessageBox.Show(this, message, Title, MessageBoxButton.YesNo, overwrite > 0 ? MessageBoxImage.Warning : MessageBoxImage.Question) == MessageBoxResult.Yes) Work = ExecuteAsync();
+            if (MessageBox.Show(this, message, Title, MessageBoxButton.YesNo, overwrite > 0 || _kind == BatchKind.AutoOrient ? MessageBoxImage.Warning : MessageBoxImage.Question) == MessageBoxResult.Yes) Work = ExecuteAsync();
         }
         internal Task ExecuteAsync() { return Dispatcher.InvokeAsync(new Func<Task>(ExecuteCoreAsync)).Task.Unwrap(); }
         private async Task ExecuteCoreAsync()
@@ -293,7 +315,7 @@ namespace ZonerInspiredViewer
                     catch (Exception error) { result.Errors.Add("Thumbnail refresh: " + error.Message); }
                     return result;
                 });
-                _summary.Text = Result.Completed.Count + (_kind == BatchKind.Rename ? " renamed" : " written") + " / " + Result.Skipped + " skipped / " + Result.Errors.Count + " errors" + (Result.Canceled ? " / canceled" : "");
+                _summary.Text = Result.Completed.Count + (_kind == BatchKind.Rename ? " renamed" : _kind == BatchKind.AutoOrient ? " oriented" : " written") + " / " + Result.Skipped + " skipped / " + Result.Errors.Count + " errors" + (Result.Canceled ? " / canceled" : "");
                 if (Result.Errors.Count > 0 || Result.Journal != null)
                 { _details.Text = String.Join(Environment.NewLine, Result.Errors.Take(8)) + (Result.Journal == null ? "" : Environment.NewLine + "Rename recovery log: " + Result.Journal); _details.Visibility = Visibility.Visible; }
             }

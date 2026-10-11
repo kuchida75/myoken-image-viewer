@@ -906,6 +906,7 @@ namespace ZonerInspiredViewer
             _browserView.Children.Add(browserHeader);
 
             _thumbnailGrid = new VirtualizedThumbnailGrid(_services.Thumbnails);
+            _thumbnailGrid.RotationForPath = BrowserRotationForPath;
             _thumbnailGrid.IsFavoriteFolder = path => _folderNavigation.IsFavorite(path);
             _thumbnailGrid.ItemActivated += delegate(object sender, ThumbnailActivatedEventArgs e)
             {
@@ -1152,6 +1153,7 @@ namespace ZonerInspiredViewer
                 IsBrowser = true, FolderPath = state.FolderPath, SearchText = state.SearchText,
                 SelectedPath = state.SelectedPath, BrowserScrollOffset = state.BrowserScrollOffset,
                 SelectedPaths = new List<string>(state.SelectedPaths),
+                BrowserRotations = new Dictionary<string, BrowserRotationState>(state.BrowserRotations, StringComparer.OrdinalIgnoreCase),
                 SortField = state.SortField, SortDescending = state.SortDescending,
                 ForwardFolders = new List<string>(state.ForwardFolders)
             };
@@ -1492,6 +1494,11 @@ namespace ZonerInspiredViewer
 
         private void OpenImageTab(string path, bool activate)
         {
+            OpenImageTabCore(path, activate, 0);
+        }
+
+        private void OpenImageTabCore(string path, bool activate, int initialRotation)
+        {
             if (!File.Exists(path) || !ImageExtensions.IsBrowsableImage(path))
             {
                 return;
@@ -1513,10 +1520,22 @@ namespace ZonerInspiredViewer
                     HasCustomView = false,
                     LastAccessUtc = DateTime.UtcNow
                 };
+                if (_activeTabId == null && _browserView.Visibility == Visibility.Visible)
+                {
+                    state.RotationQuarterTurns = BrowserRotationForPath(path);
+                    BrowserRotationState rotation;
+                    if (state.RotationQuarterTurns != 0 && _homeBrowser.BrowserRotations.TryGetValue(path, out rotation))
+                        state.BrowserRotations[path] = rotation;
+                }
                 _tabs[id] = state;
                 _tabOrder.Add(id);
             }
 
+            if (initialRotation != 0)
+            {
+                _tabs[id].RotationQuarterTurns = ImageViewport.NormalizeRotation(_tabs[id].RotationQuarterTurns + initialRotation);
+                _pendingBrowserRotationSaveTabId = _autoSaveRotations && ImageRotationService.CanSave(path) ? id : null;
+            }
             if (activate)
             {
                 ActivateImageTab(id);
@@ -1528,29 +1547,43 @@ namespace ZonerInspiredViewer
             ScheduleSessionSave();
         }
 
+        private string _pendingBrowserRotationSaveTabId;
         private void OpenBrowserImage(string path)
+        {
+            OpenBrowserImageWithRotation(path, 0);
+        }
+
+        private void OpenBrowserImageWithRotation(string path, int initialRotation)
         {
             if (_activeTabId == null)
             {
-                OpenImageTab(path, true);
+                OpenImageTabCore(path, true, initialRotation);
                 return;
             }
             if (!File.Exists(path) || !ImageExtensions.IsBrowsableImage(path)) return;
+            _pendingBrowserRotationSaveTabId = null;
             SaveWorkspaceState();
             ImageTabState state = CurrentTabState();
+            bool fromBrowser = state.IsBrowser;
             if (!String.Equals(state.Path, path, StringComparison.OrdinalIgnoreCase))
             {
                 state.ManualAdjustments = null;
                 state.SavedEnhanceRevision = null;
                 state.HasCustomView = false;
                 state.Zoom = 1;
-                state.RotationQuarterTurns = 0;
+                state.RotationQuarterTurns = BrowserRotationForPath(path);
                 state.ViewportWidth = state.ViewportHeight = 0;
             }
             state.Path = path;
+            if (fromBrowser) state.RotationQuarterTurns = BrowserRotationForPath(path);
             state.SelectedPath = path;
             state.FolderPath = Path.GetDirectoryName(path);
             state.IsBrowser = false;
+            if (initialRotation != 0)
+            {
+                state.RotationQuarterTurns = ImageViewport.NormalizeRotation(state.RotationQuarterTurns + initialRotation);
+                _pendingBrowserRotationSaveTabId = _autoSaveRotations && ImageRotationService.CanSave(path) ? _activeTabId : null;
+            }
             DisplayTab();
         }
 
@@ -1794,6 +1827,7 @@ namespace ZonerInspiredViewer
 
         private void LoadImage(string path)
         {
+            if (_pendingBrowserRotationSaveTabId != _activeTabId) _pendingBrowserRotationSaveTabId = null;
             HideManualEnhance();
             HideImageNavigator();
             ResetZoomIndicator();
@@ -1877,6 +1911,15 @@ namespace ZonerInspiredViewer
             ApplyQuickEnhance();
             StartAnimation(path, version);
             UpdateStatus();
+            if (_pendingBrowserRotationSaveTabId == _activeTabId)
+            {
+                _pendingBrowserRotationSaveTabId = null;
+                int loadedVersion = version;
+                Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(delegate
+                {
+                    if (loadedVersion == _imageLoadVersion && _autoSaveRotations && HasCurrentImage()) BeginRotationSave(false);
+                }));
+            }
         }
 
         private void QueueImageView()
@@ -2059,6 +2102,7 @@ namespace ZonerInspiredViewer
             ImageTabState state = CurrentTabState();
             _imageNavigator.EndDrag();
             state.RotationQuarterTurns = ImageViewport.NormalizeRotation(state.RotationQuarterTurns + quarterTurns);
+            RememberBrowserRotation(state, _activeTabPath, state.RotationQuarterTurns, _displayedImageRevision);
             UpdateImageRotation();
             FitImageAfterContentChange();
             ScheduleSessionSave();
@@ -2836,6 +2880,7 @@ namespace ZonerInspiredViewer
             _homeBrowser.BrowserScrollOffset = state.BrowserScrollOffset;
             _homeBrowser.SelectedPath = state.BrowserSelectedPath;
             _homeBrowser.SelectedPaths = new List<string>(state.BrowserSelectedPaths ?? new List<string>());
+            _homeBrowser.BrowserRotations = RestoreBrowserRotations(state.HomeBrowserRotations);
             _homeBrowser.SortField = BrowserSort.Normalize(state.SortField);
             _homeBrowser.SortDescending = state.SortDescending;
             _homeBrowser.ForwardFolders = new List<string>(state.ForwardFolders ?? new List<string>());
@@ -2845,6 +2890,7 @@ namespace ZonerInspiredViewer
                 IsBrowser = true, FolderPath = latest.FolderPath, SearchText = latest.SearchText ?? "",
                 SelectedPath = latest.SelectedPath, BrowserScrollOffset = latest.BrowserScrollOffset,
                 SelectedPaths = new List<string>(latest.SelectedPaths ?? new List<string>()),
+                BrowserRotations = RestoreBrowserRotations(latest.BrowserRotations),
                 SortField = BrowserSort.Normalize(latest.SortField), SortDescending = latest.SortDescending,
                 ForwardFolders = new List<string>(latest.ForwardFolders ?? new List<string>())
             };
@@ -2870,6 +2916,7 @@ namespace ZonerInspiredViewer
                             SearchText = dto.SearchText ?? "",
                             SelectedPath = dto.SelectedPath ?? dto.Path,
                             SelectedPaths = new List<string>(dto.SelectedPaths ?? new List<string>()),
+                            BrowserRotations = RestoreBrowserRotations(dto.BrowserRotations),
                             BrowserScrollOffset = dto.BrowserScrollOffset,
                             SortField = BrowserSort.Normalize(dto.SortField),
                             SortDescending = dto.SortDescending,
@@ -2943,6 +2990,7 @@ namespace ZonerInspiredViewer
                 IsBrowser = true, FolderPath = latest.FolderPath, SearchText = latest.SearchText,
                 SelectedPath = latest.SelectedPath, BrowserScrollOffset = latest.BrowserScrollOffset,
                 SelectedPaths = new List<string>(latest.SelectedPaths),
+                BrowserRotations = CaptureBrowserRotations(latest),
                 SortField = latest.SortField, SortDescending = latest.SortDescending,
                 ForwardFolders = new List<string>(latest.ForwardFolders)
             };
@@ -2951,6 +2999,7 @@ namespace ZonerInspiredViewer
             state.BrowserScrollOffset = _homeBrowser.BrowserScrollOffset;
             state.BrowserSelectedPath = _homeBrowser.SelectedPath;
             state.BrowserSelectedPaths = new List<string>(_homeBrowser.SelectedPaths);
+            state.HomeBrowserRotations = CaptureBrowserRotations(_homeBrowser);
             state.SortField = _homeBrowser.SortField;
             state.SortDescending = _homeBrowser.SortDescending;
             state.ForwardFolders = new List<string>(_homeBrowser.ForwardFolders);
@@ -2975,6 +3024,7 @@ namespace ZonerInspiredViewer
             state.ImageNavigatorEnabled = _imageNavigatorEnabled;
             state.ZoomLocked = _zoomLocked;
             state.LockedZoom = _lockedZoom;
+            state.AdaptiveZoomEnabled = _adaptiveZoomEnabled;
             state.WheelFilmstripEnabled = _filmstripEnabled;
             state.WheelFilmstripPosition = _filmstripPosition;
             state.WheelFilmstripSize = _filmstripSizePixels;
@@ -3015,6 +3065,7 @@ namespace ZonerInspiredViewer
                         SearchText = tab.SearchText,
                         SelectedPath = tab.SelectedPath,
                         SelectedPaths = new List<string>(tab.SelectedPaths),
+                        BrowserRotations = CaptureBrowserRotations(tab),
                         BrowserScrollOffset = tab.BrowserScrollOffset,
                         SortField = tab.SortField,
                         SortDescending = tab.SortDescending,

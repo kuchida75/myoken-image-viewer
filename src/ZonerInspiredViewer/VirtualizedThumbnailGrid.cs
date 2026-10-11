@@ -60,6 +60,7 @@ namespace ZonerInspiredViewer
         public ImageFileItem ItemAt(int index) { return index >= 0 && index < _items.Count ? _items[index] : null; }
 
         public Func<string, bool> IsFavoriteFolder { get; set; }
+        public Func<string, int> RotationForPath { get; set; }
         public Func<ImageFileItem, ContextMenu> ItemMenuFactory { get; set; }
         public Func<ImageFileItem, string> ItemDetails { get; set; }
         public Func<bool> CanPaste { get; set; }
@@ -193,6 +194,13 @@ namespace ZonerInspiredViewer
             UpdateExtent();
             RealizeVisibleTiles();
             NotifyItemsChanged();
+        }
+
+        public void RefreshRotations()
+        {
+            foreach (ThumbnailTile tile in _realized.Values)
+                if (tile.Item != null && !tile.Item.IsDirectory)
+                    tile.SetRotation(RotationForPath == null ? 0 : RotationForPath(tile.Item.Path));
         }
 
         public void SelectItem(ImageFileItem item)
@@ -406,6 +414,7 @@ namespace ZonerInspiredViewer
                 }
 
                 tile.SetItem(_items[index]);
+                if (!tile.Item.IsDirectory) tile.SetRotation(RotationForPath == null ? 0 : RotationForPath(tile.Item.Path));
                 PaintTileSelection(tile);
                 int row = index / _columnCount;
                 int column = index % _columnCount;
@@ -518,6 +527,8 @@ namespace ZonerInspiredViewer
         private readonly ThumbnailCacheService _thumbnailCache;
         private readonly int _thumbnailSize;
         private readonly Image _image;
+        private BitmapSource _thumbnailSource;
+        private int _rotationTurns;
         private readonly TextBlock _placeholder;
         private readonly TextBlock _title;
         private readonly TextBlock _details;
@@ -617,6 +628,7 @@ namespace ZonerInspiredViewer
             int version = _loadVersion;
 
             _image.Source = null;
+            _thumbnailSource = null;
             _placeholder.Text = item.IsDirectory ? "" : item.Extension.TrimStart('.').ToUpperInvariant();
             _title.Text = item.Name;
             _details.Text = _itemDetails != null ? _itemDetails(item) : item.IsDirectory ? "Folder" : ImageExtensions.FormatBytes(item.Length);
@@ -658,11 +670,13 @@ namespace ZonerInspiredViewer
 
                                 if (completed.Status == TaskStatus.RanToCompletion)
                                 {
-                                    _image.Source = completed.Result;
+                                    _thumbnailSource = completed.Result;
+                                    ApplyRotation();
                                     _placeholder.Text = "";
                                 }
                                 else
                                 {
+                                    _thumbnailSource = null;
                                     _image.Source = null;
                                     _placeholder.Text = item.Extension.TrimStart('.').ToUpperInvariant();
                                 }
@@ -677,7 +691,24 @@ namespace ZonerInspiredViewer
             if (_request != null) _request.Cancel();
             _request = null;
             _image.Source = null;
+            _thumbnailSource = null;
             if (_folderPreview != null) _folderPreview.Release();
+        }
+
+        public void SetRotation(int turns)
+        {
+            turns = ImageViewport.NormalizeRotation(turns);
+            if (_rotationTurns == turns) return;
+            _rotationTurns = turns;
+            ApplyRotation();
+        }
+
+        private void ApplyRotation()
+        {
+            if (_thumbnailSource == null || _rotationTurns == 0) { _image.Source = _thumbnailSource; return; }
+            var rotated = new TransformedBitmap(_thumbnailSource, new RotateTransform(_rotationTurns * 90));
+            rotated.Freeze();
+            _image.Source = rotated;
         }
 
         public void SetSelected(bool selected, bool active = false)

@@ -1188,5 +1188,138 @@
     "CompletedUtc": "2026-09-23T17:51:35.7657651Z",
     "Result": "Built",
     "Note": "Verify U/H/W shortcut and arrow-carousel update with compatible custom-binding fixture."
+  },
+  {
+    "Version": "0.2.171",
+    "StartedUtc": "2026-10-04T00:03:15.3818507Z",
+    "CompletedUtc": "2026-10-04T00:03:18.218948Z",
+    "Result": "Built",
+    "Note": "Add recursive EXIF auto-orient and thumbnail rotation shortcuts"
+  },
+  {
+    "Version": "0.2.172",
+    "StartedUtc": "2026-10-04T00:05:02.9339487Z",
+    "CompletedUtc": "2026-10-04T00:05:05.5675747Z",
+    "Result": "Built",
+    "Note": "Verify EXIF orientation batch and thumbnail rotate regressions"
+  },
+  {
+    "Version": "0.2.173",
+    "StartedUtc": "2026-10-04T00:05:54.837683Z",
+    "CompletedUtc": "2026-10-04T00:05:57.4886418Z",
+    "Result": "Built",
+    "Note": "Diagnose EXIF batch verification and existing batch regression"
+  },
+  {
+    "Version": "0.2.174",
+    "StartedUtc": "2026-10-04T00:09:02.4014115Z",
+    "CompletedUtc": "2026-10-04T00:09:05.0149892Z",
+    "Result": "Built",
+    "Note": "Verify recursive EXIF auto-orient and browser rotation autosave"
+  },
+  {
+    "Version": "0.2.175",
+    "StartedUtc": "2026-10-04T13:13:18.558885Z",
+    "CompletedUtc": "2026-10-04T13:13:22.465918Z",
+    "Result": "Built",
+    "Note": "Add selected-image and recursive-folder slideshow with F5"
+  },
+  {
+    "Version": "0.2.176",
+    "StartedUtc": "2026-10-04T13:14:34.4613905Z",
+    "CompletedUtc": "2026-10-04T13:14:37.0349361Z",
+    "Result": "Built",
+    "Note": "Dispatch selected slideshow playlist completion on WPF UI thread"
+  },
+  {
+    "Version": "0.2.177",
+    "StartedUtc": "2026-10-04T13:16:48.384007Z",
+    "CompletedUtc": "2026-10-04T13:16:50.994945Z",
+    "Result": "Built",
+    "Note": "Verify selective and existing slideshow behavior with isolated regression entry"
+  },
+  {
+    "Version": "0.2.178",
+    "StartedUtc": "2026-10-04T13:17:52.1468658Z",
+    "CompletedUtc": "2026-10-04T13:17:54.8121285Z",
+    "Result": "Built",
+    "Note": "Add isolated legacy slideshow regression entry points"
+  },
+  {
+    "Version": "0.2.179",
+    "StartedUtc": "2026-10-04T13:21:20.3788113Z",
+    "CompletedUtc": "2026-10-04T13:21:22.9155806Z",
+    "Result": "Built",
+    "Note": "Finalize selective F5 slideshow and verified Windows executable"
+  },
+  {
+    "Version": "0.2.180",
+    "StartedUtc": "2026-10-06T11:30:02.8149891Z",
+    "CompletedUtc": "2026-10-06T11:30:06.7553733Z",
+    "Result": "Built",
+    "Note": "Rotate selected thumbnails in place and preserve view-only state"
+  },
+  {
+    "Version": "0.2.181",
+    "StartedUtc": "2026-10-06T11:32:24.7211721Z",
+    "CompletedUtc": "2026-10-06T11:32:27.2845442Z",
+    "Result": "Built",
+    "Note": "Preserve thumbnail rotations through sessions and file path changes"
+  },
+  {
+    "Version": "0.2.182",
+    "StartedUtc": "2026-10-06T11:35:21.2354599Z",
+    "CompletedUtc": "2026-10-06T11:35:23.8775569Z",
+    "Result": "Built",
+    "Note": "Finalize in-place thumbnail rotation and documentation"
+  },
+  {
+    "Version": "0.2.183",
+    "StartedUtc": "2026-10-06T12:12:50.3002044Z",
+    "CompletedUtc": "2026-10-06T12:12:51.4853418Z",
+    "Result": "Failed",
+    "Note": "Rotate selected thumbnails in place and save selected JPEG/PNG rotations with cancellation and backups."
+  },
+  {
+    "Version": "0.2.184",
+    "StartedUtc": "2026-10-06T12:13:21.4380677Z",
+    "CompletedUtc": "2026-10-06T12:13:24.0477623Z",
+    "Result": "Built",
+    "Note": "Rotate selected thumbnails in place and save selected JPEG/PNG rotations with cancellation and backups."
+  },
+  {
+    "Version": "0.2.185",
+    "StartedUtc": "2026-10-06T12:14:29.2875665Z",
+    "CompletedUtc": "2026-10-06T12:14:31.9366169Z",
+    "Result": "Built",
+    "Note": "Document and package multi-selection thumbnail rotation with cancellable per-file saves."
+  },
+  {
+    "Version": "0.2.186",
+    "StartedUtc": "2026-10-06T12:14:58.7284391Z",
+    "CompletedUtc": "2026-10-06T12:15:01.2674413Z",
+    "Result": "Built",
+    "Note": "Report unsupported formats while saving mixed thumbnail rotation selections."
+  },
+  {
+    "Version": "0.2.187",
+    "StartedUtc": "2026-10-11T12:46:53.7888732Z",
+    "CompletedUtc": "2026-10-11T12:46:57.7382266Z",
+    "Result": "Built",
+    "Note": "Add persistent Adaptive zoom with A shortcut, centered edge-limited fit and slideshow support."
+  },
+  {
+    "Version": "0.2.188",
+    "StartedUtc": "2026-10-11T12:48:13.8674823Z",
+    "CompletedUtc": "2026-10-11T12:48:16.714722Z",
+    "Result": "Built",
+    "Note": "Correct adaptive zoom slideshow regression start expectation and verify persistent fit."
+  },
+  {
+    "Version": "0.2.189",
+    "StartedUtc": "2026-10-11T12:49:25.2489661Z",
+    "CompletedUtc": "2026-10-11T12:49:28.0968846Z",
+    "Result": "Built",
+    "Note": "Verify Adaptive zoom with Zoom lock and guard unmeasured frames."
   }
 ]

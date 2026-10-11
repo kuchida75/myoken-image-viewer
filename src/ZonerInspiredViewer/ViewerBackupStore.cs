@@ -127,6 +127,7 @@ namespace ZonerInspiredViewer
             if (!String.IsNullOrEmpty(state.PinnedTabColor) && !MainWindow.IsValidTabColor(state.PinnedTabColor))
                 throw new InvalidDataException("The backup contains an invalid pinned tab color.");
             ValidatePaths(state.ForwardFolders); ValidatePaths(state.BrowserSelectedPaths);
+            ValidateBrowserRotations(state.HomeBrowserRotations);
             Finite(state.WindowLeft, state.WindowTop, state.WindowWidth, state.WindowHeight, state.MetadataPanelWidth,
                 state.FolderPaneWidth, state.ThumbnailAspectRatio, state.BrowserScrollOffset, state.SlideshowSeconds);
             if (state.VramBudgetMb < 0 || state.VramBudgetMb > 24576 || state.MetadataPanelWidth > 50000
@@ -172,6 +173,7 @@ namespace ZonerInspiredViewer
             ValidatePath(tab.Path); ValidatePath(tab.FolderPath); ValidatePath(tab.SelectedPath);
             ValidateString(tab.Id, 4096); ValidateString(tab.SearchText, 4096);
             ValidatePaths(tab.SelectedPaths); ValidatePaths(tab.ForwardFolders);
+            ValidateBrowserRotations(tab.BrowserRotations);
             Finite(tab.Zoom, tab.OffsetX, tab.OffsetY, tab.ViewportWidth, tab.ViewportHeight, tab.BrowserScrollOffset);
             if (tab.Zoom < 0 || tab.Zoom > 64 || tab.ViewportWidth < 0 || tab.ViewportHeight < 0)
                 throw new InvalidDataException("The backup contains an invalid image view.");
@@ -188,6 +190,23 @@ namespace ZonerInspiredViewer
             if (paths == null) return;
             if (paths.Count > 100000) throw new InvalidDataException("The backup contains too many paths.");
             foreach (string path in paths) ValidatePath(path);
+        }
+
+        private static void ValidateBrowserRotations(List<BrowserRotationDto> rotations)
+        {
+            if (rotations == null) return;
+            if (rotations.Count > 100000) throw new InvalidDataException("The backup contains too many thumbnail rotations.");
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (BrowserRotationDto rotation in rotations)
+            {
+                if (rotation == null || String.IsNullOrEmpty(rotation.Path))
+                    throw new InvalidDataException("The backup contains an invalid thumbnail rotation.");
+                ValidatePath(rotation.Path);
+                if (!ImageExtensions.IsBrowsableImage(rotation.Path) || !seen.Add(rotation.Path)
+                    || rotation.Turns < 1 || rotation.Turns > 3 || rotation.Revision.Length < 0
+                    || rotation.Revision.Modified < 0 || rotation.Revision.Modified > DateTime.MaxValue.Ticks)
+                    throw new InvalidDataException("The backup contains an invalid thumbnail rotation.");
+            }
         }
 
         private static void ValidatePath(string path)

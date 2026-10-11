@@ -66,6 +66,7 @@ namespace ZonerInspiredViewer
         internal static List<BatchItem> Create(string[] paths, BatchOptions options, CancellationToken token)
         {
             options.Validate();
+            if (options.Kind == BatchKind.AutoOrient) return ExifOrientationBatch.Plan(paths, token);
             var top = new HashSet<string>(FileTransferService.TopLevelSources(paths), StringComparer.OrdinalIgnoreCase);
             string[] ordered = paths.Select(Path.GetFullPath).Distinct(StringComparer.OrdinalIgnoreCase).Where(top.Contains).ToArray();
             var rows = new BatchItem[ordered.Length];

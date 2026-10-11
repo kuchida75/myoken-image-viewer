@@ -37,12 +37,47 @@ internal static partial class ViewerRegressionTests
         FocusViewerSetting(window, Field<Button>(window, "_rebuildThumbnailsButton"));
         var configure = Field<Window>(window, "_configureWindow");
         Assert(Window.GetWindow(Field<Button>(window, "_rotateLeftButton")) == configure, "image tools live under Configure");
-        Assert(!Field<Button>(window, "_rotateLeftButton").IsEnabled && !Capture(window).AutoSaveRotations, "browser rotation disabled and default is non-destructive");
+        Assert(!Field<Button>(window, "_rotateLeftButton").IsEnabled && !Capture(window).AutoSaveRotations, "rotation needs an image selection and defaults to non-destructive");
         Field<Button>(window, "_rebuildThumbnailsButton").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         WaitBackup(Field<Task>(window, "_thumbnailRebuildTask")); Pump();
         Assert(Field<TextBlock>(window, "_thumbnailRebuildStatus").Text.Contains("1 image rebuilt"), "Configure rebuild reports completion");
         Assert(Field<Button>(window, "_rebuildThumbnailsButton").IsEnabled && !Field<Button>(window, "_cancelThumbnailRebuild").IsEnabled, "rebuild returns controls to idle");
         CloseViewerSettings(window);
+        var browserGrid = Field<VirtualizedThumbnailGrid>(window, "_thumbnailGrid");
+        browserGrid.SelectItem(ImageFileItem.FromPath(image)); browserGrid.Focus();
+        var tile = Field<Dictionary<int, ThumbnailTile>>(browserGrid, "_realized").Values.Single(value => value.Item.Path == image);
+        Wait(delegate { return Field<Image>(tile, "_image").Source != null; }, "original thumbnail available");
+        BitmapSource originalThumbnail = (BitmapSource)Field<Image>(tile, "_image").Source;
+        byte[] browserOriginal = File.ReadAllBytes(image);
+        Assert((bool)Invoke(window, "RunShortcut", Key.Oem6, ModifierKeys.None, false), "right rotation shortcut works from thumbnails");
+        Assert(Field<Grid>(window, "_browserView").Visibility == Visibility.Visible
+            && browserGrid.SelectedItem.Path == image && browserOriginal.SequenceEqual(File.ReadAllBytes(image)),
+            "thumbnail rotation stays in browser and does not modify the source");
+        BitmapSource rotatedThumbnail = (BitmapSource)Field<Image>(tile, "_image").Source;
+        Assert(rotatedThumbnail.PixelWidth == originalThumbnail.PixelHeight && rotatedThumbnail.PixelHeight == originalThumbnail.PixelWidth,
+            "thumbnail pixels rotate in place");
+        Assert(Capture(window).HomeBrowserRotations.Single().Turns == 1, "view-only thumbnail rotation enters session state");
+        string viewBackup = Path.Combine(root, "thumbnail-rotation.json");
+        ViewerBackupStore.Save(viewBackup, (ViewerBackupDocument)Invoke(window, "CaptureBackupSnapshot"));
+        Assert(ViewerBackupStore.Load(viewBackup).Workspace.HomeBrowserRotations.Single().Turns == 1,
+            "view-only thumbnail rotation survives a backup round-trip");
+        var invalidRotation = ViewerBackupStore.Load(viewBackup);
+        invalidRotation.Workspace.HomeBrowserRotations.Single().Turns = 4;
+        bool rejectedRotation = false;
+        try { ViewerBackupStore.Save(Path.Combine(root, "invalid-thumbnail-rotation.json"), invalidRotation); }
+        catch (InvalidDataException) { rejectedRotation = true; }
+        Assert(rejectedRotation, "backup rejects invalid thumbnail rotations");
+        FocusViewerSetting(window, Field<Button>(window, "_rotateLeftButton"));
+        Assert(Field<Button>(window, "_rotateLeftButton").IsEnabled, "Configure rotation is available for a selected thumbnail");
+        Field<Button>(window, "_rotateLeftButton").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent)); Pump();
+        Assert(Field<Grid>(window, "_browserView").Visibility == Visibility.Visible && Capture(window).HomeBrowserRotations.Count == 0,
+            "Configure rotate left cancels a view-only thumbnail turn without opening viewer");
+        Field<Button>(window, "_rotateRightButton").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent)); Pump();
+        CloseViewerSettings(window);
+        Invoke(window, "OpenBrowserImage", image); Wait(delegate { return Ready(window, image); }, "rotated thumbnail opens in same orientation");
+        Assert(Field<Dictionary<string, ImageTabState>>(window, "_tabs")[Field<string>(window, "_activeTabId")].RotationQuarterTurns == 1,
+            "opening rotated thumbnail carries its view-only orientation");
+        Invoke(window, "BrowseActiveTab"); WaitScan(window);
         Invoke(window, "OpenImageTab", image, true); Wait(delegate { return Ready(window, image); }, "rotation source");
         byte[] original = File.ReadAllBytes(image);
         string originalTab = Field<string>(window, "_activeTabId");
@@ -82,6 +117,18 @@ internal static partial class ViewerRegressionTests
             Assert(beforeFailure.SequenceEqual(File.ReadAllBytes(image)), "failed autosave leaves source untouched");
         }
         finally { File.SetAttributes(image, File.GetAttributes(image) & ~FileAttributes.ReadOnly); }
+        Field<Dictionary<string, ImageTabState>>(window, "_tabs")[Field<string>(window, "_activeTabId")].RotationQuarterTurns = 0;
+        Field<Dictionary<string, ImageTabState>>(window, "_tabs")[Field<string>(window, "_activeTabId")].BrowserRotations.Remove(image);
+        Invoke(window, "BrowseActiveTab"); WaitScan(window);
+        browserGrid.SelectItem(ImageFileItem.FromPath(image)); browserGrid.Focus();
+        Task previousSave = Field<Task>(window, "_rotationSaveTask");
+        PressKey(window, Key.Oem6);
+        Wait(delegate { return Field<Task>(window, "_rotationSaveTask") != previousSave; }, "thumbnail shortcut starts automatic rotation save");
+        WaitBackup(Field<Task>(window, "_rotationSaveTask")); WaitScan(window);
+        Assert(Field<Grid>(window, "_browserView").Visibility == Visibility.Visible && browserGrid.SelectedItem.Path == image,
+            "thumbnail automatic save keeps browser and selection active");
+        Assert(ReadToolImage(image).PixelWidth == 220 && Field<TextBlock>(window, "_rotationStatus").Text.StartsWith("Rotation saved"),
+            "thumbnail rotation shortcut saves without opening viewer mode");
         services.Sessions.SaveNamed("Auto rotation", Capture(window));
         string backup = Path.Combine(root, "config.json"); WaitBackup((Task)Invoke(window, "ExportBackupFileAsync", backup));
         Assert(ViewerBackupStore.Load(backup).Workspace.AutoSaveRotations, "backup captures auto-save setting");
@@ -95,7 +142,83 @@ internal static partial class ViewerRegressionTests
         Field<Button>(window, "_cancelThumbnailRebuild").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         WaitBackup(rebuild); Assert(Field<CancellationTokenSource>(window, "_thumbnailRebuildRequest") == null, "cancel finishes rebuild safely");
         window.Close(); Pump(); services.Dispose();
+        RunBrowserRotationPersistenceChecks(root);
+        RunMultiThumbnailRotationChecks(root);
         Console.WriteLine("PASS: Configure thumbnail repair/cancel and rotation buttons, default view-only, backed-up auto-save, failure/shortcut/session handling.");
+    }
+
+    private static void RunMultiThumbnailRotationChecks(string root)
+    {
+        string folder = Path.Combine(root, "MultiRotation"); Directory.CreateDirectory(folder);
+        string first = Path.Combine(folder, "First.png"), second = Path.Combine(folder, "Second.png");
+        string child = Path.Combine(folder, "Folder"); Directory.CreateDirectory(child);
+        MakeImage(first, 310, 190, 96); MakeImage(second, 280, 160, 96);
+        byte[] originalFirst = File.ReadAllBytes(first), originalSecond = File.ReadAllBytes(second);
+        var services = AppServices.Create(Path.Combine(root, "MultiRotationProfile"));
+        services.Sessions.Save(new SessionState { LastFolder = folder });
+        var window = new MainWindow(services); window.Show(); WaitScan(window);
+        var grid = Field<VirtualizedThumbnailGrid>(window, "_thumbnailGrid");
+        grid.RestoreSelection(new[] { first, second, child }, child);
+        Assert(grid.SelectedCount == 3, "mixed multi-selection includes two images and a folder");
+        FocusViewerSetting(window, Field<Button>(window, "_rotateRightButton"));
+        var rotate = Field<Button>(window, "_rotateRightButton");
+        Assert(rotate.IsEnabled, "rotation remains available when the lead selection is a folder");
+        rotate.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent)); Pump();
+        Assert(Field<Grid>(window, "_browserView").Visibility == Visibility.Visible && grid.SelectedCount == 3,
+            "batch thumbnail rotation stays in browser and preserves selection");
+        Assert(Capture(window).HomeBrowserRotations.Select(item => item.Path).OrderBy(path => path)
+            .SequenceEqual(new[] { first, second }.OrderBy(path => path)), "only selected images gain view-only rotations");
+        Assert(originalFirst.SequenceEqual(File.ReadAllBytes(first)) && originalSecond.SequenceEqual(File.ReadAllBytes(second)),
+            "batch rotation remains non-destructive by default");
+        Field<Button>(window, "_rotateLeftButton").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent)); Pump();
+        Assert(Capture(window).HomeBrowserRotations.Count == 0, "opposite multi-rotation resets both previews");
+        Invoke(window, "SetAutoSaveRotations", true, false);
+        rotate.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+        WaitBackup(Field<Task>(window, "_rotationSaveTask")); WaitScan(window); Pump();
+        Assert(Field<Grid>(window, "_browserView").Visibility == Visibility.Visible && grid.SelectedCount == 3,
+            "batch auto-save keeps the browser and mixed selection");
+        Assert(ReadToolImage(first).PixelWidth == 190 && ReadToolImage(second).PixelWidth == 160,
+            "both selected PNG files are saved with their rotations");
+        Assert(Capture(window).HomeBrowserRotations.Count == 0 && Directory.Exists(child),
+            "saved rotations clear view-only state without touching selected folders");
+        Assert(Directory.GetFiles(ImageRotationService.BackupFolder(first), "*.bak").Length == 2,
+            "each saved image has its own original-file backup");
+        Assert(Field<TextBlock>(window, "_rotationStatus").Text.Contains("2 rotations saved"),
+            "batch result reports its saved count");
+        CloseViewerSettings(window); window.Close(); Pump(); services.Dispose();
+    }
+
+    private static void RunBrowserRotationPersistenceChecks(string root)
+    {
+        string folder = Path.Combine(root, "RotationPersistence"); Directory.CreateDirectory(folder);
+        string image = Path.Combine(folder, "Before.png"), renamed = Path.Combine(folder, "After.png");
+        MakeImage(image, 240, 140, 96);
+        var services = AppServices.Create(Path.Combine(root, "RotationProfile"));
+        services.Sessions.Save(new SessionState { LastFolder = folder });
+        var window = new MainWindow(services); window.Show(); WaitScan(window);
+        var grid = Field<VirtualizedThumbnailGrid>(window, "_thumbnailGrid");
+        grid.SelectItem(ImageFileItem.FromPath(image));
+        Invoke(window, "RotateBrowserImage", 1);
+        services.Sessions.Save(Capture(window));
+        window.Close(); Pump();
+
+        window = new MainWindow(services); window.Show(); WaitScan(window);
+        grid = Field<VirtualizedThumbnailGrid>(window, "_thumbnailGrid");
+        Assert(Capture(window).HomeBrowserRotations.Single().Path == image, "automatic session restores view-only thumbnail rotation");
+        var tile = Field<Dictionary<int, ThumbnailTile>>(grid, "_realized").Values.Single(value => value.Item.Path == image);
+        Wait(delegate { return Field<Image>(tile, "_image").Source != null; }, "restored rotated thumbnail");
+        Assert(((BitmapSource)Field<Image>(tile, "_image").Source).PixelHeight >
+            ((BitmapSource)Field<Image>(tile, "_image").Source).PixelWidth, "restored thumbnail renders rotated pixels");
+        File.Move(image, renamed);
+        Invoke(window, "RemapTransferredPaths", new List<TransferredItem>
+        { new TransferredItem { Source = image, Destination = renamed, IsDirectory = false } });
+        WaitScan(window);
+        Assert(Capture(window).HomeBrowserRotations.Single().Path == renamed,
+            "renaming an image keeps its view-only thumbnail rotation");
+        Invoke(window, "OpenBrowserImage", renamed); Wait(delegate { return Ready(window, renamed); }, "renamed rotation opens");
+        Assert(Field<Dictionary<string, ImageTabState>>(window, "_tabs")[Field<string>(window, "_activeTabId")].RotationQuarterTurns == 1,
+            "renamed thumbnail retains the in-view orientation");
+        window.Close(); Pump(); services.Dispose();
     }
 
     private static void RunRotationStoreChecks(string root)

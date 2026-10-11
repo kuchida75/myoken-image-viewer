@@ -7,7 +7,7 @@ using System.Runtime.Serialization;
 
 namespace ZonerInspiredViewer
 {
-    internal enum BatchKind { Rename, Resize, Convert }
+    internal enum BatchKind { Rename, Resize, Convert, AutoOrient }
     internal enum BatchConflict { KeepBoth, Skip, Stop, Overwrite }
     internal enum BatchResizeMode { Pixels, Percentage, PrintSize, LongEdge, ShortEdge }
     internal enum BatchDirection { Both, ReduceOnly, EnlargeOnly }
@@ -86,7 +86,7 @@ namespace ZonerInspiredViewer
         public string NewName { get { return Destination == null ? "" : Path.GetFileName(Destination); } }
         public string Dimensions { get; set; }
         public bool IsDirectory, Ready, Overwrite;
-        public int Width, Height, OutputWidth, OutputHeight;
+        public int Width, Height, OutputWidth, OutputHeight, ExifOrientation;
         public FileRevision Revision, DestinationRevision;
         public DateTime DirectoryModified;
         private string _status;

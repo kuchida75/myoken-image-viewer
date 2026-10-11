@@ -22,6 +22,12 @@ namespace ZonerInspiredViewer
             return Enum.IsDefined(typeof(BrowserSortField), field) ? field : BrowserSortField.Name;
         }
 
+        public static int CompareNames(string left, string right)
+        {
+            int result = StrCmpLogicalW(left, right);
+            return result != 0 ? result : StringComparer.OrdinalIgnoreCase.Compare(left, right);
+        }
+
         public int Compare(ImageFileItem left, ImageFileItem right)
         {
             if (left.IsDirectory != right.IsDirectory) return left.IsDirectory ? -1 : 1;

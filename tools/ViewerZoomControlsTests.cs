@@ -155,6 +155,98 @@ internal static partial class ViewerRegressionTests
             Invoke(reopened, "OpenRelativeImage", 1); Wait(delegate { return Ready(reopened, portrait); }, "navigate restored lock"); AssertZoom(reopened, 1.5, "restored lock works on next image");
         }
         finally { reopened.Close(); Pump(); reopenedServices.Dispose(); }
+        RunAdaptiveZoomChecks();
         Console.WriteLine("PASS: zoom toolbar icons, fit width/height, rotations/DPI, centered 1:1, lock across navigation/tabs/resize/AI, pan, shortcuts, themes, session/backup and legacy settings.");
+    }
+
+    private static void RunAdaptiveZoomChecks()
+    {
+        ImageView width = ImageViewport.FitAdaptive(new Size(200, 100), new Size(900, 600));
+        ImageView height = ImageViewport.FitAdaptive(new Size(100, 200), new Size(900, 600));
+        AssertNear(width.Zoom, 4.5, "adaptive landscape reaches width first");
+        AssertNear(height.Zoom, 3, "adaptive portrait reaches height first");
+        AssertNear(width.Y, 75, "adaptive width fit is vertically centered");
+        AssertNear(height.X, 300, "adaptive height fit is horizontally centered");
+        AssertNear(ImageViewport.FitAdaptive(new Size(1, 1), new Size(900, 600)).Zoom, 600,
+            "adaptive fit fills the frame even for very small images");
+        AssertNear(ImageViewport.FitAdaptive(new Size(1, 1), new Size(0, 600)).Zoom, 1,
+            "adaptive fit waits for a measurable frame");
+
+        string root = Path.Combine(Root, "adaptive-zoom-" + Guid.NewGuid().ToString("N").Substring(0, 8));
+        string photos = Path.Combine(root, "Photos"), profile = Path.Combine(root, "Profile");
+        Directory.CreateDirectory(photos);
+        string landscape = Path.Combine(photos, "A-landscape.png"), portrait = Path.Combine(photos, "B-portrait.png");
+        MakeImage(landscape, 240, 120, 96); MakeImage(portrait, 120, 240, 96);
+        var services = AppServices.CreateInstance(profile);
+        services.Sessions.Save(new SessionState { LastFolder = photos, WindowWidth = 1360, WindowHeight = 850, SlideshowSeconds = 30 });
+        var window = new MainWindow(services); window.Show(); WaitScan(window);
+        try
+        {
+            var toggle = Field<ToggleButton>(window, "_adaptiveZoomButton");
+            Assert(toggle.IsChecked == false && !Capture(window).AdaptiveZoomEnabled, "adaptive zoom defaults off");
+            Invoke(window, "OpenImageTab", landscape, true); Wait(delegate { return Ready(window, landscape); }, "adaptive landscape");
+            var canvas = Field<Canvas>(window, "_imageCanvas");
+            AssertZoom(window, 1, "normal fit retains small pixels at 100 percent");
+            ClickZoom(window, "_adaptiveZoomButton");
+            Assert(toggle.IsChecked == true && Capture(window).AdaptiveZoomEnabled, "adaptive toolbar toggles the saved mode");
+            AssertZoom(window, Math.Min(canvas.ActualWidth / 240, canvas.ActualHeight / 120), "small landscape fills first frame edge");
+            CheckZoomCentered(window);
+            ClickZoom(window, "_zoomLockButton");
+            Assert(Capture(window).ZoomLocked, "zoom lock can coexist with adaptive fit");
+            Invoke(window, "OpenRelativeImage", 1); Wait(delegate { return Ready(window, portrait); }, "adaptive portrait");
+            AssertZoom(window, Math.Min(canvas.ActualWidth / 120, canvas.ActualHeight / 240), "next image uses its own adaptive fit");
+            CheckZoomCentered(window);
+            ClickZoom(window, "_zoomLockButton");
+            Invoke(window, "RotateImage", 1);
+            AssertZoom(window, Math.Min(canvas.ActualWidth / 240, canvas.ActualHeight / 120), "adaptive fit follows rotation");
+            window.Width = 1080; Pump();
+            AssertZoom(window, Math.Min(canvas.ActualWidth / 240, canvas.ActualHeight / 120), "adaptive fit follows frame resizing");
+            CheckZoomCentered(window);
+
+            Invoke(window, "BrowseActiveTab"); WaitScan(window);
+            Field<VirtualizedThumbnailGrid>(window, "_thumbnailGrid").SelectItem(null);
+            Invoke(window, "StartSlideshow");
+            Wait(delegate { return Field<bool>(window, "_slideshowPlaying") && Ready(window, landscape); }, "adaptive slideshow starts");
+            string shown = Field<string>(window, "_activeTabPath");
+            Invoke(window, "AdvanceSlideshow");
+            Wait(delegate { return Field<string>(window, "_activeTabPath") != shown && Ready(window, portrait); }, "adaptive slideshow advances");
+            Assert(toggle.IsChecked == true && Capture(window).AdaptiveZoomEnabled, "slideshow does not disable adaptive zoom");
+            Size displayed = (Size)Invoke(window, "DisplayedImageSize");
+            AssertZoom(window, Math.Min(canvas.ActualWidth / displayed.Width, canvas.ActualHeight / displayed.Height),
+                "slideshow image keeps adaptive fit");
+            CheckZoomCentered(window);
+            Invoke(window, "StopSlideshow");
+
+            services.Sessions.SaveNamed("Adaptive zoom", Capture(window));
+            string backup = Path.Combine(root, "adaptive-backup.json");
+            ViewerBackupStore.Save(backup, (ViewerBackupDocument)Invoke(window, "CaptureBackupSnapshot"));
+            Assert(ViewerBackupStore.Load(backup).Workspace.AdaptiveZoomEnabled
+                && services.Sessions.LoadNamed("Adaptive zoom").AdaptiveZoomEnabled, "sessions and backups retain adaptive zoom");
+            Assert((bool)Invoke(window, "RunShortcut", Key.A, ModifierKeys.None, false), "A dispatches adaptive zoom");
+            Assert(!Capture(window).AdaptiveZoomEnabled && toggle.IsChecked == false, "A turns adaptive zoom off");
+            AssertZoom(window, 1, "turning adaptive zoom off returns to normal fit");
+            var map = Field<ShortcutMap>(window, "_shortcuts"); string error;
+            Assert(map.Set("adaptiveZoom", ShortcutKeys(Key.F6), out error), "adaptive shortcut can be rebound");
+            Invoke(window, "ShortcutsChanged");
+            Assert((bool)Invoke(window, "RunShortcut", Key.F6, ModifierKeys.None, false), "rebound adaptive shortcut dispatches");
+            Assert(Capture(window).AdaptiveZoomEnabled, "rebound shortcut turns adaptive zoom on");
+            Render((FrameworkElement)window.Content, "adaptive-zoom.png");
+            services.Sessions.Save(Capture(window));
+        }
+        finally { window.Close(); Pump(); services.Dispose(); }
+
+        var reopenedServices = AppServices.CreateInstance(profile);
+        var reopened = new MainWindow(reopenedServices); reopened.Show();
+        try
+        {
+            Wait(delegate { return Ready(reopened, portrait); }, "adaptive zoom restored image");
+            Assert(Capture(reopened).AdaptiveZoomEnabled && Field<ToggleButton>(reopened, "_adaptiveZoomButton").IsChecked == true,
+                "adaptive zoom restores on restart");
+            var canvas = Field<Canvas>(reopened, "_imageCanvas");
+            Size displayed = (Size)Invoke(reopened, "DisplayedImageSize");
+            AssertZoom(reopened, Math.Min(canvas.ActualWidth / displayed.Width, canvas.ActualHeight / displayed.Height),
+                "restored adaptive fit enlarges image");
+        }
+        finally { reopened.Close(); Pump(); reopenedServices.Dispose(); }
     }
 }

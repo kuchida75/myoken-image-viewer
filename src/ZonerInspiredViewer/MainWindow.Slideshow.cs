@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -21,6 +23,8 @@ namespace ZonerInspiredViewer
         private CheckBox _slideshowShuffle;
         private DispatcherTimer _slideshowTimer;
         private SlideshowSequence _slideshowSequence;
+        private string[] _slideshowSourcePaths;
+        private CancellationTokenSource _slideshowSelectionCancellation;
         private double _slideshowSeconds = 3;
         private bool _slideshowPlaying;
         private bool _slideshowAdvancing;
@@ -36,14 +40,15 @@ namespace ZonerInspiredViewer
                 Margin = new Thickness(0, 0, 10, 4), ToolTip = "Start or stop slideshow" };
             _slideshowButton.Click += delegate
             {
-                if (_slideshowPlaying) StopSlideshow();
+                if (_slideshowPlaying || _slideshowSelectionCancellation != null) StopSlideshow();
                 else
                 {
                     StartSlideshow();
-                    if (_slideshowPlaying && _configureWindow != null) _configureWindow.Close();
+                    if ((_slideshowPlaying || _slideshowSelectionCancellation != null) && _configureWindow != null) _configureWindow.Close();
                 }
             };
             AutomationProperties.SetName(_slideshowButton, "Slideshow");
+            CommandPresentation.Describe(_slideshowButton, "Start / stop slideshow", "F5", "Play selected images and folders recursively, or the current folder when nothing is selected. Press again to stop.");
             var options = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 12, 4) };
             _slideshowInterval = new TextBox { Text = "3", Width = 56, Height = 28, VerticalContentAlignment = VerticalAlignment.Center,
                 ToolTip = "Seconds per image (0.5 to 3600)" };
@@ -93,7 +98,9 @@ namespace ZonerInspiredViewer
         {
             if (_itemCountText == null || _thumbnailGrid == null) return;
             UpdateImageStatusBar(DisplayedImageDetails());
-            _slideshowButton.IsEnabled = _slideshowPlaying || (!_folderScanPending && _imageOrdinals.Count > 0 && !_fileTransferBusy);
+            _slideshowButton.IsEnabled = _slideshowPlaying || _slideshowSelectionCancellation != null
+                || (!_folderScanPending && !_fileTransferBusy && (_imageOrdinals.Count > 0
+                    || (_browserView.Visibility == Visibility.Visible && _thumbnailGrid.SelectedCount > 0)));
             string counts = _folderSummary == null ? (_isScanningFolder ? "Scanning..." : "Folder unavailable")
                 : _folderSummary.FileCount + " files (" + _folderSummary.ImageCount + " images), " + _folderSummary.FolderCount + " folders";
             string path = _imageView != null && _imageView.Visibility == Visibility.Visible ? _activeTabPath
@@ -126,14 +133,66 @@ namespace ZonerInspiredViewer
 
         private void ResetSlideshowSequence()
         {
-            _slideshowSequence = new SlideshowSequence(_allItems.Where(item => !item.IsDirectory).Select(item => item.Path),
+            _slideshowSequence = new SlideshowSequence(_slideshowSourcePaths ?? _allItems.Where(item => !item.IsDirectory).Select(item => item.Path),
                 _slideshowShuffle.IsChecked == true, _activeTabPath);
         }
 
-        private void StartSlideshow()
+        private async void StartSlideshow()
         {
             if (_folderScanPending || _fileTransferBusy) { StopSlideshow(); return; }
             ApplySlideshowInterval();
+            ImageFileItem[] selected = _browserView.Visibility == Visibility.Visible ? _thumbnailGrid.SelectedItems.ToArray() : new ImageFileItem[0];
+            if (selected.Length == 0)
+            {
+                BeginSlideshow(_allItems.Where(item => !item.IsDirectory).Select(item => item.Path).ToArray());
+                return;
+            }
+
+            string tabId = _activeTabId;
+            var request = new CancellationTokenSource();
+            _slideshowSelectionCancellation = request;
+            _slideshowButton.IsChecked = true;
+            _slideshowButton.Content = "Preparing slideshow...";
+            _transferStatus = "Collecting selected images...";
+            UpdateBrowserFooter();
+            SelectedSlideshowPlaylist playlist = null;
+            Exception failure = null;
+            try { playlist = await Task.Run(delegate { return SelectedSlideshowPlaylist.Build(selected, request.Token); }).ConfigureAwait(false); }
+            catch (OperationCanceledException) { }
+            catch (Exception error) { failure = error; }
+            if (Dispatcher.HasShutdownStarted) { request.Dispose(); return; }
+            await Dispatcher.InvokeAsync(new Action(delegate
+            {
+                try
+                {
+                    if (_slideshowSelectionCancellation != request || request.IsCancellationRequested || _isClosed) return;
+                    _slideshowSelectionCancellation = null;
+                    if (failure != null)
+                    {
+                        _transferStatus = "Unable to collect selected images: " + failure.Message;
+                        StopSlideshow();
+                    }
+                    else if (_activeTabId == tabId && playlist != null)
+                    {
+                        _transferStatus = playlist.Paths.Length == 0 ? "No images found in the selected items."
+                            : "Slideshow: " + playlist.Paths.Length + " selected images"
+                            + (playlist.Skipped > 0 ? ", " + playlist.Skipped + " unavailable items skipped" : "");
+                        BeginSlideshow(playlist.Paths);
+                    }
+                    else StopSlideshow();
+                }
+                finally
+                {
+                    if (_slideshowSelectionCancellation == request) StopSlideshow();
+                    request.Dispose();
+                    UpdateBrowserFooter();
+                }
+            }));
+        }
+
+        private void BeginSlideshow(string[] paths)
+        {
+            _slideshowSourcePaths = paths;
             ResetSlideshowSequence();
             if (_slideshowSequence.Count == 0) { StopSlideshow(); return; }
             if (_isFullscreen) ToggleFullscreen();
@@ -191,8 +250,12 @@ namespace ZonerInspiredViewer
 
         private void StopSlideshow()
         {
+            var pending = _slideshowSelectionCancellation;
+            _slideshowSelectionCancellation = null;
+            if (pending != null) pending.Cancel();
             _slideshowPlaying = false;
             _slideshowPaused = false;
+            _slideshowSourcePaths = null;
             if (_slideshowTimer != null) _slideshowTimer.Stop();
             if (_slideshowButton != null)
             {

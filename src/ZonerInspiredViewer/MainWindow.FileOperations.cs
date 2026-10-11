@@ -201,6 +201,8 @@ namespace ZonerInspiredViewer
                     if (!state.IsBrowser && state.Path != null) state.FolderPath = Path.GetDirectoryName(state.Path);
                     state.SelectedPath = remap(state.SelectedPath);
                     state.SelectedPaths = state.SelectedPaths.Select(remap).ToList();
+                    state.BrowserRotations = state.BrowserRotations.ToDictionary(pair => remap(pair.Key), pair => pair.Value,
+                        StringComparer.OrdinalIgnoreCase);
                     state.ForwardFolders = state.ForwardFolders.Select(remap).ToList();
                 }
             RefreshChangedFolderNavigation(items, new TransferredItem[0]);

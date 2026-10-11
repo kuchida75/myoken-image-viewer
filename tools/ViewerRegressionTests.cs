@@ -30,6 +30,16 @@ internal static partial class ViewerRegressionTests
             if (args.Contains("--natural-sort-only")) return 0;
             var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
             ThemeManager.Initialize(app, true);
+            if (args.Contains("--selective-slideshow-only")) { RunSelectiveSlideshowChecks(); app.Shutdown(); return 0; }
+            if (args.Contains("--slideshow-shortcuts-focused")) { RunSlideshowShortcutChecks(); app.Shutdown(); return 0; }
+            if (args.Contains("--transfer-slideshow-focused")) { RunTransferAndSlideshowChecks(); app.Shutdown(); return 0; }
+            if (args.Contains("--slideshow-regression-only"))
+            {
+                RunSelectiveSlideshowChecks(); RunSlideshowShortcutChecks(); RunTransferAndSlideshowChecks();
+                app.Shutdown(); return 0;
+            }
+            if (args.Contains("--auto-orient-only")) { BatchAutoOrientChecks(Path.Combine(Root, "auto-orient-" + Guid.NewGuid().ToString("N"))); app.Shutdown(); return 0; }
+            if (args.Contains("--image-tools-focused")) { RunImageToolsChecks(); app.Shutdown(); return 0; }
             if (args.Contains("--tab-stacks-only")) { RunTabStackChecks(); RunTabWidthChecks(); RunReorderHeightChecks(); RunTreeEnhanceBackupChecks(); app.Shutdown(); return 0; }
             if (args.Length == 0) RunTabStackChecks();
             if (args.Contains("--batch-only")) { RunBatchChecks(); app.Shutdown(); return 0; }

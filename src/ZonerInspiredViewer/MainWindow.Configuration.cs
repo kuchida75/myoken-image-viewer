@@ -268,6 +268,14 @@ namespace ZonerInspiredViewer
                 if (e.Key == Key.Escape && !String.IsNullOrEmpty(_configurationSearch.Text)) { _configurationSearch.Clear(); e.Handled = true; return; }
                 if (e.Key == Key.Escape) { StopSlideshow(); window.Close(); e.Handled = true; }
             };
+            window.Closing += delegate(object sender, System.ComponentModel.CancelEventArgs e)
+            {
+                if (_rotationSaveRequest != null)
+                {
+                    _rotationSaveRequest.Cancel();
+                    e.Cancel = true;
+                }
+            };
             window.Closed += delegate
             {
                 CancelShortcutCapture();

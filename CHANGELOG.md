@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.2.187-0.2.189 - 2026-10-11
+
+- Added an Adaptive zoom toggle in the image toolbar, with A as its default rebindable shortcut. It centers each image and fits the first limiting frame edge, enlarging small images without changing aspect ratio.
+- Adaptive zoom remains enabled across images, tabs, rotation, frame resizing and slideshow playback until toggled off. It takes precedence over Zoom lock while active; turning it off returns to the normal fit. Sessions and JSON backups retain the setting.
+- Added focused adaptive-fit, slideshow, shortcut, centering and persistence regressions.
+- Build 0.2.188 corrects the slideshow test's expected starting image when no thumbnail is selected.
+- Build 0.2.189 verifies Adaptive zoom takes precedence over Zoom lock and handles a frame that is not yet measurable.
+
+## 0.2.183-0.2.186 - 2026-10-06
+
+- Rotate left/right buttons and bracket shortcuts in the thumbnail browser now turn every selected image in place, while skipping selected folders and retaining browser mode, scroll position and selection.
+- View-only multi-rotations remain the default. With automatic saving enabled, selected JPEG/PNG rotations are saved in a cancellable batch, each with its own original-file backup; unsupported formats remain view-only. Configure reports saved, skipped and failed counts.
+- Added mixed image/folder selection and multi-file save regression checks.
+- Build 0.2.183 did not compile; 0.2.184 corrected async cleanup and passed the focused image-tool checks. The later builds update documentation and report unsupported formats in mixed selections.
+
+## 0.2.180-0.2.182 - 2026-10-06
+
+- Rotating an image from the thumbnail browser with [ / ] or Configure > Image tools now turns the selected thumbnail in place without switching to viewer mode. The selected item and browser position remain visible.
+- Default rotations stay view-only, follow the image when opened in the same tab, and survive automatic sessions and JSON backups. Auto-save JPEG/PNG rotations finish in the browser; saved files retain original backups. Renames, moves, and deletes update or remove the pending thumbnail orientation.
+- Expanded rotation, session, backup, tab, and file-operation regression coverage.
+
+## 0.2.175-0.2.179 - 2026-10-04
+
+- F5 and Configure > Images now play a selected mix of images and folders; folders expand recursively in natural filename order. Linked folders, unavailable items and viewer backup folders are skipped. Playlist collection runs in the background and can be canceled with F5 or Escape.
+- Playback snapshots the selected list across folder changes and shuffle toggles. With no browser selection, F5 retains its current-folder behavior; an empty selection reports that no images were found.
+- Added focused selective-slideshow regression coverage and updated in-app Help.
+- Playlist collection completion returns to the WPF UI thread; focused regression coverage can now run without unrelated suite sections.
+
+## 0.2.171-0.2.174 - 2026-10-04
+
+- Added recursive Batch > Auto-orient from EXIF for selected images and folders. A preview identifies images marked for rotation/mirroring and skips upright, linked, animated or unsupported files. Verified replacements keep byte-identical originals in `.viewer-orientation-backups` beside each image.
+- Bracket rotation shortcuts now work from the thumbnail browser: they open the active thumbnail with the requested rotation, retaining the normal view-only default and the existing automatic-save preference.
+- Clarified the existing F5 slideshow shortcut on the Configure control and in the quick key reference.
+- The later builds in this range add focused regression entry points and complete batch, browser rotation and automatic-save verification.
+
 ## 0.2.168-0.2.170 - 2026-09-23
 
 - Changed default shortcuts to U for compact mode, H for fit height and W for fit width. Existing custom bindings take priority when loading older sessions and backups.
