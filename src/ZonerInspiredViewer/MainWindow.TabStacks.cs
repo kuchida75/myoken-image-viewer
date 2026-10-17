@@ -188,7 +188,7 @@ namespace ZonerInspiredViewer
                     string name = TextPromptWindow.Prompt(this, "Rename tab stack", "Stack name", stack.Name);
                     if (name == null) return;
                     name = name.Trim();
-                    if (!TabStacks.ValidName(name)) MessageBox.Show(this, "Use a stack name of 1-80 characters without control characters.", "Rename tab stack", MessageBoxButton.OK, MessageBoxImage.Information);
+                    if (!TabStacks.ValidName(name)) ThemedMessageBox.Show(this, "Use a stack name of 1-80 characters without control characters.", "Rename tab stack", MessageBoxButton.OK, MessageBoxImage.Information);
                     else RenameTabStack(id, name);
                 };
                 menu.Items.Add(rename);

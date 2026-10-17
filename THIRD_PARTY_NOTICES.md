@@ -23,6 +23,7 @@ remain available. Review upstream terms before downloading or redistributing.
 | Real-HAT / SwinIR | Upstream Apache-2.0 notices in `Dependencies/Licenses/HAT.txt` and `SwinIR.txt`; checkpoint provenance/hashes in `tools/upscale-models.json`. |
 | Basic ONNX super-resolution | ONNX Model Zoo repository Apache-2.0 notice in `Dependencies/Licenses/ONNX-super-resolution.txt`; review model-specific terms as well. |
 | PPHumanSeg | OpenCV Zoo model-directory Apache-2.0 terms, retained in `Dependencies/Licenses/PPHumanSeg.txt`. |
+| YuNet face detector | Pinned OpenCV Zoo May 2026 model, MIT, copyright Shiqi Yu; full provenance and terms in `Dependencies/Licenses/YuNet.txt`. No recognition/identity model. |
 | U-2-NetP | Upstream code Apache-2.0 notice in `Dependencies/Licenses/U-2-Net.txt`. The rembg conversion release lacks a separate model-specific provenance/license file; checkpoint redistribution remains a review item. |
 | Spandrel | Export-time tool only, notice in `Dependencies/Licenses/Spandrel.txt`; Python export dependencies are not shipped in Git. |
 | SUPIR | Only the viewer's optional adapter is included. SUPIR, SDXL and other required checkpoints must be installed and reviewed separately. |

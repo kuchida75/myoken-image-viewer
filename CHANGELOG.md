@@ -1,5 +1,106 @@
 # Changelog
 
+## 0.2.222 - 2026-10-17
+
+- Application confirmations, warnings, errors and information messages now follow the app's dark/light theme, including Delete, Enhance Save overwrite, rotation saves, sessions, batch operations, transfers and backups.
+- Preserved confirmation preferences, button choices and default actions. Escape/window close declines or cancels confirmations; long messages wrap and scroll, with selectable text and keyboard-accessible buttons. Windows-owned security, permission and shell dialogs remain unchanged.
+- Added dark/light, button/result/default, cancellation, long-message layout and startup-error checks, plus real generated-fixture Delete/folder recycle and Enhance overwrite accept/cancel/backup coverage.
+
+## 0.2.220-0.2.221 - 2026-10-17
+
+- Replaced remaining application file/folder pickers with the app-themed chooser: Enhance/AI Save As, canvas Open/Save/PNG export, backup import/export, Move, batch output and SUPIR setup paths.
+- Added file filters, filename/type fields, automatic extensions, validation, folders-first natural sorting and a themed overwrite prompt that preserves the existing overwrite preference. Added New folder to file/folder selection.
+- Startup now restores saved canvas links without automatically opening Faces. Recent canvases remain under Sessions; explicitly loading a named session still reopens its last canvas.
+- Added file chooser dark/light/narrow, filter/extension, overwrite/opt-out, validation/cancel/new-folder and actual Save As/Move/canvas integration checks, plus startup/recent/named-session coverage.
+- Preserved literal Unicode, leading-space and percent-variable filenames when selected; validate names before Windows path normalization can strip invalid trailing dots/spaces.
+
+## 0.2.218-0.2.219 - 2026-10-17
+
+- Delete now sends images, files and folders to the Recycle Bin without an application confirmation by default, including older profiles without an explicit preference. Image-view deletion still advances in the same tab.
+- Added Configure > Image tools > Recycle Bin > Ask before deleting files and folders. The optional prompt defaults to No; Windows permission/error dialogs remain unchanged.
+- Persisted the preference in automatic/named sessions and backups; Reset restores confirmation off. Added generated-fixture recycle, same-tab navigation, live settings, legacy/reset and persistence checks.
+- Added final shutdown guards so cancelled background canvas work cannot publish after the Faces window closes.
+
+## 0.2.217 - 2026-10-17
+
+- Canvas width/height/aspect sliders now refresh both Faces modes automatically after a short pause. Cached crops render in the background without detection; sliders stay responsive, old previews remain visible, and newer input cancels stale work.
+- Added safe Save/link guards during resize, Stop/Esc rollback to the last good layout, failure preservation, scope/tab invalidation and close-time cancellation/joining.
+- Main Open folder (toolbar/Ctrl+O) now uses the same theme-aware folder chooser as Faces, with List, Details and cached Thumbnails modes instead of the light legacy Windows tree dialog.
+- Added rapid-change/coalescing, cancellation/failure, first preview, reference/interactive mode, lifecycle and normal Open folder integration/theme checks.
+
+## 0.2.214-0.2.216 - 2026-10-17
+
+- Added canvas width, height and aspect-ratio sliders in both Faces modes, synchronized with exact pixel inputs. Height/aspect changes switch off Auto height; width preserves automatic fitting, and slider changes respect side/pixel limits.
+- Kept whole-canvas proportions separate from face-crop shape. Saved canvas dimensions and automatic/manual height restore all slider positions; Update canvas applies the layout.
+- Moved Include subfolders and the GPU/backend indicator to the bottom status row, with responsive text layout and unchanged recursive scanning controls.
+- Added slider synchronization, range/area, auto/manual sizing, work guards, save/open, bottom-row placement and narrow dark/light layout checks.
+
+## 0.2.207-0.2.213 - 2026-10-17
+
+- Added adjustable face surroundings (0-200%, default 30%) and six square/portrait/landscape crop shapes. Existing detections are recropped and canvases updated without rerunning RTX inference; originals remain unchanged.
+- Added Save canvas and Open canvas for `.myokenfaces` documents: linked originals, cached face thumbnails, framing, layout, scan scope and viewport. Files load without detection, including when originals are missing.
+- Sessions retain saved canvas links and automatically reopen their last canvas. Added Sessions > Saved face canvases and optional ZIP-backup inclusion across current/named sessions, with safe document import and relinking. Existing JSON backups remain compatible.
+- Added List, Details and Thumbnails modes to the themed Faces folder chooser, using persistent four-image folder previews.
+- Added a bottom-right overview when a canvas exceeds its frame. Drag its visible-area rectangle or click a region to pan, without resizing the main view; fit mode hides it.
+- Added framing, archive validation/limits, canceled/atomic saves, missing-source loading, backup/session restore, chooser modes and canvas navigator regression checks. Build 207 failed compilation; subsequent builds corrected the compiler compatibility and archive path checks.
+
+## 0.2.206 - 2026-10-17
+
+- Made checked checkboxes persistently white with a high-contrast dark tick, including hover, press and disabled states. Added distinct mixed-state marks, keyboard focus indication and high-contrast system-color support.
+- Added mouse Back (XButton1) from an interactive original to its canvas, restoring zoom and position. It does not close Faces when already on the map.
+- F6 now uses the selected folder thumbnail automatically (or the selected image's parent/current folder) and starts scanning immediately. Rebound Faces shortcuts behave the same; toolbar/File/context entry remains manual so options can be chosen first.
+- Added checkbox dark/light and 96/144/192-DPI pixel checks, native toggle/focus checks, selected-folder shortcut tests, an actual RTX F6 auto-scan and mouse Back restoration checks.
+
+## 0.2.205 - 2026-10-17
+
+- Kept Faces crop review and folder lists app-themed even while disabled/loading, avoiding the Windows white disabled-list background.
+- Added a cancellation check proving Refresh links preserves the existing map and review until the replacement is complete.
+
+## 0.2.204 - 2026-10-17
+
+- Added Refresh links to Interactive faces: check distinct source paths with bounded background workers, remove every crop linked to a missing/empty/unavailable original, and regenerate the canvas from the working links without rerunning detection.
+- Preserve surviving face order, report removals in the status bar, and clear all-missing maps instead of generating empty white canvases. Refresh and image loading are cancellable; originals are never modified.
+- Verified shared mouse-drag handlers pan maps/originals without accidentally opening another image, and removed the retired photo-mosaic renderer/settings.
+- Added partial/all-missing refresh, valid-link preservation and cancellation regression checks.
+
+## 0.2.203 - 2026-10-17
+
+- Replaced Photo mosaic with Interactive faces: each count-balanced face tile links to its original photograph, opened at full resolution inside the same Faces viewport.
+- Added same-view zoom/pan and Esc/Canvas return, restoring the map's prior zoom and scroll position. Dragging the map does not open a photograph.
+- Missing or unavailable originals show "Original image not available" in the status bar while retaining the map. Loading is cancellable; no source files are modified.
+- Kept Faces reference as the static PNG-export mode. Interactive links remain in memory for this opening; they are not saved into PNG files.
+- Added automated link hit-testing at multiple zoom levels, full-resolution image opening, return-state preservation, cancellation and missing-file checks.
+
+## 0.2.202 - 2026-10-17
+
+- Polished the v0.2.201 additions: clipped scrolling toolbar content inside its viewport, clarified folder icons, and included complete themed-chooser visual checks.
+
+## 0.2.201 - 2026-10-17
+
+- Faces reference defaults to Auto columns: reviewed faces are balanced across populated rows with no unused final-row boxes. Removing crops recalculates columns; fixed manual columns remain available, and individual crop proportions are preserved.
+- Replaced the light legacy Faces folder dialog with an app-themed folder chooser, quick locations, breadcrumbs/address entry, natural folder sorting and background loading.
+- Combined the main tools into one compact row with horizontal overflow arrows and keyboard access; search stays right-aligned.
+- Added Faces to image/folder thumbnail and browser-background context menus, using the clicked folder or image parent as the scan root.
+- Added rebindable F6 for Faces in both views, with updated shortcut hints. Existing custom F6 assignments retain priority.
+- Added focused tests for chooser themes/navigation, automatic-layout coverage and odd counts, crop removal, menu paths and shortcut compatibility.
+
+## 0.2.200 - 2026-10-17
+
+- Added an Include subfolders checkbox in Faces, off by default. Recursive scans find images throughout nested folders for both reference canvases and photo mosaics.
+- Traversal skips links/junctions and viewer backup folders, continues past unreadable or vanished child folders, and supports cancellation during collection. The 8192-entry and 2048-image limits apply across the whole tree.
+- Changing scan scope clears the previous review; the option is disabled while work runs and remains temporary like the other Faces settings.
+- Added nested RTX scan, live checkbox integration, natural-order collection, cycle/backup exclusions, global limits and traversal-cancellation regression checks.
+
+## 0.2.190-0.2.199 - 2026-10-17
+
+- Added Faces on the global toolbar and File menu: local face detection, multi-select crop review/removal, and Open original. No identity recognition, embeddings or identity grouping.
+- YuNet executes through DirectML on the configured NVIDIA RTX adapter, with CPU inference fallback disabled. Profiled warmup verifies real GPU kernels. AI memory limits and live DXGI pressure can stop scans; sessions are released afterward.
+- Added face-reference grids and color-matched photo mosaics, dimensions/columns/auto-height, target blend, bounded previews, fit/100%/wheel zoom/drag pan and cancellation.
+- PNG exports use original-resolution oriented sRGB crops, recheck source/target content and hold read locks through atomic non-overwriting publication. Existing files, late conflicts, changed inputs and canceled exports are refused. Original photos are never modified.
+- Added pinned model restoration, MIT attribution, documented NASA public-domain test fixture and automated RTX/CPU tensor parity, rotated/tiled/blank inference, EXIF/alpha, layout/blend pixels, full-resolution export, safety and dark/light/narrow UI checks.
+- Initial limits: selected-folder-only scanning (not recursive), at most 2048 images/1024 crops, no persistent canvas projects, CPU image preparation/composition/encoding. This is RTX neural inference, not a fully GPU canvas pipeline.
+- Builds 190-191 recorded compiler/harness fixes; 192-199 completed raster-policy compatibility, dispatcher ownership, themed controls, export validation and exact tile sizing without empty pixel lines. Each iteration is retained in the build journal.
+
 ## 0.2.187-0.2.189 - 2026-10-11
 
 - Added an Adaptive zoom toggle in the image toolbar, with A as its default rebindable shortcut. It centers each image and fits the first limiting frame edge, enlarging small images without changing aspect ratio.

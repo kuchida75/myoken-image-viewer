@@ -59,6 +59,9 @@ __pycache__/
 *.sqlite-*
 *.db
 *.db-*
+*.myokenfaces
+face-canvases/
+onnxruntime_profile*.json
 session.json
 session-*.json
 browser.json

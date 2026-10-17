@@ -57,11 +57,11 @@ namespace ZonerInspiredViewer
             if (saveAs)
             {
                 var dialog = CreateEnhanceSaveDialog();
-                if (dialog.ShowDialog(this) != true) return;
+                if (!ThemedFileDialogs.Show(dialog, this, _services.Thumbnails)) return;
                 destination = dialog.FileName;
             }
             if (!saveAs && _confirmEnhanceOverwrite
-                && MessageBox.Show(this, "Overwrite " + Path.GetFileName(destination) + " with the adjusted image?\n\n"
+                && ThemedMessageBox.Show(this, "Overwrite " + Path.GetFileName(destination) + " with the adjusted image?\n\n"
                     + "Includes the manual sliders, visible Quick Enhance and rotation, at full pixel resolution. Output is 8-bit sRGB. "
                     + "JPEG / AVIF / HEIC are re-encoded at quality 95; GIF is palette-limited. JPEG transparency is flattened onto white.\n\n"
                     + "An original backup is kept in .viewer-enhance-backups beside the file. Animations cannot be overwritten.",

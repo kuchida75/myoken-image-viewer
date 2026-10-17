@@ -25,7 +25,7 @@ namespace ZonerInspiredViewer
             }
             catch (Exception ex)
             {
-                MessageBox.Show("The viewer could not start or continue.\n\n" + ex.Message,
+                ThemedMessageBox.Show("The viewer could not start or continue.\n\n" + ex.Message,
                     BuildInfo.AppName, MessageBoxButton.OK, MessageBoxImage.Error);
                 Environment.ExitCode = 1;
             }

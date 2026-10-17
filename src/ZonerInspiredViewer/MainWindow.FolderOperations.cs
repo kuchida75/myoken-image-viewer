@@ -23,17 +23,16 @@ namespace ZonerInspiredViewer
         private void ChooseMoveDestination(string[] paths)
         {
             if (_fileTransferBusy || _backupBusy || _rotationSaving || _enhancementSaving || paths.Length == 0) return;
-            using (var dialog = new System.Windows.Forms.FolderBrowserDialog { Description = "Move selected files and folders to" })
-                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                    TransferFilesAsync(paths, dialog.SelectedPath, true, null);
+            string folder = ThemedFileDialogs.Folder(this, _currentFolder, "Move selected files and folders to", _services.Thumbnails);
+            if (folder != null) TransferFilesAsync(paths, folder, true, null);
         }
 
         private void DeleteBrowserItems(string[] paths)
         {
             if (_fileTransferBusy || _backupBusy || _rotationSaving || _enhancementSaving || paths.Length == 0) return;
             string name = paths.Length == 1 ? Path.GetFileName(paths[0]) : paths.Length + " selected items";
-            if (MessageBox.Show(this, "Send " + name + " to the Recycle Bin?\n\nSelected folders include all of their contents.",
-                "Recycle files and folders", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+            if (_confirmRecycle && ThemedMessageBox.Show(this, "Send " + name + " to the Recycle Bin?\n\nSelected folders include all of their contents.",
+                "Recycle files and folders", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes) return;
             _recycleTask = RecycleBrowserItemsAsync(paths);
         }
 
@@ -79,7 +78,7 @@ namespace ZonerInspiredViewer
                     FocusManager.SetFocusedElement(this, target);
                     if (returnFocus) target.Focus();
                 }
-                if (errors.Count > 0) MessageBox.Show(this, String.Join("\n", errors.Take(8)),
+                if (errors.Count > 0) ThemedMessageBox.Show(this, String.Join("\n", errors.Take(8)),
                     "Some items could not be recycled", MessageBoxButton.OK, MessageBoxImage.Warning);
             }));
         }

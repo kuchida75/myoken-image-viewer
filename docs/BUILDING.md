@@ -3,7 +3,7 @@
 ## Windows Baseline
 
 Myoken Image Viewer is a Windows x64 C# / WPF application targeting .NET
-Framework 4.8. The current source version is **0.2.189**. The Myoken name first
+Framework 4.8. The current source version is **0.2.222**. The Myoken name first
 appeared in **0.2.167**; the earlier Zen Image Viewer source baseline is tagged
 **v0.2.166**. Ubuntu support is not implemented.
 
@@ -34,7 +34,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\prepare-enhancement-
 
 These existing scripts verify SHA-256 hashes before extracting/copying pinned
 downloads. The enhancement restore includes ONNX Runtime, DirectML, supporting
-assemblies and the basic super-resolution / segmentation models. Downloads go
+assemblies, the basic super-resolution / segmentation models and the pinned
+YuNet face detector. Faces requires NVIDIA RTX and verified DirectML inference;
+there is no CPU inference fallback for that feature. Downloads go
 under `artifacts`; restored dependencies go under
 `src/ZonerInspiredViewer/Dependencies`. Both binary locations are excluded
 from Git. No dependencies are downloaded by the application at runtime.
@@ -71,12 +73,54 @@ Focused checks after a test build:
 .\artifacts\tests\ViewerRegressionTests.exe --branding-only
 .\artifacts\tests\ViewerRegressionTests.exe --workflow-only
 .\artifacts\tests\ViewerRegressionTests.exe --tab-stacks-only
+.\artifacts\tests\ViewerRegressionTests.exe --faces-only
+.\artifacts\tests\ViewerRegressionTests.exe --faces-access-only
+.\artifacts\tests\ViewerRegressionTests.exe --folder-picker-only
+.\artifacts\tests\ViewerRegressionTests.exe --file-picker-only
+.\artifacts\tests\ViewerRegressionTests.exe --enhance-save-focused
+.\artifacts\tests\ViewerRegressionTests.exe --interactive-faces-only
+.\artifacts\tests\ViewerRegressionTests.exe --checkbox-only
+.\artifacts\tests\ViewerRegressionTests.exe --face-framing-only
+.\artifacts\tests\ViewerRegressionTests.exe --face-canvas-only
+.\artifacts\tests\ViewerRegressionTests.exe --canvas-navigator-only
+.\artifacts\tests\ViewerRegressionTests.exe --canvas-controls-only
+.\artifacts\tests\ViewerRegressionTests.exe --live-canvas-only
+.\artifacts\tests\ViewerRegressionTests.exe --recycle-preference-only
+.\artifacts\tests\ViewerRegressionTests.exe --message-dialogs-only
+.\artifacts\tests\ViewerRegressionTests.exe --backup-focused
 ```
 
 Tests create isolated profiles and generated fixtures. Some suites require
 optional models, GPU hardware, or an unlocked desktop; a source build alone
 does not establish that those suites pass. See the main README for individual
 test switches and known feature limitations.
+
+The Faces suite needs an RTX GPU. Test builds copy the documented NASA
+public-domain portrait from `tools/Fixtures` into the isolated test directory;
+no personal photographs or runtime downloads are used. The suite checks actual
+GPU execution, test-only CPU tensor parity, canvases, export safety and WPF UI.
+The Faces-access suite checks F6/rebinding/context menus and automatic reference
+columns without requiring inference. The folder-picker suite checks the themed
+chooser, address navigation, List/Details/Thumbnails modes and confirm/cancel behavior in isolated folders.
+Framing checks cover surroundings, six shapes, recropping, source preservation and
+cancellation. Canvas checks cover safe ZIP/JSON/PNG documents, atomic saves,
+missing-source loading, optional backup inclusion, startup without a Faces popup,
+recent-canvas access and named-session reopening. Navigator checks cover drag/click pan, clamping, zoom/resize/return,
+saved viewports, fit visibility and narrow dark/light layouts. Canvas controls
+checks cover size/aspect sliders, exact inputs, auto/manual height, limits,
+save/open and the bottom scan/GPU status row. Live-canvas checks cover automatic
+slider previews, latest-only cancellation, responsive inputs, failure/Stop rollback,
+scope/tab invalidation, close joining and unchanged originals. Folder-picker checks
+also exercise normal Open folder against both themes. These suites do
+not require detection or access personal photographs.
+Recycle-preference checks send only generated image/folder fixtures to the Windows
+Recycle Bin, verifying default no-prompt behavior, viewer advancement and preference
+persistence/reset. Message-dialog checks exercise dark/light errors, every button
+result/default, safe dismissal and narrow long messages, plus actual enabled Delete,
+folder recycle and Enhance overwrite cancel/accept operations on generated fixtures.
+File-picker checks cover app-themed file selection/saving, filters/extensions,
+overwrite accept/cancel/opt-out, validation, new folders and actual Enhance Save As,
+Move and canvas Save/Open workflows against generated files only.
 
 ## Optional Larger AI Models
 

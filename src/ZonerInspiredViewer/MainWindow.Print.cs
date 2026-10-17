@@ -43,7 +43,7 @@ namespace ZonerInspiredViewer
                 _printPreview = new PrintPreviewWindow(CapturePrintRequest()) { Owner = this };
                 UpdateEnhanceSaveButtons(); _printPreview.ShowDialog();
             }
-            catch (Exception error) { MessageBox.Show(this, error.Message, "Print preview", MessageBoxButton.OK, MessageBoxImage.Warning); }
+            catch (Exception error) { ThemedMessageBox.Show(this, error.Message, "Print preview", MessageBoxButton.OK, MessageBoxImage.Warning); }
             finally
             {
                 _printPreview = null; UpdateEnhanceSaveButtons();

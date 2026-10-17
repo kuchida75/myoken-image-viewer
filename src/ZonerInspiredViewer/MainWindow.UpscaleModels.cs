@@ -78,7 +78,7 @@ namespace ZonerInspiredViewer
             {
                 if (id != UpscaleModels.Supir || !ShowSupirSetup())
                 {
-                    if (id != UpscaleModels.Supir) MessageBox.Show(this, "The selected model file is missing. Reinstall the complete viewer package.", "AI upscale", MessageBoxButton.OK, MessageBoxImage.Information);
+                    if (id != UpscaleModels.Supir) ThemedMessageBox.Show(this, "The selected model file is missing. Reinstall the complete viewer package.", "AI upscale", MessageBoxButton.OK, MessageBoxImage.Information);
                     RefreshUpscaleModelControls(); return;
                 }
             }
@@ -124,12 +124,12 @@ namespace ZonerInspiredViewer
             panel.Children.Add(new TextBlock { Text = "Python executable" });
             var python = new TextBox { Text = _supirConfig.PythonPath ?? "", Margin = new Thickness(0, 4, 0, 8) }; panel.Children.Add(python);
             var browsePython = CommandPresentation.Button("\uE838", "Browse Python...", null, "Choose python.exe from the SUPIR environment.", delegate
-            { var picker = new OpenFileDialog { Filter = "Python executable|python.exe", CheckFileExists = true }; if (picker.ShowDialog(dialog) == true) python.Text = picker.FileName; }, true);
+            { var picker = new OpenFileDialog { Title = "Choose SUPIR Python", Filter = "Python executable|python.exe", CheckFileExists = true }; if (ThemedFileDialogs.Show(picker, dialog, _services.Thumbnails)) python.Text = picker.FileName; }, true);
             panel.Children.Add(browsePython);
             panel.Children.Add(new TextBlock { Text = "SUPIR repository folder", Margin = new Thickness(0, 12, 0, 0) });
             var repository = new TextBox { Text = _supirConfig.RepositoryPath ?? "", Margin = new Thickness(0, 4, 0, 8) }; panel.Children.Add(repository);
             panel.Children.Add(CommandPresentation.Button("\uE838", "Browse folder...", null, "Choose the trusted local SUPIR source folder.", delegate
-            { using (var picker = new System.Windows.Forms.FolderBrowserDialog()) { picker.ShowNewFolderButton = false; if (picker.ShowDialog() == System.Windows.Forms.DialogResult.OK) repository.Text = picker.SelectedPath; } }, true));
+            { string path = ThemedFileDialogs.Folder(dialog, repository.Text, "Choose SUPIR repository", _services.Thumbnails); if (path != null) repository.Text = path; }, true));
             panel.Children.Add(new TextBlock { Text = "Requires the NVIDIA GPU and at least 12288 MB AI allowance. Preview limit: 4.2 MP. Generative detail may change faces or textures. Connecting authorizes running this local Python installation and repository; paths are not exported in viewer backups. Runtime/checkpoints are unverified until a preview succeeds.", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 14, 0, 12) });
             var error = new TextBlock { TextWrapping = TextWrapping.Wrap }; panel.Children.Add(error);
             var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 10, 0, 0) };

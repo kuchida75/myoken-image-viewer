@@ -40,7 +40,7 @@ namespace ZonerInspiredViewer
                 _transferStatus = paths.Length + (cut ? " items ready to move" : " items copied to clipboard");
                 UpdateBrowserFooter();
             }
-            catch (Exception ex) { MessageBox.Show(this, ex.Message, "Clipboard unavailable"); }
+            catch (Exception ex) { ThemedMessageBox.Show(this, ex.Message, "Clipboard unavailable"); }
         }
 
         private void PasteFiles(string destination)
@@ -55,7 +55,7 @@ namespace ZonerInspiredViewer
                 bool cut = FileClipboardData.IsCut(data);
                 TransferFilesAsync(paths, destination, cut, cut ? (uint?)sequence : null);
             }
-            catch (Exception ex) { MessageBox.Show(this, ex.Message, "Clipboard unavailable"); }
+            catch (Exception ex) { ThemedMessageBox.Show(this, ex.Message, "Clipboard unavailable"); }
         }
 
         private bool HandleFileShortcut(Key key)
@@ -77,7 +77,7 @@ namespace ZonerInspiredViewer
             {
                 DragDrop.DoDragDrop(_thumbnailGrid, FileClipboardData.Create(paths, false), DragDropEffects.Copy);
             }
-            catch (Exception ex) { MessageBox.Show(this, ex.Message, "Unable to drag files"); }
+            catch (Exception ex) { ThemedMessageBox.Show(this, ex.Message, "Unable to drag files"); }
         }
 
         private string BrowserDropDestination(DependencyObject source)
@@ -122,7 +122,7 @@ namespace ZonerInspiredViewer
 
         private ConflictAction ConfirmTransferRename(string source, string proposed)
         {
-            MessageBoxResult answer = MessageBox.Show(this,
+            MessageBoxResult answer = ThemedMessageBox.Show(this,
                 Path.GetFileName(source) + " already exists in the destination.\n\nUse the name "
                 + Path.GetFileName(proposed) + "?\n\nNo skips this item. Cancel stops the remaining transfer.",
                 "Keep both files", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
@@ -171,7 +171,7 @@ namespace ZonerInspiredViewer
                 if (Directory.Exists(_currentFolder)) RefreshFolder();
                 UpdateStatus();
                 if (result.Errors.Count > 0)
-                    MessageBox.Show(this, String.Join("\n", result.Errors.Take(8))
+                    ThemedMessageBox.Show(this, String.Join("\n", result.Errors.Take(8))
                         + "\n\nSome items may have been partially transferred. Existing files were not overwritten.",
                         "File transfer incomplete", MessageBoxButton.OK, MessageBoxImage.Warning);
             }));

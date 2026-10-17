@@ -214,8 +214,7 @@ namespace ZonerInspiredViewer
             Heading("Destination"); var folder = Text("Folder", o => o.OutputFolder, (o, v) => o.OutputFolder = v, "Leave empty for each image's source folder. Batch export does not include viewer-only adjustments.");
             var browse = CommandPresentation.Button("\uED25", "Choose folder", null, "Select an output folder. Clearing Folder uses the source folders.", delegate
             {
-                using (var dialog = new System.Windows.Forms.FolderBrowserDialog { Description = "Batch output folder" })
-                    if (dialog.ShowDialog(new BatchDialogOwner(this)) == System.Windows.Forms.DialogResult.OK) folder.Text = dialog.SelectedPath;
+                string path = ThemedFileDialogs.Folder(this, folder.Text, "Batch output folder"); if (path != null) folder.Text = path;
             }, true); _fields.Children.Add(browse);
             Text("Subfolder", o => o.Subfolder, (o, v) => o.Subfolder = v); Text("Name suffix", o => o.OutputSuffix, (o, v) => o.OutputSuffix = v);
             Conflict(true);
@@ -238,7 +237,7 @@ namespace ZonerInspiredViewer
                 BatchOptions options = ReadOptions(); string name = TextPromptWindow.Prompt(this, "Save batch preset", "Preset name", (_preset.SelectedItem as BatchPreset ?? new BatchPreset()).Name ?? "");
                 if (String.IsNullOrWhiteSpace(name)) return; name = name.Trim(); if (name.Length > 80) throw new IOException("Preset names are limited to 80 characters.");
                 var existing = _presets.FirstOrDefault(p => p.Options.Kind == _kind && String.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase));
-                if (existing != null && MessageBox.Show(this, "Replace preset " + name + "?", "Save preset", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
+                if (existing != null && ThemedMessageBox.Show(this, "Replace preset " + name + "?", "Save preset", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
                 if (existing == null && _presets.Count >= 32) throw new IOException("Up to 32 batch presets can be saved.");
                 if (existing != null) _presets.Remove(existing); var saved = new BatchPreset { Name = name, Options = options }; _presets.Add(saved); RefreshPresets(); _preset.SelectedItem = saved; _savePresets();
             }
@@ -247,7 +246,7 @@ namespace ZonerInspiredViewer
         private void DeletePreset()
         {
             var preset = _preset.SelectedItem as BatchPreset; if (preset == null || preset == _defaultPreset) return;
-            if (MessageBox.Show(this, "Delete preset " + preset.Name + "?", "Delete preset", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
+            if (ThemedMessageBox.Show(this, "Delete preset " + preset.Name + "?", "Delete preset", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
             _presets.Remove(preset); RefreshPresets(); _savePresets();
         }
         internal void LoadOptions(BatchOptions options)
@@ -293,7 +292,7 @@ namespace ZonerInspiredViewer
                 : _kind == BatchKind.Rename ? "Rename " + Plan.Count(item => item.Ready && item.Included) + " selected items using this preview?"
                 : "Process " + Plan.Count(item => item.Ready && item.Included) + " images from their on-disk originals?\n\nViewer-only adjustments are excluded. Output is 8-bit; JPEG transparency becomes white and GIF is palette-limited. Metadata preservation depends on the output format."
                 + (overwrite == 0 ? "\n\nOriginal files will be kept." : "\n\n" + overwrite + " existing files will be overwritten. Backups are kept in .zen-batch-backups beside each destination.");
-            if (MessageBox.Show(this, message, Title, MessageBoxButton.YesNo, overwrite > 0 || _kind == BatchKind.AutoOrient ? MessageBoxImage.Warning : MessageBoxImage.Question) == MessageBoxResult.Yes) Work = ExecuteAsync();
+            if (ThemedMessageBox.Show(this, message, Title, MessageBoxButton.YesNo, overwrite > 0 || _kind == BatchKind.AutoOrient ? MessageBoxImage.Warning : MessageBoxImage.Question) == MessageBoxResult.Yes) Work = ExecuteAsync();
         }
         internal Task ExecuteAsync() { return Dispatcher.InvokeAsync(new Func<Task>(ExecuteCoreAsync)).Task.Unwrap(); }
         private async Task ExecuteCoreAsync()

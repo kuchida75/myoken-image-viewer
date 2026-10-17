@@ -1321,5 +1321,236 @@
     "CompletedUtc": "2026-10-11T12:49:28.0968846Z",
     "Result": "Built",
     "Note": "Verify Adaptive zoom with Zoom lock and guard unmeasured frames."
+  },
+  {
+    "Version": "0.2.190",
+    "StartedUtc": "2026-10-17T09:47:20.0631516Z",
+    "CompletedUtc": "2026-10-17T09:47:21.4387677Z",
+    "Result": "Failed",
+    "Note": "Add RTX-only YuNet face detection, crop review, reference canvases and photo mosaic PNG export."
+  },
+  {
+    "Version": "0.2.191",
+    "StartedUtc": "2026-10-17T09:48:52.0023043Z",
+    "CompletedUtc": "2026-10-17T09:48:54.1362748Z",
+    "Result": "Failed",
+    "Note": "Complete Faces dialog and RTX/canvas regression coverage; fix crop page reset API."
+  },
+  {
+    "Version": "0.2.192",
+    "StartedUtc": "2026-10-17T09:49:13.5470569Z",
+    "CompletedUtc": "2026-10-17T09:49:16.3471894Z",
+    "Result": "Built",
+    "Note": "Validate Faces integration and correct regression harness helpers."
+  },
+  {
+    "Version": "0.2.193",
+    "StartedUtc": "2026-10-17T09:49:47.0950935Z",
+    "CompletedUtc": "2026-10-17T09:49:49.8501473Z",
+    "Result": "Built",
+    "Note": "Keep Faces composition compatible with the existing raster-only codec policy."
+  },
+  {
+    "Version": "0.2.194",
+    "StartedUtc": "2026-10-17T09:50:10.389558Z",
+    "CompletedUtc": "2026-10-17T09:50:13.1909147Z",
+    "Result": "Built",
+    "Note": "Wait for WPF layout before checking fitted Faces previews; real RTX inference and CPU parity passed."
+  },
+  {
+    "Version": "0.2.195",
+    "StartedUtc": "2026-10-17T09:50:41.285644Z",
+    "CompletedUtc": "2026-10-17T09:50:44.1077253Z",
+    "Result": "Built",
+    "Note": "Bind Faces asynchronous task continuations explicitly to the owning WPF dispatcher."
+  },
+  {
+    "Version": "0.2.196",
+    "StartedUtc": "2026-10-17T09:53:29.3633576Z",
+    "CompletedUtc": "2026-10-17T09:53:32.1191861Z",
+    "Result": "Built",
+    "Note": "Polish themed Faces tabs/crop list, fill mosaic tiles and test original-resolution export and close cancellation."
+  },
+  {
+    "Version": "0.2.197",
+    "StartedUtc": "2026-10-17T09:57:07.9012609Z",
+    "CompletedUtc": "2026-10-17T09:57:10.7040461Z",
+    "Result": "Built",
+    "Note": "Finish RTX Faces and canvas workflow, pinned fixture, late export safeguards, Help and release documentation."
+  },
+  {
+    "Version": "0.2.198",
+    "StartedUtc": "2026-10-17T09:57:46.8309665Z",
+    "CompletedUtc": "2026-10-17T09:57:49.7467211Z",
+    "Result": "Built",
+    "Note": "Complete Faces export race/EXIF tests and real-portrait grid/mosaic visual previews."
+  },
+  {
+    "Version": "0.2.199",
+    "StartedUtc": "2026-10-17T09:59:37.6703848Z",
+    "CompletedUtc": "2026-10-17T09:59:40.8132006Z",
+    "Result": "Built",
+    "Note": "Finalize Windows RTX face detection and canvases, exact mosaic cell sizing, documentation and validation."
+  },
+  {
+    "Version": "0.2.200",
+    "StartedUtc": "2026-10-17T10:05:38.6097838Z",
+    "CompletedUtc": "2026-10-17T10:05:41.659703Z",
+    "Result": "Built",
+    "Note": "Add optional recursive Faces scanning with bounded traversal, link/backup exclusions and cancellation tests."
+  },
+  {
+    "Version": "0.2.201",
+    "StartedUtc": "2026-10-17T10:30:29.9032668Z",
+    "CompletedUtc": "2026-10-17T10:30:32.9677122Z",
+    "Result": "Built",
+    "Note": "Faces automatic reference columns, themed folder chooser, compact one-row toolbar, context menus and rebindable F6."
+  },
+  {
+    "Version": "0.2.202",
+    "StartedUtc": "2026-10-17T10:32:44.9891316Z",
+    "CompletedUtc": "2026-10-17T10:32:48.0748894Z",
+    "Result": "Built",
+    "Note": "Polish compact toolbar clipping and themed folder icons; retain tested Faces auto columns, context actions and F6."
+  },
+  {
+    "Version": "0.2.203",
+    "StartedUtc": "2026-10-17T10:37:49.9834477Z",
+    "CompletedUtc": "2026-10-17T10:37:53.0046703Z",
+    "Result": "Built",
+    "Note": "Replace Photo mosaic with interactive face canvas, linked full-resolution originals, zoom/pan, Esc return and missing-file status."
+  },
+  {
+    "Version": "0.2.204",
+    "StartedUtc": "2026-10-17T10:41:32.3085568Z",
+    "CompletedUtc": "2026-10-17T10:41:35.2956885Z",
+    "Result": "Built",
+    "Note": "Interactive Faces Refresh links, missing-source pruning/re-layout, real mouse pan checks and retired mosaic cleanup."
+  },
+  {
+    "Version": "0.2.205",
+    "StartedUtc": "2026-10-17T10:43:29.4729272Z",
+    "CompletedUtc": "2026-10-17T10:43:32.485231Z",
+    "Result": "Built",
+    "Note": "Polish themed Faces/chooser disabled lists and verify atomic refresh cancellation; interactive face maps and automatic link refresh."
+  },
+  {
+    "Version": "0.2.206",
+    "StartedUtc": "2026-10-17T11:13:32.4758962Z",
+    "CompletedUtc": "2026-10-17T11:13:35.5177257Z",
+    "Result": "Built",
+    "Note": "High-contrast white selected checkboxes, interactive-canvas mouse Back, and F6 selected-folder automatic scanning."
+  },
+  {
+    "Version": "0.2.207",
+    "StartedUtc": "2026-10-17T11:37:53.1941143Z",
+    "CompletedUtc": "2026-10-17T11:37:54.5159011Z",
+    "Result": "Failed",
+    "Note": "Add adjustable face surroundings and square/portrait/landscape crop shapes, ratio-aware canvases and non-destructive recropping."
+  },
+  {
+    "Version": "0.2.208",
+    "StartedUtc": "2026-10-17T11:38:03.560915Z",
+    "CompletedUtc": "2026-10-17T11:38:06.6900547Z",
+    "Result": "Built",
+    "Note": "Validate face framing and ratio-aware layouts with the Windows compiler."
+  },
+  {
+    "Version": "0.2.209",
+    "StartedUtc": "2026-10-17T11:42:31.9323501Z",
+    "CompletedUtc": "2026-10-17T11:42:36.282978Z",
+    "Result": "Built",
+    "Note": "Add saved interactive face documents, cached thumbnails, ZIP backups and automatic session canvas reopening."
+  },
+  {
+    "Version": "0.2.210",
+    "StartedUtc": "2026-10-17T11:45:04.6540083Z",
+    "CompletedUtc": "2026-10-17T11:45:07.9313491Z",
+    "Result": "Built",
+    "Note": "Complete saved canvas UI, automatic session reopening, optional ZIP backup inclusion and folder chooser List/Details/Thumbnails views."
+  },
+  {
+    "Version": "0.2.211",
+    "StartedUtc": "2026-10-17T11:46:04.0093404Z",
+    "CompletedUtc": "2026-10-17T11:46:07.3309746Z",
+    "Result": "Built",
+    "Note": "Validate atomic canvas saves, safe ZIP import paths and folder chooser mode selection."
+  },
+  {
+    "Version": "0.2.212",
+    "StartedUtc": "2026-10-17T11:53:48.5630711Z",
+    "CompletedUtc": "2026-10-17T11:53:51.6472097Z",
+    "Result": "Built",
+    "Note": "Saved face canvases, framing, session/ZIP backup restore, folder chooser modes and draggable canvas overview"
+  },
+  {
+    "Version": "0.2.213",
+    "StartedUtc": "2026-10-17T11:55:25.8860955Z",
+    "CompletedUtc": "2026-10-17T11:55:28.9757468Z",
+    "Result": "Built",
+    "Note": "Finalize saved face canvases, session/backup integration, crop controls, chooser views and canvas overview with Help"
+  },
+  {
+    "Version": "0.2.214",
+    "StartedUtc": "2026-10-17T12:11:14.5612952Z",
+    "CompletedUtc": "2026-10-17T12:11:17.7169178Z",
+    "Result": "Built",
+    "Note": "Canvas width/height/aspect sliders with synchronized dimensions; move scan scope and GPU indicator to bottom status row"
+  },
+  {
+    "Version": "0.2.215",
+    "StartedUtc": "2026-10-17T12:11:46.9390894Z",
+    "CompletedUtc": "2026-10-17T12:11:50.1186007Z",
+    "Result": "Built",
+    "Note": "Validate canvas sliders and bottom status layout after selected-tab presentation is attached"
+  },
+  {
+    "Version": "0.2.216",
+    "StartedUtc": "2026-10-17T12:12:58.1776204Z",
+    "CompletedUtc": "2026-10-17T12:13:01.3615556Z",
+    "Result": "Built",
+    "Note": "Finalize canvas size/aspect sliders, responsive bottom scan/GPU status row, Help and regression coverage"
+  },
+  {
+    "Version": "0.2.217",
+    "StartedUtc": "2026-10-17T12:39:38.7114284Z",
+    "CompletedUtc": "2026-10-17T12:39:41.9708096Z",
+    "Result": "Built",
+    "Note": "Automatic latest-only canvas slider previews with responsive inputs and cancellation; themed normal Open folder chooser"
+  },
+  {
+    "Version": "0.2.218",
+    "StartedUtc": "2026-10-17T12:45:45.2574296Z",
+    "CompletedUtc": "2026-10-17T12:45:48.8228184Z",
+    "Result": "Built",
+    "Note": "Default no-confirmation Recycle Bin deletion with persisted Configure toggle; automatic canvas previews and themed Open folder"
+  },
+  {
+    "Version": "0.2.219",
+    "StartedUtc": "2026-10-17T12:47:28.9896523Z",
+    "CompletedUtc": "2026-10-17T12:47:32.1492493Z",
+    "Result": "Built",
+    "Note": "Finalize optional Recycle Bin confirmation, themed Open folder and automatic canvas updates with shutdown guards"
+  },
+  {
+    "Version": "0.2.220",
+    "StartedUtc": "2026-10-17T13:06:42.1178612Z",
+    "CompletedUtc": "2026-10-17T13:06:45.233263Z",
+    "Result": "Built",
+    "Note": "Themed file/folder dialogs across Save As, canvas, backup, Move, batch and AI setup; suppress Faces popup on startup"
+  },
+  {
+    "Version": "0.2.221",
+    "StartedUtc": "2026-10-17T13:08:55.6292853Z",
+    "CompletedUtc": "2026-10-17T13:08:58.7946181Z",
+    "Result": "Built",
+    "Note": "Finalize themed file/folder pickers, literal filename handling, overwrite validation and startup without Faces popup"
+  },
+  {
+    "Version": "0.2.222",
+    "StartedUtc": "2026-10-17T13:19:00.347367Z",
+    "CompletedUtc": "2026-10-17T13:19:03.5363949Z",
+    "Result": "Built",
+    "Note": "Theme app confirmation and error dialogs, including Delete and Enhance overwrite; preserve policies and add real accept/cancel regression checks."
   }
 ]

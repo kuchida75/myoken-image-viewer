@@ -31,5 +31,5 @@ foreach ($package in $packages) {
         if ($notices) { [System.IO.Compression.ZipFileExtensions]::ExtractToFile($notices, (Join-Path "$destination\Licenses" ($package[0] + '-notices.txt')), $true) }
     } finally { $zip.Dispose() }
 }
-Copy-Item -LiteralPath (Join-Path $DownloadDirectory 'u2netp.onnx'), (Join-Path $DownloadDirectory 'humanseg.onnx'), (Join-Path $DownloadDirectory 'super-resolution-10.onnx') -Destination "$destination\Models" -Force
+Copy-Item -LiteralPath (Join-Path $DownloadDirectory 'u2netp.onnx'), (Join-Path $DownloadDirectory 'humanseg.onnx'), (Join-Path $DownloadDirectory 'super-resolution-10.onnx'), (Join-Path $DownloadDirectory 'yunet-face.onnx') -Destination "$destination\Models" -Force
 Get-ChildItem $destination -Recurse -File | Get-FileHash -Algorithm SHA256 | Select-Object Path,Hash

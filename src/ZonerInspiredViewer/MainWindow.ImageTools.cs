@@ -134,7 +134,7 @@ namespace ZonerInspiredViewer
         private bool SetAutoSaveRotations(bool enabled, bool confirm)
         {
             if (_rotationSaving) return false;
-            if (enabled && !_autoSaveRotations && confirm && MessageBox.Show(_configureWindow ?? this,
+            if (enabled && !_autoSaveRotations && confirm && ThemedMessageBox.Show(_configureWindow ?? this,
                 "Automatically overwrite JPEG/PNG files after rotation?\n\nAn original-file backup is kept for every save in .viewer-rotation-backups beside the image. "
                 + "Backups consume disk space. JPEG files are re-encoded at quality 95; PNG pixel data is lossless. "
                 + "Animations and other formats remain view-only. Quick Enhance is never saved.\n\n"
@@ -151,7 +151,7 @@ namespace ZonerInspiredViewer
             if (_rotationSaving || _backupBusy || _fileTransferBusy || !HasCurrentImage() || CurrentTabState().RotationQuarterTurns == 0) return;
             if (!ImageRotationService.CanSave(_activeTabPath))
             { SetRotationStatus("View-only rotation: saving supports JPEG / PNG", null); return; }
-            if (confirm && !_autoSaveRotations && MessageBox.Show(_configureWindow ?? this,
+            if (confirm && !_autoSaveRotations && ThemedMessageBox.Show(_configureWindow ?? this,
                 "Save the current rotation over " + Path.GetFileName(_activeTabPath) + "?\n\n"
                 + "An original backup is kept beside the image in .viewer-rotation-backups. JPEG is re-encoded at quality 95. Quick Enhance is not saved.",
                 "Save rotation", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
@@ -274,7 +274,7 @@ namespace ZonerInspiredViewer
             var writable = rotations.Where(pair => ImageRotationService.CanSave(pair.Key)).ToArray();
             if (writable.Length == 0)
             { SetRotationStatus("View-only rotation: saving supports JPEG / PNG", null); return; }
-            if (confirm && !_autoSaveRotations && MessageBox.Show(_configureWindow ?? this,
+            if (confirm && !_autoSaveRotations && ThemedMessageBox.Show(_configureWindow ?? this,
                 "Save rotations over " + writable.Length + " selected JPEG/PNG " + (writable.Length == 1 ? "image" : "images") + "?\n\n"
                 + "An original backup is kept beside each image in .viewer-rotation-backups. JPEG is re-encoded at quality 95.",
                 "Save rotation", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;

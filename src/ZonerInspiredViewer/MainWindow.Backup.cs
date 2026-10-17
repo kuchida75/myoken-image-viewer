@@ -16,16 +16,17 @@ namespace ZonerInspiredViewer
         {
             var dialog = new SaveFileDialog
             {
-                Title = "Export viewer backup", Filter = "Viewer backup (*.json)|*.json", DefaultExt = ".json",
-                AddExtension = true, OverwritePrompt = true, FileName = "Viewer-backup-" + DateTime.Now.ToString("yyyy-MM-dd") + ".json"
+                Title = "Export viewer backup", Filter = "Viewer backup with canvases (*.zip)|*.zip|Viewer settings only (*.json)|*.json", DefaultExt = _includeFaceCanvasesInBackup ? ".zip" : ".json",
+                FilterIndex = _includeFaceCanvasesInBackup ? 1 : 2,
+                AddExtension = true, OverwritePrompt = true, FileName = "Viewer-backup-" + DateTime.Now.ToString("yyyy-MM-dd") + (_includeFaceCanvasesInBackup ? ".zip" : ".json")
             };
-            if (dialog.ShowDialog(this) != true) return;
+            if (!ThemedFileDialogs.Show(dialog, this, _services.Thumbnails)) return;
             Exception error = null;
             try { await ExportBackupFileAsync(dialog.FileName).ConfigureAwait(false); }
             catch (Exception ex) { error = ex; }
             await Dispatcher.InvokeAsync(new Action(delegate
             {
-                MessageBox.Show(this, error == null ? "Viewer backup exported.\n\n" + dialog.FileName : error.Message,
+                ThemedMessageBox.Show(this, error == null ? "Viewer backup exported.\n\n" + dialog.FileName : error.Message,
                     error == null ? "Backup exported" : "Unable to export backup", MessageBoxButton.OK,
                     error == null ? MessageBoxImage.Information : MessageBoxImage.Warning);
             }));
@@ -35,9 +36,9 @@ namespace ZonerInspiredViewer
         {
             var dialog = new OpenFileDialog
             {
-                Title = "Import viewer backup", Filter = "Viewer backup (*.json)|*.json", CheckFileExists = true, Multiselect = false
+                Title = "Import viewer backup", Filter = "Viewer backup|*.zip;*.json", CheckFileExists = true, Multiselect = false
             };
-            if (dialog.ShowDialog(this) != true) return;
+            if (!ThemedFileDialogs.Show(dialog, this, _services.Thumbnails)) return;
             Exception error = null;
             int missing = -1;
             try { missing = await ImportBackupFileAsync(dialog.FileName, true).ConfigureAwait(false); }
@@ -45,7 +46,7 @@ namespace ZonerInspiredViewer
             await Dispatcher.InvokeAsync(new Action(delegate
             {
                 if (error == null && missing < 0) return;
-                MessageBox.Show(this, error == null ? "Viewer backup imported.\n\n" + missing
+                ThemedMessageBox.Show(this, error == null ? "Viewer backup imported.\n\n" + missing
                     + " missing image tab(s) skipped across the workspace and saved sessions.\nA recovery backup was saved in your profile's backups folder."
                     : error.Message, error == null ? "Backup imported" : "Unable to import backup", MessageBoxButton.OK,
                     error == null ? MessageBoxImage.Information : MessageBoxImage.Warning);
@@ -104,7 +105,7 @@ namespace ZonerInspiredViewer
                     ViewerBackupDocument document = ViewerBackupStore.Load(path);
                     bool approved = !confirm || Dispatcher.Invoke(new Func<bool>(delegate
                     {
-                        return MessageBox.Show(this,
+                        return ThemedMessageBox.Show(this,
                             "Replace this window's tabs, settings and favorites with the backup?\n\n"
                             + "Saved sessions with matching names will be replaced; other saved sessions are kept.\n"
                             + document.MissingImageTabs + " missing image tab(s) will be skipped.\n"
@@ -119,6 +120,7 @@ namespace ZonerInspiredViewer
                     string candidate = Path.Combine(backupFolder, "before-import-" + DateTime.UtcNow.Ticks + ".json");
                     ViewerBackupStore.Save(candidate, previous);
                     recovery = candidate;
+                    ViewerBackupStore.RestoreCanvases(document, _services.AppDataRoot);
                     foreach (NamedSessionDocument saved in document.SavedSessions)
                         _services.Sessions.SaveNamed(saved.Name, saved.State);
                     _services.Sessions.ReplaceBrowserPreferences(document.Browser);

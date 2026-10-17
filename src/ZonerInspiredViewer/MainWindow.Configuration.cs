@@ -20,6 +20,8 @@ namespace ZonerInspiredViewer
         private readonly List<StackPanel> _configurationPages = new List<StackPanel>();
         private readonly List<ToggleButton> _configurationNavigation = new List<ToggleButton>();
         private CheckBox _configureTree, _configureCompact, _configureEnhance, _configureImageMetadata;
+        private CheckBox _confirmRecycleCheckBox;
+        private bool _confirmRecycle;
         private TextBlock _systemVramText, _gpuDetailsText, _cacheUsageText, _pinnedColorText;
         private Border _pinnedColorPreview;
         private TextBox _configurationSearch;
@@ -99,6 +101,9 @@ namespace ZonerInspiredViewer
             _metadataToggle.Unchecked += delegate { ScheduleSessionSave(); };
             _minimapButton.Margin = new Thickness(0);
             AddConfigurationRow(0, "Theme", _darkThemeCheckBox);
+            _includeCanvasBackupCheck = new CheckBox { Content = "Include saved face canvases in ZIP backups", IsChecked = _includeFaceCanvasesInBackup };
+            _includeCanvasBackupCheck.Click += delegate { _includeFaceCanvasesInBackup = _includeCanvasBackupCheck.IsChecked == true; ScheduleSessionSave(); };
+            AddConfigurationRow(0, "Backups", _includeCanvasBackupCheck);
             AddConfigurationRow(0, "Navigation", _configureTree);
             AddConfigurationRow(0, "Workspace", _configureCompact);
             AddConfigurationRow(0, "Window height", _configureVerticalHeight);
@@ -139,6 +144,16 @@ namespace ZonerInspiredViewer
             AddConfigurationRow(1, "Enhance mode", _enhanceMode);
             AddConfigurationRow(1, "Color management", _iccCheckBox);
             BuildImageToolsConfiguration();
+            _confirmRecycleCheckBox = new CheckBox { Content = new TextBlock { Text = "Ask before deleting files and folders", TextWrapping = TextWrapping.Wrap }, IsChecked = _confirmRecycle };
+            CommandPresentation.Describe(_confirmRecycleCheckBox, "Confirm Recycle Bin deletion", null,
+                "Off by default: Delete sends files and folders to the Recycle Bin without an app confirmation. Enable to ask first. Windows permission/error prompts still apply.");
+            RoutedEventHandler recycleConfirmationChanged = delegate
+            {
+                bool confirm = _confirmRecycleCheckBox.IsChecked == true;
+                if (confirm == _confirmRecycle) return; _confirmRecycle = confirm; ScheduleSessionSave();
+            };
+            _confirmRecycleCheckBox.Checked += recycleConfirmationChanged; _confirmRecycleCheckBox.Unchecked += recycleConfirmationChanged;
+            AddConfigurationRow(3, "Recycle Bin", _confirmRecycleCheckBox);
             _configureUpscaleButton = BuildUpscaleButton(); AddConfigurationRow(3, "Super-resolution", _configureUpscaleButton);
             BuildUpscaleModelConfiguration();
             _iccCheckBox.ToolTip = "Experimental preference; explicit ICC transforms are not implemented in this prototype.";

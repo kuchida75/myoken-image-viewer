@@ -41,6 +41,8 @@ $references = @(
     "System.Printing.dll",
     "System.Runtime.Serialization.dll",
     "System.Drawing.dll",
+    "System.IO.Compression.dll",
+    "System.IO.Compression.FileSystem.dll",
     "System.Windows.Forms.dll",
     "System.Xaml.dll",
     "WindowsBase.dll"
@@ -93,6 +95,10 @@ if ($BuildTests) {
     $testOut = Join-Path $root 'artifacts\tests'
     New-Item -ItemType Directory -Force $testOut | Out-Null
     Copy-EnhancementDependencies $testOut
+    $faceFixture = Join-Path $PSScriptRoot 'Fixtures\astronaut.png'
+    if ((Get-FileHash -LiteralPath $faceFixture -Algorithm SHA256).Hash -ne '88431CD9653CCD539741B555FB0A46B61558B301D4110412B5BC28B5E3EA6CB5') { throw 'Face test fixture checksum mismatch' }
+    New-Item -ItemType Directory -Force (Join-Path $testOut 'FaceReference') | Out-Null
+    Copy-Item -LiteralPath $faceFixture, (Join-Path $PSScriptRoot 'Fixtures\astronaut-NOTICE.txt') -Destination (Join-Path $testOut 'FaceReference') -Force
     $testSource = Get-ChildItem $PSScriptRoot -Filter 'Viewer*Tests.cs' | Sort-Object Name | ForEach-Object { $_.FullName }
     $testReferenceArgs = $referenceArgs
     foreach ($name in @('UIAutomationProvider.dll', 'UIAutomationTypes.dll')) {

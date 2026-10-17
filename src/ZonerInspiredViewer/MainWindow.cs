@@ -206,7 +206,7 @@ namespace ZonerInspiredViewer
                 if (_fileTransferBusy || _backupBusy || _rotationSaving || _enhancementSaving)
                 {
                     e.Cancel = true;
-                    MessageBox.Show(this, "Please wait for the current operation to finish.", "Operation in progress");
+                    ThemedMessageBox.Show(this, "Please wait for the current operation to finish.", "Operation in progress");
                     return;
                 }
                 _configurationOwnerClosing = true;
@@ -332,13 +332,15 @@ namespace ZonerInspiredViewer
             var toolbar = new StackPanel();
             toolbar.Background = Brushes.Transparent;
             var commands = new ToolbarCommandPanel();
+            var strip = new ToolbarCommandStrip(); commands.Children.Add(strip);
 
             var left = new WrapPanel();
             left.Orientation = Orientation.Horizontal;
             left.Margin = new Thickness(8, 6, 8, 6);
             left.MinHeight = 32;
-            commands.Children.Add(left);
-            _workflowCommands = new WrapPanel { Margin = new Thickness(8, 0, 8, 6) };
+            strip.Commands.Children.Add(left);
+            _workflowCommands = new WrapPanel { Margin = new Thickness(0, 6, 8, 6), VerticalAlignment = VerticalAlignment.Center };
+            strip.Commands.Children.Add(_workflowCommands);
             _viewerNavigationCommands = WorkflowGroup(); _viewerZoomCommands = WorkflowGroup();
             _viewerEditCommands = WorkflowGroup(); _browserFileCommands = WorkflowGroup();
             _workflowCommands.Children.Add(_viewerNavigationCommands); _workflowCommands.Children.Add(_viewerZoomCommands);
@@ -404,6 +406,7 @@ namespace ZonerInspiredViewer
             _viewMenuButton = CommandPresentation.Button("\uE8A7", "View", null, "Panels, image overlays, fullscreen and performance details.",
                 delegate { OpenWorkflowMenu(_viewMenuButton, BuildViewOptionsMenu()); }, true);
             left.Children.Add(_viewMenuButton);
+            left.Children.Add(CommandPresentation.Button("\uE716", "Faces", "F6", "Detect faces on RTX, export a reference grid or browse originals from an interactive face canvas. No identity recognition.", ShowFaces, true));
             _configureButton = CommandPresentation.Button("\uE713", "Configure", "Ctrl+,", "Appearance, thumbnails, enhancement, slideshow, performance and image tools.", ShowConfigure, true);
             AutomationProperties.SetName(_configureButton, "Configure viewer");
             left.Children.Add(_configureButton);
@@ -494,7 +497,6 @@ namespace ZonerInspiredViewer
             _statusText.Height = 20;
             ThemeManager.Bind(_statusText, TextBlock.ForegroundProperty, ThemeKeys.MutedText);
             toolbar.Children.Add(commands);
-            toolbar.Children.Add(_workflowCommands);
 
             var surface = new Grid { ClipToBounds = true };
             _toolbarBackground = new ToolbarBackground();
@@ -573,6 +575,7 @@ namespace ZonerInspiredViewer
 
             menu.Items.Add(open);
             menu.Items.Add(delete);
+            menu.Items.Add(SavedFaceCanvasesMenu());
             menu.Items.Add(new Separator());
             var export = new MenuItem { Header = "Export backup...", Tag = "export-backup", IsEnabled = !_backupBusy && !_fileTransferBusy };
             export.Click += ExportBackupClick;
@@ -598,7 +601,7 @@ namespace ZonerInspiredViewer
             name = name.Trim();
             if (name.Length == 0 || name.Length > 80)
             {
-                MessageBox.Show(
+                ThemedMessageBox.Show(
                     this,
                     "Enter a session name between 1 and 80 characters.",
                     "Save session",
@@ -611,7 +614,7 @@ namespace ZonerInspiredViewer
             {
                 if (_services.Sessions.NamedSessionExists(name))
                 {
-                    MessageBoxResult overwrite = MessageBox.Show(
+                    MessageBoxResult overwrite = ThemedMessageBox.Show(
                         this,
                         "Replace the saved session '" + name + "'?",
                         "Save session",
@@ -631,7 +634,7 @@ namespace ZonerInspiredViewer
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
+                ThemedMessageBox.Show(
                     this,
                     ex.Message,
                     "Unable to save session",
@@ -656,7 +659,7 @@ namespace ZonerInspiredViewer
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
+                ThemedMessageBox.Show(
                     this,
                     ex.Message,
                     "Unable to open session",
@@ -667,7 +670,7 @@ namespace ZonerInspiredViewer
 
         private void DeleteNamedSession(string name)
         {
-            MessageBoxResult result = MessageBox.Show(
+            MessageBoxResult result = ThemedMessageBox.Show(
                 this,
                 "Delete the saved session '" + name + "'?",
                 "Delete session",
@@ -689,7 +692,7 @@ namespace ZonerInspiredViewer
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
+                ThemedMessageBox.Show(
                     this,
                     ex.Message,
                     "Unable to delete session",
@@ -927,6 +930,7 @@ namespace ZonerInspiredViewer
             _thumbnailGrid.ScrollChanged += delegate { if (!_folderScanPending) ScheduleSessionSave(); };
             _thumbnailGrid.CommandRequested += ThumbnailCommandRequested;
             _thumbnailGrid.CanPaste = CanPasteFiles;
+            _thumbnailGrid.CanUseFaces = delegate { return !_fileTransferBusy && !_backupBusy && !_rotationSaving && !_enhancementSaving; };
             _thumbnailGrid.DragRequested += StartBrowserDrag;
             Grid thumbnailWorkspace = BuildThumbnailWorkspace();
             Grid.SetRow(thumbnailWorkspace, 1);
@@ -2510,6 +2514,7 @@ namespace ZonerInspiredViewer
 
         private void ThumbnailCommandRequested(object sender, ThumbnailCommandEventArgs e)
         {
+            if (e.Command == "faces") { ShowFacesForPath(e.Item == null ? _currentFolder : e.Item.Path); return; }
             if (e.Command == "batch-rename") { ShowBatch(BatchKind.Rename); return; }
             if (e.Command == "batch-resize") { ShowBatch(BatchKind.Resize); return; }
             if (e.Command == "batch-convert") { ShowBatch(BatchKind.Convert); return; }
@@ -2599,7 +2604,7 @@ namespace ZonerInspiredViewer
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, ex.Message, "Rename failed", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ThemedMessageBox.Show(this, ex.Message, "Rename failed", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
@@ -2617,13 +2622,9 @@ namespace ZonerInspiredViewer
             }
 
             StopSlideshow();
-            MessageBoxResult result = MessageBox.Show(
-                this,
-                "Send " + Path.GetFileName(path) + " to the Recycle Bin?",
-                "Delete image",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
-            if (result != MessageBoxResult.Yes)
+            if (_confirmRecycle && ThemedMessageBox.Show(this,
+                "Send " + Path.GetFileName(path) + " to the Recycle Bin?", "Delete image",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
             {
                 return;
             }
@@ -2634,7 +2635,7 @@ namespace ZonerInspiredViewer
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, ex.Message, "Delete failed", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ThemedMessageBox.Show(this, ex.Message, "Delete failed", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
@@ -2827,6 +2828,7 @@ namespace ZonerInspiredViewer
             _advancedQuickEnhance = state.AdvancedQuickEnhance;
             _autoSaveRotations = state.AutoSaveRotations;
             _confirmEnhanceOverwrite = state.ConfirmEnhanceOverwrite ?? true;
+            _confirmRecycle = state.ConfirmRecycle; _confirmRecycleCheckBox.IsChecked = _confirmRecycle;
             if (!_quickEnhanceEnabled || !_advancedQuickEnhance) ReleaseSubjectSegmentation();
             _homeBrowser.QuickEnhanceEnabled = _quickEnhanceEnabled;
             _iccCheckBox.IsChecked = state.LowPriorityIccEnabled;
@@ -2948,6 +2950,8 @@ namespace ZonerInspiredViewer
             {
                 UpdateWindowTitle();
             }
+            // Startup restores links only; explicit session loads may open the last canvas.
+            RestoreFaceSessions(state, _restored);
         }
 
         private void SaveSession()
@@ -2976,6 +2980,7 @@ namespace ZonerInspiredViewer
             }
 
             var state = new SessionState();
+            CaptureFaceSessions(state);
             state.TabStacks = _tabStacks.Select(stack => stack.Copy()).ToList();
             CaptureGpuSettings(state);
             state.FolderTreeHidden = _folderTreeHidden;
@@ -3017,6 +3022,7 @@ namespace ZonerInspiredViewer
             state.PinnedTabColor = _pinnedTabColor;
             state.AutoSaveRotations = _autoSaveRotations;
             state.ConfirmEnhanceOverwrite = _confirmEnhanceOverwrite;
+            state.ConfirmRecycle = _confirmRecycle;
             state.MetadataPanelVisible = _metadataPanel != null
                 && _metadataPanel.Visibility == Visibility.Visible;
             state.MetadataPanelWidth = _metadataPanelWidth;

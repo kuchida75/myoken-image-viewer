@@ -38,11 +38,11 @@ namespace ZonerInspiredViewer
             LostMouseCapture += delegate { EndDrag(); };
         }
 
-        internal void SetView(BitmapSource source, int rotation, Size frame, double zoom, Point offset)
+        internal void SetView(BitmapSource source, int rotation, Size frame, double zoom, Point offset, Size? logicalSize = null)
         {
             if (source == null) { Clear(); return; }
             rotation = ImageViewport.NormalizeRotation(rotation);
-            Size size = new Size(source.PixelWidth, source.PixelHeight);
+            Size size = logicalSize ?? new Size(source.PixelWidth, source.PixelHeight);
             if (_imageSize != size || _rotation != rotation || _frame != frame || _zoom != zoom) EndDrag();
             _preview.Source = source; _preview.Width = size.Width; _preview.Height = size.Height;
             _imageSize = size; _rotation = rotation; _frame = frame; _zoom = zoom; _offset = offset;

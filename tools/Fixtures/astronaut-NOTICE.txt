@@ -1,0 +1,5 @@
+astronaut.png: NASA astronaut portrait. Public domain, NASA.
+Unmodified scikit-image sample photograph, originally released by NASA.
+https://scikit-image.org/docs/0.25.x/api/skimage.data.html#skimage.data.astronaut
+Used only as a positive face-detection correctness fixture, not identity recognition.
+SHA256: 88431cd9653ccd539741b555fb0a46b61558b301d4110412b5bc28b5e3ea6cb5

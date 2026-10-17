@@ -18,9 +18,10 @@ namespace ZonerInspiredViewer
         [DataMember] public BrowserPreferences Browser { get; set; }
         [DataMember] public List<NamedSessionDocument> SavedSessions { get; set; }
         public int MissingImageTabs { get; set; }
+        internal Dictionary<string, byte[]> CanvasFiles = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
     }
 
-    internal static class ViewerBackupStore
+    internal static partial class ViewerBackupStore
     {
         private const string FormatName = "ZonerInspiredViewer.Backup";
         private const long MaximumBytes = 64L * 1024 * 1024;
@@ -37,6 +38,7 @@ namespace ZonerInspiredViewer
 
         public static void Save(string path, ViewerBackupDocument document)
         {
+            if (String.Equals(Path.GetExtension(path), ".zip", StringComparison.OrdinalIgnoreCase)) { SaveArchive(path, document); return; }
             if (!String.Equals(Path.GetExtension(path), ".json", StringComparison.OrdinalIgnoreCase))
                 throw new InvalidDataException("Choose a .json file for the viewer backup.");
             Validate(document, false);
@@ -45,6 +47,7 @@ namespace ZonerInspiredViewer
 
         public static ViewerBackupDocument Load(string path)
         {
+            if (String.Equals(Path.GetExtension(path), ".zip", StringComparison.OrdinalIgnoreCase)) return LoadArchive(path);
             ViewerBackupDocument document;
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
@@ -88,6 +91,10 @@ namespace ZonerInspiredViewer
 
         private static void ValidateSession(SessionState state, ViewerBackupDocument document, bool removeMissing, ref int tabCount)
         {
+            if (state.FaceCanvasPaths != null && (state.FaceCanvasPaths.Count > 64 || state.FaceCanvasPaths.Any(p => !FaceCanvasStore.ValidPath(p) || !FaceCanvasStore.IsPath(p))))
+                throw new InvalidDataException("The backup contains invalid saved face-canvas paths.");
+            if (!String.IsNullOrEmpty(state.LastFaceCanvas) && (!FaceCanvasStore.ValidPath(state.LastFaceCanvas) || !FaceCanvasStore.IsPath(state.LastFaceCanvas)))
+                throw new InvalidDataException("The backup contains an invalid last face-canvas path.");
             if (state != null && state.BatchPresets != null && (state.BatchPresets.Count > 32 || state.BatchPresets.Any(preset => !BatchPreset.IsValid(preset))))
                 throw new InvalidDataException("The backup contains invalid batch presets.");
             string shortcutError;

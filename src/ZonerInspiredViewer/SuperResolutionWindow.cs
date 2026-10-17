@@ -160,7 +160,7 @@ namespace ZonerInspiredViewer
             var dialog = new SaveFileDialog { Title = "Save AI upscaled copy", Filter = EnhancedImageStore.Filter, DefaultExt = ".png",
                 AddExtension = true, CheckPathExists = true, OverwritePrompt = true, InitialDirectory = Path.GetDirectoryName(_sourcePath),
                 FileName = Path.GetFileNameWithoutExtension(_sourcePath) + "-upscaled-" + SelectedScale.ToString("0.##", CultureInfo.InvariantCulture) + "x.png" };
-            if (dialog.ShowDialog(this) != true) return;
+            if (!ThemedFileDialogs.Show(dialog, this)) return;
             try { PendingWork = SaveResultAsync(dialog.FileName, File.Exists(dialog.FileName)); await PendingWork; if (SavedResult != null && IsVisible) Close(); }
             catch (OperationCanceledException) { SetStatus("Save canceled. Original unchanged.", UpscaleStatus.Canceled); }
             catch (Exception error) { SetStatus("Not saved: " + error.Message, UpscaleStatus.Error); }

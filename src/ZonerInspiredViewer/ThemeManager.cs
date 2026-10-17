@@ -52,6 +52,45 @@ namespace ZonerInspiredViewer
 <ResourceDictionary
     xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""
     xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml"">
+    <Style TargetType=""{x:Type CheckBox}"">
+        <Setter Property=""Foreground"" Value=""{DynamicResource Theme.Text}"" />
+        <Setter Property=""Background"" Value=""{DynamicResource Theme.ControlBackground}"" />
+        <Setter Property=""FocusVisualStyle"" Value=""{x:Null}"" />
+        <Setter Property=""VerticalContentAlignment"" Value=""Center"" />
+        <Setter Property=""Template""><Setter.Value>
+            <ControlTemplate TargetType=""{x:Type CheckBox}"">
+                <Border Padding=""{TemplateBinding Padding}"" Background=""Transparent"">
+                    <Grid SnapsToDevicePixels=""True""><Grid.ColumnDefinitions><ColumnDefinition Width=""20""/><ColumnDefinition Width=""*""/></Grid.ColumnDefinitions>
+                        <Border x:Name=""FocusRing"" Width=""20"" Height=""20"" VerticalAlignment=""Center"" BorderBrush=""{DynamicResource Theme.Accent}"" CornerRadius=""2"">
+                            <Border x:Name=""CheckBoxBox"" Width=""16"" Height=""16"" Background=""{TemplateBinding Background}"" BorderBrush=""{DynamicResource Theme.SubtleText}"" BorderThickness=""1"" CornerRadius=""1"">
+                                <Grid>
+                                    <Path x:Name=""CheckMark"" Data=""M 2,7 L 5,10 L 11,3"" Stroke=""#152A27"" StrokeThickness=""2"" StrokeStartLineCap=""Round"" StrokeEndLineCap=""Round"" Visibility=""Collapsed""/>
+                                    <Rectangle x:Name=""MixedMark"" Width=""8"" Height=""2"" Fill=""#152A27"" Visibility=""Collapsed""/>
+                                </Grid>
+                            </Border>
+                        </Border>
+                        <ContentPresenter x:Name=""CheckBoxLabel"" Grid.Column=""1"" Margin=""6,0,0,0"" RecognizesAccessKey=""True"" VerticalAlignment=""{TemplateBinding VerticalContentAlignment}"" HorizontalAlignment=""{TemplateBinding HorizontalContentAlignment}""/>
+                    </Grid>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property=""IsChecked"" Value=""True""><Setter TargetName=""CheckBoxBox"" Property=""Background"" Value=""White""/><Setter TargetName=""CheckMark"" Property=""Visibility"" Value=""Visible""/></Trigger>
+                    <Trigger Property=""IsChecked"" Value=""{x:Null}""><Setter TargetName=""CheckBoxBox"" Property=""Background"" Value=""White""/><Setter TargetName=""MixedMark"" Property=""Visibility"" Value=""Visible""/></Trigger>
+                    <Trigger Property=""IsMouseOver"" Value=""True""><Setter TargetName=""CheckBoxBox"" Property=""BorderBrush"" Value=""{DynamicResource Theme.Accent}""/></Trigger>
+                    <Trigger Property=""IsPressed"" Value=""True""><Setter TargetName=""CheckBoxBox"" Property=""BorderBrush"" Value=""{DynamicResource Theme.Accent}""/></Trigger>
+                    <Trigger Property=""IsKeyboardFocused"" Value=""True""><Setter TargetName=""FocusRing"" Property=""BorderThickness"" Value=""1""/></Trigger>
+                    <Trigger Property=""IsEnabled"" Value=""False""><Setter TargetName=""CheckBoxLabel"" Property=""Opacity"" Value=""0.5""/></Trigger>
+                    <Trigger Property=""HasContent"" Value=""False""><Setter TargetName=""CheckBoxLabel"" Property=""Margin"" Value=""0""/></Trigger>
+                    <DataTrigger Binding=""{Binding Source={x:Static SystemParameters.HighContrast}}"" Value=""True"">
+                        <Setter TargetName=""CheckBoxBox"" Property=""Background"" Value=""{DynamicResource {x:Static SystemColors.WindowBrushKey}}""/>
+                        <Setter TargetName=""CheckBoxBox"" Property=""BorderBrush"" Value=""{DynamicResource {x:Static SystemColors.WindowTextBrushKey}}""/>
+                        <Setter TargetName=""CheckMark"" Property=""Stroke"" Value=""{DynamicResource {x:Static SystemColors.WindowTextBrushKey}}""/>
+                        <Setter TargetName=""MixedMark"" Property=""Fill"" Value=""{DynamicResource {x:Static SystemColors.WindowTextBrushKey}}""/>
+                        <Setter TargetName=""FocusRing"" Property=""BorderBrush"" Value=""{DynamicResource {x:Static SystemColors.WindowTextBrushKey}}""/>
+                    </DataTrigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Setter.Value></Setter>
+    </Style>
     <Style TargetType=""{x:Type ToggleButton}"">
         <Setter Property=""Background"" Value=""{DynamicResource Theme.ControlBackground}"" />
         <Setter Property=""Foreground"" Value=""{DynamicResource Theme.Text}"" />
@@ -428,11 +467,6 @@ namespace ZonerInspiredViewer
             textBoxStyle.Setters.Add(new Setter(TextBoxBase.SelectionBrushProperty, Dynamic(ThemeKeys.Accent)));
             textBoxStyle.Setters.Add(new Setter(TextBoxBase.CaretBrushProperty, Dynamic(ThemeKeys.Text)));
             resources[typeof(TextBox)] = textBoxStyle;
-
-            var checkBoxStyle = new Style(typeof(CheckBox));
-            checkBoxStyle.Setters.Add(new Setter(Control.ForegroundProperty, Dynamic(ThemeKeys.Text)));
-            checkBoxStyle.Setters.Add(new Setter(Control.BackgroundProperty, Dynamic(ThemeKeys.ControlBackground)));
-            resources[typeof(CheckBox)] = checkBoxStyle;
 
             var treeStyle = new Style(typeof(TreeView));
             treeStyle.Setters.Add(new Setter(Control.BackgroundProperty, Dynamic(ThemeKeys.PaneBackground)));

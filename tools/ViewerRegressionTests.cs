@@ -30,6 +30,33 @@ internal static partial class ViewerRegressionTests
             if (args.Contains("--natural-sort-only")) return 0;
             var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
             ThemeManager.Initialize(app, true);
+            if (args.Contains("--message-dialogs-only")) { RunMessageDialogChecks(); app.Shutdown(); return 0; }
+            if (args.Length == 0) RunMessageDialogChecks();
+            if (args.Contains("--enhance-save-focused")) { RunOverwritePreferenceChecks(); RunEnhanceSaveChecks(); app.Shutdown(); return 0; }
+            if (args.Contains("--file-picker-only")) { RunFilePickerChecks(); app.Shutdown(); return 0; }
+            if (args.Length == 0) RunFilePickerChecks();
+            if (args.Contains("--recycle-preference-only")) { RunRecyclePreferenceChecks(); app.Shutdown(); return 0; }
+            if (args.Length == 0) RunRecyclePreferenceChecks();
+            if (args.Contains("--live-canvas-only")) { RunLiveCanvasChecks(); app.Shutdown(); return 0; }
+            if (args.Length == 0) RunLiveCanvasChecks();
+            if (args.Contains("--canvas-controls-only")) { RunCanvasControlsChecks(); app.Shutdown(); return 0; }
+            if (args.Length == 0) RunCanvasControlsChecks();
+            if (args.Contains("--canvas-navigator-only")) { RunCanvasNavigatorChecks(); app.Shutdown(); return 0; }
+            if (args.Length == 0) RunCanvasNavigatorChecks();
+            if (args.Contains("--backup-focused")) { RunTreeEnhanceBackupChecks(); app.Shutdown(); return 0; }
+            if (args.Contains("--face-canvas-only")) { RunFaceCanvasChecks(); app.Shutdown(); return 0; }
+            if (args.Length == 0) RunFaceCanvasChecks();
+            if (args.Contains("--face-framing-only")) { RunFaceFramingChecks(); app.Shutdown(); return 0; }
+            if (args.Length == 0) RunFaceFramingChecks();
+            if (args.Contains("--checkbox-only")) { RunCheckBoxChecks(); RunConfigurationChecks(); app.Shutdown(); return 0; }
+            if (args.Length == 0) RunCheckBoxChecks();
+            if (args.Contains("--faces-access-only")) { RunFacesAccessChecks(); RunFaceAutoColumnsChecks(); RunInteractiveFacesChecks(); app.Shutdown(); return 0; }
+            if (args.Contains("--interactive-faces-only")) { RunInteractiveFacesChecks(); app.Shutdown(); return 0; }
+            if (args.Length == 0) RunFacesAccessChecks();
+            if (args.Contains("--folder-picker-only")) { RunFolderPickerChecks(); app.Shutdown(); return 0; }
+            if (args.Length == 0) RunFolderPickerChecks();
+            if (args.Contains("--faces-only")) { RunFacesChecks(); app.Shutdown(); return 0; }
+            if (args.Length == 0) RunFacesChecks();
             if (args.Contains("--selective-slideshow-only")) { RunSelectiveSlideshowChecks(); app.Shutdown(); return 0; }
             if (args.Contains("--slideshow-shortcuts-focused")) { RunSlideshowShortcutChecks(); app.Shutdown(); return 0; }
             if (args.Contains("--transfer-slideshow-focused")) { RunTransferAndSlideshowChecks(); app.Shutdown(); return 0; }

@@ -48,6 +48,7 @@ namespace ZonerInspiredViewer
                     case "folderAddress": return "Enter or paste a folder path in the current tab.";
                     case "openFolder": return "Choose a folder to browse in the current tab.";
                     case "advancedSearch": return "Search recursively from the current folder.";
+                    case "faces": return "Open Faces and automatically scan the selected folder/image parent, or current folder, on RTX; review crops and create PNG references or an interactive face canvas.";
                     case "newTab": return "Open the latest folder browser view in a new tab.";
                     case "nextTab": return "Activate the next open tab.";
                     case "closeTab": return "Close the active tab.";
@@ -106,6 +107,7 @@ namespace ZonerInspiredViewer
             Add("folderAddress", "Folder address", 3, Key.L, ModifierKeys.Control).TextInput = true;
             Add("openFolder", "Open folder", 3, Key.O, ModifierKeys.Control).TextInput = true;
             Add("advancedSearch", "Advanced search", 3, Key.F, ModifierKeys.Control | ModifierKeys.Shift).TextInput = true;
+            Add("faces", "Faces", 3, Key.F6).TextInput = true;
             Add("newTab", "New browser tab", 3, Key.T, ModifierKeys.Control).TextInput = true;
             Add("nextTab", "Next tab", 3, Key.Tab, ModifierKeys.Control);
             Add("closeTab", "Close tab", 3, Key.W, ModifierKeys.Control);
@@ -271,7 +273,7 @@ namespace ZonerInspiredViewer
                     next[introduced] = new List<ShortcutGesture>();
             }
             foreach (var introduced in new[] { new { Id = "compact", Key = Key.U }, new { Id = "fitWidth", Key = Key.W },
-                new { Id = "fitHeight", Key = Key.H }, new { Id = "next", Key = Key.Down }, new { Id = "previous", Key = Key.Up } })
+                new { Id = "fitHeight", Key = Key.H }, new { Id = "next", Key = Key.Down }, new { Id = "previous", Key = Key.Up }, new { Id = "faces", Key = Key.F6 } })
             {
                 if (seen.Contains(introduced.Id)) continue;
                 var target = Commands.Single(c => c.Id == introduced.Id);

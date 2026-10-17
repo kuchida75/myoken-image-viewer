@@ -1,16 +1,24 @@
 # Source Publication Checklist
 
-The public source repository is [kuchida75/myoken-image-viewer](https://github.com/kuchida75/myoken-image-viewer). The current source version is **0.2.189**; `version.json` is authoritative for later builds. The first Myoken build was 0.2.167, and the earlier Zen Image Viewer source baseline is tagged `v0.2.166`.
+The public source repository is [kuchida75/myoken-image-viewer](https://github.com/kuchida75/myoken-image-viewer). The current source version is **0.2.222**; `version.json` is authoritative for later builds. The first Myoken build was 0.2.167, and the earlier Zen Image Viewer source baseline is tagged `v0.2.166`.
 
 ## Before Each Source Push
 
 1. Review the diff and run relevant Windows regression checks. Use a separate worktree for a rebuild if the current version must stay unchanged: `tools/build.ps1` advances the build number on every run.
-2. Confirm the staged tree contains only reviewed source, tests, assets, docs and notices. The root `.gitignore` is an allowlist; never stage `sources`, `artifacts`, runtime DLLs, AI weights, profiles, sessions, thumbnail/search caches, photos, backups or credentials.
+2. Confirm the staged tree contains only reviewed source, tests, assets, docs and notices. The root `.gitignore` is an allowlist; never stage `sources`, `artifacts`, runtime DLLs, AI weights, profiles, sessions, thumbnail/search caches, private photos, saved face canvases, backups or credentials. The only photographic test fixtures are the pinned, licensed public examples documented in `tools/Fixtures`.
 3. Keep the complete root [Apache-2.0 license](../LICENSE), [NOTICE](../NOTICE), and [third-party notices](../THIRD_PARTY_NOTICES.md). The project's license does not relicense downloaded codecs, runtimes or model weights.
 4. Check that the app's built-in first-run defaults have no personal settings. A developer's local profile is separate from the source tree; do not reset or publish it merely to make a source commit.
 5. Fetch/check GitHub's `main` before pushing. Never force-push over unexpected remote history. Verify the remote commit after the push.
 
 See [building from source](BUILDING.md) and [default state and recovery](DEFAULT_STATE.md).
+
+Run `pwsh -NoProfile -File tools/verify-source-publication.ps1` after staging.
+It audits the complete index, checks staged/working file identity, source-path
+allowlists, fixture hashes, credentials, personal Windows home paths and matching
+version metadata. It rejects caches, profile/backup data, linked files and runtime
+binaries. After committing, repeat with `-Revision HEAD`; verify the pushed remote
+commit and tree match that audited commit. This check does not read or reset the
+normal Windows profile, and is a safeguard rather than a guarantee of secret detection.
 
 ## Binary Releases
 

@@ -1,4 +1,13 @@
-# HEIC Test Fixture
+# Image Test Fixtures
+
+## Face Detection
+
+`astronaut.png` is the unmodified NASA public-domain sample from scikit-image,
+shared with the Ubuntu Faces regression tests. Attribution and the pinned SHA256
+are in `astronaut-NOTICE.txt`. Test builds copy it into `FaceReference` beside
+the regression executable. It is not included in the viewer's portable package.
+
+## HEIC
 
 `libheif-example.heic` is the unmodified example from strukturag/libheif:
 https://github.com/strukturag/libheif/blob/master/examples/example.heic

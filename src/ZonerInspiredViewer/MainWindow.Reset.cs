@@ -35,10 +35,10 @@ namespace ZonerInspiredViewer
             try
             {
                 string recovery = await ResetViewerAsync(cache.IsChecked == true);
-                MessageBox.Show(this, "Viewer reset. Original photos are unchanged.\n\nRecovery backup:\n" + recovery,
+                ThemedMessageBox.Show(this, "Viewer reset. Original photos are unchanged.\n\nRecovery backup:\n" + recovery,
                     "Reset complete", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            catch (Exception error) { MessageBox.Show(this, error.Message, "Reset did not finish", MessageBoxButton.OK, MessageBoxImage.Warning); }
+            catch (Exception error) { ThemedMessageBox.Show(this, error.Message, "Reset did not finish", MessageBoxButton.OK, MessageBoxImage.Warning); }
         }
 
         private Task<string> ResetViewerAsync(bool clearThumbnails)
@@ -91,14 +91,14 @@ namespace ZonerInspiredViewer
 
         private async void ClearThumbnailCacheClick()
         {
-            if (MessageBox.Show(_configureWindow ?? this, "Clear all cached thumbnail sizes?\n\nOriginal photos and viewer settings are kept. Thumbnails rebuild as you browse.",
+            if (ThemedMessageBox.Show(_configureWindow ?? this, "Clear all cached thumbnail sizes?\n\nOriginal photos and viewer settings are kept. Thumbnails rebuild as you browse.",
                 "Clear thumbnail cache", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
             try
             {
                 await ClearThumbnailCacheAsync();
-                MessageBox.Show(this, "Thumbnail cache cleared. Visible previews may already be regenerating.", "Thumbnail cache");
+                ThemedMessageBox.Show(this, "Thumbnail cache cleared. Visible previews may already be regenerating.", "Thumbnail cache");
             }
-            catch (Exception error) { MessageBox.Show(this, error.Message, "Unable to clear cache", MessageBoxButton.OK, MessageBoxImage.Warning); }
+            catch (Exception error) { ThemedMessageBox.Show(this, error.Message, "Unable to clear cache", MessageBoxButton.OK, MessageBoxImage.Warning); }
         }
 
         private Task ClearThumbnailCacheAsync()

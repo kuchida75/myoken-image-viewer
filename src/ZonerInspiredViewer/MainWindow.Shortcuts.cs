@@ -69,6 +69,7 @@ namespace ZonerInspiredViewer
                 case "configure": ShowConfigure(); break;
                 case "search": SetCompactMode(false); _searchBox.Focus(); _searchBox.SelectAll(); break;
                 case "advancedSearch": ShowAdvancedSearch(); break;
+                case "faces": ShowFacesForSelection(true); break;
                 case "newTab": OpenLatestBrowserTab(); break;
                 case "nextTab": CycleTab(); break;
                 case "closeTab": CloseTab(_activeTabId); break;
@@ -233,7 +234,7 @@ namespace ZonerInspiredViewer
 
         private void ResetAllShortcuts(bool confirm)
         {
-            if (confirm && MessageBox.Show(_configureWindow, "Restore all default shortcuts?", "Reset shortcuts", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+            if (confirm && ThemedMessageBox.Show(_configureWindow, "Restore all default shortcuts?", "Reset shortcuts", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
             _shortcuts.ResetAll(); ShortcutsChanged();
         }
 

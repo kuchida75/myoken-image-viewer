@@ -64,6 +64,7 @@ namespace ZonerInspiredViewer
         public Func<ImageFileItem, ContextMenu> ItemMenuFactory { get; set; }
         public Func<ImageFileItem, string> ItemDetails { get; set; }
         public Func<bool> CanPaste { get; set; }
+        public Func<bool> CanUseFaces { get; set; }
         public int SelectedCount { get { return _selectedPaths.Count; } }
         public IList<string> SelectedPaths { get { return _selectedPaths.ToArray(); } }
         public IList<ImageFileItem> SelectedItems { get { return _items.Where(item => _selectedPaths.Contains(item.Path)).ToArray(); } }
@@ -394,7 +395,7 @@ namespace ZonerInspiredViewer
                 ThumbnailTile tile;
                 if (!_realized.TryGetValue(index, out tile))
                 {
-                    tile = new ThumbnailTile(_thumbnailCache, _thumbnailSize, _aspectRatio, IsFavoriteFolder, ItemMenuFactory, ItemDetails);
+                    tile = new ThumbnailTile(_thumbnailCache, _thumbnailSize, _aspectRatio, IsFavoriteFolder, ItemMenuFactory, ItemDetails, CanUseFaces);
                     tile.MouseLeftButtonDown += TileMouseLeftButtonDown;
                     tile.MouseRightButtonDown += delegate(object sender, MouseButtonEventArgs e)
                     {
@@ -483,6 +484,9 @@ namespace ZonerInspiredViewer
                 };
                 menu.Items.Add(item);
             }
+            var faces = new MenuItem { Header = "Faces reference and canvas...", Tag = "faces", Icon = CommandPresentation.Label("\uE716", null), Visibility = Visibility.Collapsed };
+            faces.Click += delegate { if (CommandRequested != null) CommandRequested(this, new ThumbnailCommandEventArgs { Command = "faces" }); };
+            menu.Items.Add(faces);
             menu.Opened += delegate { UpdateMenu(menu); };
             return menu;
         }
@@ -492,6 +496,13 @@ namespace ZonerInspiredViewer
             foreach (MenuItem item in menu.Items.OfType<MenuItem>())
             {
                 string command = item.Tag as string;
+                if (command == "faces")
+                {
+                    item.Visibility = CanUseFaces != null ? Visibility.Visible : Visibility.Collapsed;
+                    item.IsEnabled = CanUseFaces != null && CanUseFaces();
+                    var resolver = GetValue(CommandPresentation.ShortcutResolverProperty) as Func<string, string>;
+                    string hint = resolver == null ? "F6" : resolver("Faces"); item.InputGestureText = hint == "Unassigned" ? "" : hint;
+                }
                 if (command == "paste") item.IsEnabled = CanPaste != null && CanPaste();
                 if (command == "copy" || command == "cut") item.IsEnabled = SelectedCount > 0;
                 if (command == "rename") item.IsEnabled = SelectedCount == 1;
@@ -539,17 +550,19 @@ namespace ZonerInspiredViewer
         private readonly Func<string, bool> _isFavorite;
         private readonly Func<ImageFileItem, ContextMenu> _menuFactory;
         private readonly Func<ImageFileItem, string> _itemDetails;
+        private readonly Func<bool> _canUseFaces;
         private int _loadVersion;
 
         public event EventHandler<ThumbnailCommandEventArgs> CommandRequested;
 
         public ThumbnailTile(ThumbnailCacheService thumbnailCache, int thumbnailSize, double aspectRatio = 1,
             Func<string, bool> isFavorite = null, Func<ImageFileItem, ContextMenu> menuFactory = null,
-            Func<ImageFileItem, string> itemDetails = null)
+            Func<ImageFileItem, string> itemDetails = null, Func<bool> canUseFaces = null)
         {
             _isFavorite = isFavorite;
             _menuFactory = menuFactory;
             _itemDetails = itemDetails;
+            _canUseFaces = canUseFaces;
             _thumbnailCache = thumbnailCache;
             _thumbnailSize = thumbnailSize;
             Focusable = true;
@@ -755,6 +768,7 @@ namespace ZonerInspiredViewer
             AddMenuItem(menu, "Batch rename...", "batch-rename");
             AddMenuItem(menu, "Batch resize...", "batch-resize");
             AddMenuItem(menu, "Batch convert format...", "batch-convert");
+            if (_canUseFaces != null) AddMenuItem(menu, "Faces reference and canvas...", "faces");
             menu.Items.Add(new Separator());
             AddMenuItem(menu, "Copy", "copy");
             AddMenuItem(menu, "Cut", "cut");

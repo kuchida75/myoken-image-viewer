@@ -54,9 +54,9 @@ internal static partial class ViewerRegressionTests
                 && !Field<WrapPanel>(window, "_viewerEditCommands").IsVisible, "browser excludes image-only controls");
             Assert(!Field<StackPanel>(window, "_performanceDetails").IsVisible, "diagnostics begin collapsed");
             Assert(Field<ToggleButton>(window, "_enhanceButton").IsVisible, "global Quick Enhance remains accessible in browser");
-            Field<Button>(window, "_advancedSearchButton").Focus();
-            Field<Button>(window, "_advancedSearchButton").MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
-            Assert(Field<ToggleButton>(window, "_enhanceButton").IsKeyboardFocused, "Tab follows global commands with contextual tools in visual order");
+            Field<TextBox>(window, "_searchBox").Focus();
+            Field<TextBox>(window, "_searchBox").MoveFocus(new TraversalRequest(FocusNavigationDirection.Previous)); Pump();
+            Assert(Field<ToggleButton>(window, "_enhanceButton").IsKeyboardFocused, "Shift+Tab follows contextual tools before right-aligned search");
             CheckWorkflowBounds(window); Render((FrameworkElement)window.Content, "workflow-browser-dark.png");
             window.Width = 980; CheckWorkflowBounds(window); Render((FrameworkElement)window.Content, "workflow-browser-narrow.png");
             var search = Field<TextBox>(window, "_searchBox"); search.Text = "Garden-01"; Invoke(window, "ApplySearch");

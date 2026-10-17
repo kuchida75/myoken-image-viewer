@@ -1,11 +1,11 @@
 # Myoken Image Viewer
 
-Myoken is a Windows-native photo browser and image viewer built with C# and WPF. The current source version is **0.2.189**. It targets Windows 10/11 x64 with .NET Framework 4.8.
+Myoken is a Windows-native photo browser and image viewer built with C# and WPF. The current source version is **0.2.222**. It targets Windows 10/11 x64 with .NET Framework 4.8.
 
 ## Highlights
 
 - Browse folders and images in a three-pane workspace with a virtualized thumbnail grid, adjustable thumbnail size and shape, natural filename sorting, favorites and recursive filename search.
-- Keep one image per tab, group tabs into named stacks, and restore tabs, stacks, sessions and window settings. Export or import a JSON workspace backup.
+- Keep one image per tab, group tabs into named stacks, and restore tabs, stacks, sessions and window settings. Export or import JSON settings or ZIP backups with saved face canvases.
 - Navigate with the keyboard, mouse wheel or nearby-image carousel; zoom, pan, rotate, step through neighboring images and run a windowed slideshow.
 - Keep small images centered and fitted to the frame with persistent Adaptive zoom, including during slideshows.
 - Copy, move, rename and recycle files or folders; drag files to and from Windows Explorer. Batch rename selections, or resize and convert selected images.
@@ -14,6 +14,7 @@ Myoken is a Windows-native photo browser and image viewer built with C# and WPF.
 - Open JPEG, PNG, WebP, AVIF, JPEG XL, HEIC/HEIF and GIF. Animated GIF playback is supported; other animated formats show their primary frame.
 - Apply non-destructive Quick Enhance and manual adjustments, with optional AI super-resolution models. Explicit save commands write edited output.
 - Use GPU-resident image rendering and a tunable VRAM cache where supported, with CPU/WPF fallbacks and separate iGPU/dGPU memory reporting.
+- Detect faces locally on RTX, adjust crop surroundings and shape, export balanced reference PNGs or save clickable face canvases with zoomed overview navigation and session restore. No identification or identity grouping.
 
 The default workspace is dark, normal mode, with the folder tree visible and the right metadata panel hidden. No tabs, sessions, favorites, thumbnails or personal settings are bundled with the source or executable.
 
@@ -36,9 +37,12 @@ There is no public binary release yet. Bundled codecs, runtimes and AI weights r
 | Pan a zoomed image | Drag with left mouse button |
 | Fullscreen / Help | F11 / F1 |
 | Start / stop slideshow (selected images/folders, or current folder when none selected) | F5 |
+| Faces: scan selected/current folder automatically | F6 |
 | Rotate left / right | [ / ] |
 
 Shortcuts can be rebound under **Configure > Shortcuts**. The [detailed feature reference](docs/FEATURE_REFERENCE.md) covers tabs, file operations, enhancements, GPU behavior and more.
+
+Planned Windows features are tracked in the [Windows backlog](docs/WINDOWS_BACKLOG.md).
 
 ## Data And Limits
 

@@ -146,6 +146,9 @@ namespace ZonerInspiredViewer
     [DataContract]
     internal sealed class SessionState
     {
+        [DataMember] public List<string> FaceCanvasPaths { get; set; }
+        [DataMember] public string LastFaceCanvas { get; set; }
+        [DataMember] public bool? IncludeFaceCanvasesInBackup { get; set; }
         [DataMember] public List<TabStackDto> TabStacks { get; set; }
         [DataMember] public List<BatchPreset> BatchPresets { get; set; }
         [DataMember] public bool PerformanceDetailsVisible { get; set; }
@@ -176,6 +179,7 @@ namespace ZonerInspiredViewer
         [DataMember] public bool? ImageNavigatorEnabled { get; set; }
         [DataMember] public bool AutoSaveRotations { get; set; }
         [DataMember] public bool? ConfirmEnhanceOverwrite { get; set; }
+        [DataMember] public bool ConfirmRecycle { get; set; }
         [DataMember] public string PinnedTabColor { get; set; }
         [DataMember] public bool FolderTreeHidden { get; set; }
         [DataMember] public double FolderPaneWidth { get; set; }

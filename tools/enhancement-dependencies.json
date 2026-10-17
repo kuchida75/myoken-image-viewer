@@ -8,5 +8,6 @@
   {"File":"system.runtime.compilerservices.unsafe.nupkg","Url":"https://api.nuget.org/v3-flatcontainer/system.runtime.compilerservices.unsafe/4.5.3/system.runtime.compilerservices.unsafe.4.5.3.nupkg","SHA256":"96764C52A44EE1161151E48EF07489F72047A851CB55B99E9F01D6908536D1A9"},
   {"File":"humanseg.onnx","Url":"https://media.githubusercontent.com/media/opencv/opencv_zoo/main/models/human_segmentation_pphumanseg/human_segmentation_pphumanseg_2023mar.onnx","SHA256":"552D8A984054E59B5D773D24B9B12022B22046CEB2BBC4C9AAEACEB36A9DDF24"},
   {"File":"u2netp.onnx","Url":"https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx","SHA256":"309C8469258DDA742793DCE0EBEA8E6DD393174F89934733ECC8B14C76F4DDD8"},
-  {"File":"super-resolution-10.onnx","Url":"https://media.githubusercontent.com/media/onnx/models/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model/super-resolution-10.onnx","SHA256":"85F36FF88CC504A24AF5E0602148BC56A8AA09A58ECA8C0DA2756F3E8186035E"}
+  {"File":"super-resolution-10.onnx","Url":"https://media.githubusercontent.com/media/onnx/models/main/validated/vision/super_resolution/sub_pixel_cnn_2016/model/super-resolution-10.onnx","SHA256":"85F36FF88CC504A24AF5E0602148BC56A8AA09A58ECA8C0DA2756F3E8186035E"},
+  {"File":"yunet-face.onnx","Url":"https://media.githubusercontent.com/media/opencv/opencv_zoo/26cc381e4d2594bb9f47a26eb8fd96c94a13660d/models/face_detection_yunet/face_detection_yunet_2026may.onnx","SHA256":"EBAFCE4E3C118D6554634BE5C27AB333B4C047A9A8C3FAF1D7CF93101C22F0F0"}
 ]

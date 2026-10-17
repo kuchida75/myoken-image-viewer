@@ -26,9 +26,8 @@ namespace ZonerInspiredViewer
 
         private void OpenFolderPicker()
         {
-            using (var dialog = new System.Windows.Forms.FolderBrowserDialog { Description = "Open a folder", ShowNewFolderButton = false,
-                SelectedPath = Directory.Exists(_currentFolder) ? _currentFolder : "" })
-                if (dialog.ShowDialog(new ColorDialogOwner(this)) == System.Windows.Forms.DialogResult.OK) NavigateFolderAddress(dialog.SelectedPath);
+            var dialog = new FolderPickerWindow(_currentFolder, _services.Thumbnails) { Title = "Open a folder", Owner = this, Icon = Icon };
+            dialog.ShowDialog(); if (dialog.SelectedFolder != null) NavigateFolderAddress(dialog.SelectedFolder);
         }
 
         private bool NavigateFolderAddress(string path)
@@ -67,6 +66,7 @@ namespace ZonerInspiredViewer
             menu.Items.Add(new Separator());
             menu.Items.Add(WorkflowMenuItem("Rename...", "\uE8AC", "rename", RenameCurrent, selected && SelectedFilePaths().Length == 1));
             menu.Items.Add(BatchMenuItem());
+            menu.Items.Add(WorkflowMenuItem("Faces reference and canvas...", "\uE716", "faces", ShowFaces, !_fileTransferBusy && !_backupBusy && !_rotationSaving && !_enhancementSaving));
             menu.Items.Add(WorkflowMenuItem("Move to folder...", "\uE8DE", null, MoveCurrent, selected));
             menu.Items.Add(WorkflowMenuItem("Move to Recycle Bin", "\uE74D", "delete", DeleteCurrent, selected));
             menu.Items.Add(new Separator());
@@ -85,7 +85,7 @@ namespace ZonerInspiredViewer
                 string path = WorkflowPath(); if (String.IsNullOrEmpty(path)) return;
                 Clipboard.SetText(path); _transferStatus = "Full path copied"; UpdateBrowserFooter();
             }
-            catch (Exception error) { MessageBox.Show(this, error.Message, "Clipboard unavailable"); }
+            catch (Exception error) { ThemedMessageBox.Show(this, error.Message, "Clipboard unavailable"); }
         }
 
         private void ShowCurrentInExplorer()
@@ -97,7 +97,7 @@ namespace ZonerInspiredViewer
                 string arguments = SelectedFilePaths().Length > 0 ? "/select,\"" + path + "\"" : "\"" + path + "\"";
                 Process.Start(new ProcessStartInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe"), arguments) { UseShellExecute = false });
             }
-            catch (Exception error) { MessageBox.Show(this, error.Message, "Explorer unavailable"); }
+            catch (Exception error) { ThemedMessageBox.Show(this, error.Message, "Explorer unavailable"); }
         }
 
         private ContextMenu BuildViewOptionsMenu()

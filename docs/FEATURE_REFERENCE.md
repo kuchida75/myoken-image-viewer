@@ -1,6 +1,6 @@
 # Myoken Image Viewer: Detailed Feature Reference
 
-This long-form reference describes the Windows viewer's features and implementation limits. The current source version is **0.2.189**; see the [short README](../README.md) for the quick start and [changelog](../CHANGELOG.md) for release history. The app uses an original teal/ivory shutter icon, not proprietary photo-app branding or assets.
+This long-form reference describes the Windows viewer's features and implementation limits. The current source version is **0.2.222**; see the [short README](../README.md) for the quick start and [changelog](../CHANGELOG.md) for release history. The app uses an original teal/ivory shutter icon, not proprietary photo-app branding or assets.
 
 ## Source Repository
 
@@ -15,6 +15,155 @@ New installations start with built-in defaults, not the developer's workspace. T
 The executable is now **MyokenImageViewer.exe**, with **Myoken Image Viewer** in window titles, Help and Windows file details. The source project is `src/ZonerInspiredViewer/MyokenImageViewer.csproj`. The source directory, internal namespace, profile folder (`%LOCALAPPDATA%\ZonerInspiredViewer`), `ZONER_VIEWER_PROFILE` override, storage locks, backup format and `.zen-batch-backups` folders intentionally keep their established names. Existing automatic/named sessions, tab stacks, favorites, settings, thumbnail/search caches and exported backups continue to work without moving or resetting data. Old and new executables coordinate their independent window slots through the same profile locks.
 
 Launch the new executable and update any personal shortcut to it; an old shortcut still launches the old build. Historical changelog entries and Git tags retain the names used by those releases. Run `artifacts\tests\ViewerRegressionTests.exe --branding-only` after building with tests for the rename/icon checks and real multi-instance launches against generated profiles only.
+
+## Faces And Canvases
+
+Click **Faces** on the global toolbar or **File > Faces reference and canvas**.
+**F6** opens Faces and starts scanning automatically, without a second folder
+selection or Scan faces click. A selected folder thumbnail becomes the scan root;
+a selected image uses its parent; no selection uses the current folder. Choosing
+a folder in the left tree makes it the current folder. The shortcut works in
+either view and can be rebound under Configure > Shortcuts. Toolbar/File/context
+entry opens Faces without scanning, allowing scope/options to be set first.
+It is also available on image/folder thumbnail and browser-background right-click
+menus: a clicked folder becomes the scan root; an image uses its parent folder.
+The Faces folder chooser follows the app's dark/light theme, with folder-only
+navigation, breadcrumbs, editable addresses and quick locations. Its View menu
+offers List, Details (name/modified date) and Thumbnails, with four-image folder
+previews backed by the persistent thumbnail cache. Changing mode keeps selection.
+The main **Open folder** command and **Ctrl+O** use this themed chooser too, with
+the current browser folder as the starting location; Cancel leaves browsing unchanged.
+Save As, canvas Open/Save/PNG export, backup import/export, AI save/setup, Move and
+batch output also use app-themed file/folder choosers. File dialogs include file
+name/type fields, supported-type filters, automatic extensions, new-folder creation
+and a themed overwrite prompt when confirmation is enabled. Source-file protections
+and Windows permissions are unchanged. File selection is single-file; OS color,
+printer and permission/error dialogs remain outside this picker theme.
+Application confirmations, warnings, errors and information messages also follow
+the app theme, including Delete, Enhance Save overwrite, rotation, sessions, batch,
+transfers and backups. Confirmation settings and default buttons are unchanged.
+Escape or the close button declines/cancels; long messages wrap and scroll with
+selectable text. Windows-owned security and shell prompts keep Windows styling.
+Run `artifacts\tests\ViewerRegressionTests.exe --message-dialogs-only` for dialog
+behavior/theme checks and real fixture-only Delete/Enhance save acceptance/cancellation.
+Choose a folder, optionally enable **Include subfolders**, then **Scan faces**.
+The option defaults to off; enabling it scans nested folders too, skipping
+links/junctions and viewer backup folders. Entry/image limits apply to the entire
+tree, not separately to each folder. Unreadable or vanished child folders are
+reported and skipped; Stop/Esc cancels collection and detection. Changing scope
+clears the old review, and scope is locked while work runs. The scan does not use
+the thumbnail selection. Review the detected crops, select one or
+more and **Remove** unwanted detections, or **Open original** for one photograph.
+Removing crops changes only this review, never the source file.
+**Include subfolders** and the GPU/backend indicator sit in the bottom status row.
+
+**Face surroundings** adjusts crop padding from 0-200% (default 30%). **Crop shape**
+offers square 1:1, portrait 4:5 or 2:3, landscape 4:3 or 3:2, and wide 16:9.
+Changes recrop the existing detections and update the canvas without repeating
+inference. Crops shift/fit inside source boundaries without invented pixels or
+stretching. Reset restores square/30%. Changed originals must be scanned again.
+
+**Faces reference** lays out the reviewed crops in order, preserving proportions
+and centering them on white. **Auto columns** defaults on: image count determines
+a balanced row layout, with fewer, wider cells where needed so the final row has
+no unused boxes. Every reviewed face appears once, without stretching. Columns
+recalculate after removing crops. Disable Auto columns to enter a fixed count.
+Width and height have sliders (128-16000px) and exact pixel fields. **Aspect ratio**
+changes the overall canvas shape, not the face-crop shape. It normally ranges
+from 1:4 to 4:1 and expands to accommodate more extreme loaded/exact dimensions.
+Moving Height or Aspect ratio turns off **Auto height**; moving Width keeps
+automatic height enabled if already selected. Enable Auto height to fit the
+populated rows again. Slider sizing respects the 64-megapixel limit; exact inputs
+are validated on Update canvas. Sliders automatically refresh the canvas after
+a brief pause (125ms), using cached crops rather than rerunning detection. Inputs
+stay responsive; only the newest size is published and the old canvas stays visible
+until its replacement is ready. Save/export and face-link activation wait for the
+current layout. Stop/Esc cancels a pending resize and restores its last applied
+dimensions. Switching modes/scope or closing cancels obsolete work. Manual
+**Update canvas** remains available for exact inputs and other layout settings.
+Saved documents restore dimensions, auto/manual height and slider positions.
+Aspect-fit margins around individual crops can still be white.
+**Interactive faces** replaces Photo mosaic. It uses the same count-balanced
+layout, with each face tile linked to its exact original image path. Click a
+face to load the full-resolution original in the same Faces viewport. Wheel or
+zoom buttons change magnification; left-drag pans the enlarged image. **Esc** or
+**Canvas** or the mouse **Back** button returns to the map and restores its previous
+zoom and scroll position. Mouse Back on the map itself does not close Faces.
+A drag on the map pans it without opening a photo. Missing/deleted/unavailable
+originals report **Original image not available** in the bottom status bar;
+the path and error are available on hover, and the map is retained. Image decoding
+honors EXIF orientation and embedded profiles, within the same source-size limits.
+**Refresh links** checks each distinct linked source for read access in the
+background, removes all crops linked to missing/empty/unavailable files and
+automatically rebuilds the map using the remaining faces in their existing order.
+No detection is rerun and no source files are deleted or changed. The status bar
+reports removed face links and unavailable originals; if every source is gone,
+the map clears instead of showing an empty white canvas. Stop/Esc cancels before
+the new review/map is committed. Return from an opened original before refreshing.
+**Save canvas** writes an interactive `.myokenfaces` document; **Open canvas**
+restores it without rerunning detection. PNG export remains on Faces reference
+only and cannot retain clickable links. No source images are changed.
+Click **Update canvas** after changing settings.
+Fit, 100%, zoom buttons/wheel and left-button dragging inspect the full layout.
+A zoomed canvas that exceeds its frame shows a bottom-right overview thumbnail.
+Drag the visible-area rectangle or click another region to pan. It overlays the
+canvas without narrowing it, follows zoom/scroll/resize, and hides when fitted or
+while an original is open. Returning to the map restores its overview and position.
+
+Saved documents contain versioned JSON and cached 128px-edge PNG crops in a ZIP,
+plus original paths/hashes, framing, layout, recursive scope and viewport. Limits
+are 64 MiB and 1024 faces. Original photographs are **not embedded**; absolute
+Windows paths must remain available to open/export/recrop them. Missing originals
+do not prevent opening the cached canvas; Refresh links removes unavailable ones.
+Save again to retain edits. Unsaved maps and changes are not recovered on close.
+Startup restores saved canvas links without opening Faces automatically.
+**Sessions > Saved face canvases** lists recent documents for manual opening.
+Explicitly loading a named session still opens its last saved canvas.
+**Configure > Appearance > Include saved face canvases in ZIP backups** defaults
+on. ZIP exports include saved documents referenced by current/named sessions;
+JSON exports retain links only. Reset clears references, not saved document files.
+
+**Export PNG** creates a separate, full-resolution, 8-bit sRGB image using
+original-resolution crops rather than the 128px review thumbnails. Export checks
+source hashes again and holds read locks through publication. Existing
+destinations and changed sources are refused, including late conflicts; original
+photos are never overwritten. Viewer-only Enhance, upscale and rotations are not
+baked into face canvases. EXIF orientation and embedded color profiles are honored.
+The canvas has a white background; enlarging it does not invent missing detail.
+
+YuNet runs locally on the configured **NVIDIA RTX** adapter (Auto selects RTX).
+The existing AI GPU soft limit and live DXGI memory pressure are checked before
+session creation and inference calls. CPU execution-provider fallback is disabled;
+a profiled warmup must demonstrate actual DirectML kernels with no CPU inference
+kernels. The dialog reports the verified GPU/backend. Unsupported hardware,
+incompatible models or insufficient memory stop detection rather than silently
+changing backend. CPU work handles enumeration, codecs, bounded preprocessing,
+crop composition and PNG encoding. This is not an all-GPU canvas encoder.
+
+Safety limits: 8192 directory entries / 2048 images across the whole scan, 128 MiB encoded and
+64 megapixels per source, 64 detections per image, 1024 reviewed crops, 2048px
+preview edge, 128-16000px canvas sides, 64 megapixels and
+128 MiB PNG output. Two bounded image-preparation workers overlap serialized
+inference; one process-wide Faces producer owns scans/previews/exports at a time.
+Stop/Esc cancels pending work; Esc from an opened original returns to the canvas,
+then Esc on the canvas closes Faces. Closing joins canceled work before releasing resources.
+
+Faces detects locations only: no names, identity embeddings, identity grouping,
+uploads or runtime downloads. Small/obscured faces can be missed and false
+detections can occur. Save an interactive document to preserve a review, its
+settings and recursive-scan choice; unsaved reviews remain temporary.
+Face alignment is not implemented in this initial Windows version.
+
+Run `artifacts\tests\ViewerRegressionTests.exe --faces-only` after building with
+tests on RTX hardware. It covers real portrait/blank/sideways/tiled inference,
+DirectML/CPU tensor parity, optional recursion, nested portraits, link/backup
+exclusions, scan-wide limits/cancellation, EXIF and alpha handling, crop/layout pixels,
+full-resolution PNG detail, integrity/limits, changes/conflicts/cancellation and
+dark/light/narrow WPF layouts. Only the documented NASA fixture and generated
+images are used, not personal photos or the normal viewer profile.
+`--interactive-faces-only` tests link hit-testing, mouse drag versus click, original
+viewing/zoom/pan, Esc restoration, unavailable-source handling and link refresh
+with partially/all-missing sources, without requiring a detection run.
 
 ## Tab Stacks
 
@@ -47,7 +196,7 @@ Run `artifacts\tests\ViewerRegressionTests.exe --batch-only` after building with
 
 ## Interface And Everyday Navigation
 
-The global row contains **Open folder, Sessions, File, View, Configure and Help**, with filename search at the right. The second row follows the task: file actions while browsing, and Back to folder/navigation/zoom/Enhance/AI/print while viewing an image. Quick Enhance stays available in both modes. Existing keyboard and mouse navigation, tab behavior, overlays, themes and saved image adjustments are preserved.
+One compact toolbar contains **Open folder, Sessions, File, View, Faces, Configure and Help**, followed by task-specific commands: file actions while browsing, and Back to folder/navigation/zoom/Enhance/AI/print while viewing an image. Quick Enhance stays available in both modes. Filename search remains at the right. In narrower windows, arrow buttons scroll the tools horizontally; keyboard focus also brings commands into view. Existing keyboard and mouse navigation, tab behavior, overlays, themes and saved image adjustments are preserved.
 
 - **Folder navigation:** click a breadcrumb to open an ancestor; the overflow menu lists omitted parents. Click the current name or pencil, or press **Ctrl+L**, to enter a path. Relative paths and environment variables are accepted. Enter opens an existing folder; errors stay inline and Escape cancels. **Ctrl+O / Open folder** uses the native folder chooser. Existing custom shortcuts win over these new defaults.
 - **Search:** the adjacent X clears the filename filter; Escape clears it while the search box has focus. History and recursive Advanced search remain available. Clearing a filter does not erase history.
@@ -182,7 +331,7 @@ Toolbar and Advanced search share this window's history, saved in automatic/name
 
 ## Folder Operations
 
-Folder thumbnails support Rename, Move, Delete, Copy, Cut, Paste into folder and drag/drop. **F2** or Rename applies to one selected file/folder. **Delete**, the Recycle button, and Move support mixed multi-selection. Recycling asks for confirmation and includes all selected folders' contents, with duplicate/nested selections processed once. Folder moves/recycling run on a worker. File/folder collisions never overwrite existing items; folder transfer conflicts offer a separate numbered name, skip or cancel. Rename requires a single valid name. Drive roots and linked/junction trees are protected.
+Folder thumbnails support Rename, Move, Delete, Copy, Cut, Paste into folder and drag/drop. **F2** or Rename applies to one selected file/folder. **Delete**, the Recycle button, and Move support mixed multi-selection. Recycling includes all selected folders' contents, with duplicate/nested selections processed once. **Confirmation is off by default** for images, files and folders. Enable **Configure > Image tools > Recycle Bin > Ask before deleting files and folders** to ask first; the prompt defaults to No. The window-wide preference persists in automatic/named sessions and backups; older profiles and Reset use off. Windows permission/error prompts and Recycle Bin availability are not overridden. Folder moves/recycling run on a worker. File/folder collisions never overwrite existing items; folder transfer conflicts offer a separate numbered name, skip or cancel. Rename requires a single valid name. Drive roots and linked/junction trees are protected.
 
 Renaming or moving a folder updates this window's descendant image/browser tabs, selection, forward history, favorites and expanded tree paths while preserving favorite aliases/descriptions. After recycling a folder, affected open tabs remain as browser tabs at the nearest surviving parent; unavailable favorite shortcuts are removed. Unrelated folders and tabs are untouched. In image mode, deleting the displayed image still advances without closing its tab. Previously saved named sessions and other running windows are not rewritten by file operations.
 
@@ -314,13 +463,13 @@ For an isolated portable/test profile, set `ZONER_VIEWER_PROFILE` to an absolute
 
 ### Backup and restore
 
-Choose **Sessions > Export backup...** to create a versioned JSON backup. It includes this window's open image/browser tabs, stacks, order and pins, active tab, per-tab navigation/zoom/pan/rotation, theme, global Quick Enhance, folder-tree visibility/width, thumbnail settings, metadata settings, cache budget, ICC, slideshow preferences, window placement, favorite aliases/descriptions, expanded branches, and all named sessions. Other running windows' unsaved tabs are not included.
+Choose **Sessions > Export backup...** to create a ZIP backup, or choose JSON for settings and document links only. Both include this window's open image/browser tabs, stacks, order and pins, active tab, per-tab navigation/zoom/pan/rotation, theme, global Quick Enhance, folder-tree visibility/width, thumbnail settings, metadata settings, cache budget, ICC, slideshow preferences, window placement, favorite aliases/descriptions, expanded branches, saved canvas links, and all named sessions. Other running windows' unsaved tabs are not included. **Configure > Appearance > Include saved face canvases in ZIP backups** defaults on; ZIP embeds existing saved maps referenced by current/named sessions. Unsaved canvas changes must be saved first.
 
 Choose **Sessions > Import backup...** to restore it. The entire document is parsed and validated before changing the workspace, then a confirmation describes replacement. Current tabs/settings/favorites are replaced; saved sessions with matching names are overwritten and unrelated saved sessions are retained. Import closes missing image tabs, including within imported named sessions, while keeping folder-browser tabs. If the active image is missing, the first surviving tab is selected; if none remain, the home browser is shown. Ordinary automatic restore still keeps unavailable tabs as before. Import starts in normal mode, using the backup's independent folder-tree preference.
 
 A recovery JSON snapshot is written first to `%LOCALAPPDATA%\ZonerInspiredViewer\backups` (or the selected profile's `backups` folder). If an import fails after writes begin, it reports the recovery file; some shared saved sessions/settings may already have changed, so import that recovery file to restore them. Storage writes are atomic per file, not one transaction across the entire profile. The window waits for backup work before closing.
 
-Backups contain absolute file paths and settings, **not image files or thumbnail caches**, and are not encrypted. Keep the original photos available at those paths on the destination computer; unavailable image paths are skipped on import. The JSON format uses a format identifier and schema version, rejects unsupported versions/invalid paths/layout values, and is limited to 64 MB, 256 named sessions and 20,000 total tabs.
+Backups contain absolute file paths and settings, **not original photographs or the browser thumbnail cache**, and are not encrypted. ZIP backups can contain saved face maps with their cached face thumbnails. Import validates archives without arbitrary extraction, stores maps under the profile's `face-canvases` folder using content hashes, and relinks current/named sessions to those copies. Original-photo links are unchanged: keep photos at those paths on the destination computer. Unavailable image tabs are skipped; cached canvases still open. JSON is limited to 64 MB, 256 named sessions and 20,000 total tabs; ZIP backups are limited to 256 MiB and 64 saved canvases. Unsupported versions, unsafe/duplicate archive paths and invalid layout values are rejected.
 
 ## Additional Viewer Features
 
@@ -386,7 +535,7 @@ Subject masks are approximate, especially around fine hair, transparent material
 - FileSystemWatcher-driven folder refresh that preserves the current image/browser mode. Canceled scans cannot append results to a different folder.
 - Visible/nearby folder tiles watch their immediate contents for preview updates and release watchers and images when hidden or recycled. Preview scans do not recurse and try at most 32 image candidates to find four decodable thumbnails. Image navigation and adaptive preloading skip directories.
 - Rename, move, and delete to Recycle Bin.
-- Deleting the displayed image sends that exact file to the Recycle Bin and advances in the current sort/search order without closing or replacing the tab. At the end it falls back to the previous available image. If a search has no remaining results, it uses the surrounding images in the full sorted folder; if no images remain, it opens the folder browser in the same tab. Fullscreen stays active when advancing, but ends when returning to an empty browser. Other tabs showing the deleted image become browser tabs; unrelated tabs remain untouched. Slideshow playback stops before delete confirmation so the target cannot change. Failed or canceled recycling does not update tab state.
+- Deleting the displayed image sends that exact file to the Recycle Bin and advances in the current sort/search order without closing or replacing the tab. At the end it falls back to the previous available image. If a search has no remaining results, it uses the surrounding images in the full sorted folder; if no images remain, it opens the folder browser in the same tab. Fullscreen stays active when advancing, but ends when returning to an empty browser. Other tabs showing the deleted image become browser tabs; unrelated tabs remain untouched. Slideshow playback stops before recycling or an enabled confirmation so the target cannot change. Failed or canceled recycling does not update tab state.
 - Multithreaded folder scanning, thumbnail decoding, image loading, and adaptive previous/current/next preloading.
 - User-tunable decoded-image cache budget in Configure > Performance, separate from actual system VRAM usage.
 
@@ -415,7 +564,7 @@ Run `artifacts\tests\ViewerRegressionTests.exe --image-status-sort-only` for nat
 
 Run `artifacts\tests\ViewerRegressionTests.exe --overwrite-setting-only` for native WPF accessibility checkbox toggles (without a synthetic Click), immediate Save/Save As confirmation policy, status-refresh stability, automatic persistence, actual backed-up saving and restart. Checked-state changes update the preference directly; an indeterminate value defaults to asking.
 
-Run `artifacts\tests\ViewerRegressionTests.exe --enhance-save-only` for full-resolution Save/Save As, guarded shader tiles including Advanced subject/background effects, transparency, output formats, original backups, normalized metadata, stale/read-only/cancel/conflict protection, animation safety, failure recovery and session/backup protection against applying saved effects twice. Native file-picker and overwrite-confirmation clicks are manual checks; automated checks exercise the same save operation with generated fixtures and isolated profiles.
+Run `artifacts\tests\ViewerRegressionTests.exe --enhance-save-only` for full-resolution Save/Save As, guarded shader tiles including Advanced subject/background effects, transparency, output formats, original backups, normalized metadata, stale/read-only/cancel/conflict protection, animation safety, failure recovery and session/backup protection against applying saved effects twice. The `--file-picker-only` and `--message-dialogs-only` suites exercise themed file selection and overwrite-confirmation buttons with generated fixtures and isolated profiles.
 
 Run `artifacts\tests\ViewerRegressionTests.exe --save-navigation-only` for keyboard focus and next/previous navigation after automatic or explicit rotation saves and Enhance saves, including failure and cancellation. Keys are routed from the actual focused control; all saved images and profiles are generated test fixtures.
 
