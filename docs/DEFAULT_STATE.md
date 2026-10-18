@@ -17,6 +17,7 @@ globally just to test a clean launch.
 - No restored image/folder tabs, tab stacks, named sessions or favorites.
 - No search history or custom shortcut bindings.
 - Enhancements and slideshow off until enabled; no saved image adjustments.
+- On-image enhancement status visible, with Quick Enhance initially shown as Off.
 - Square 128-pixel browser thumbnails; caches populate locally as needed.
 - Default memory/GPU settings, with hardware-dependent fallback where needed.
 

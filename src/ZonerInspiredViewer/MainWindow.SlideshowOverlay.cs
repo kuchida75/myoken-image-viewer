@@ -120,6 +120,7 @@ namespace ZonerInspiredViewer
             Thickness space = FilmstripSpace();
             double width = Math.Max(0, _imageView.ActualWidth - 32 - space.Left - space.Right);
             double height = Math.Max(0, _imageView.ActualHeight - 32 - space.Bottom);
+            double topReserved = LayoutEnhancementStatus();
             double rightHeight = 0, reserved = 0;
             bool metadataVisible = _imageMetadataOverlay.Visibility == Visibility.Visible;
             double rightWidth = _slideshowOverlay != null && _slideshowOverlay.IsVisible ? 294
@@ -131,7 +132,7 @@ namespace ZonerInspiredViewer
             if (_slideshowOverlay != null)
             {
                 _slideshowOverlay.MaxWidth = width;
-                _slideshowOverlay.MaxHeight = height;
+                _slideshowOverlay.MaxHeight = Math.Max(0, height - topReserved);
                 _slideshowOverlay.Margin = new Thickness(16 + space.Left, 16, 16 + space.Right, 16 + space.Bottom);
                 if (_slideshowOverlay.Visibility == Visibility.Visible)
                 {
@@ -152,14 +153,14 @@ namespace ZonerInspiredViewer
                 }
                 if (overlaps && _manualEnhanceOverlay != null && _manualEnhanceOverlay.IsVisible) metadataHeight += 140;
                 _imageNavigatorOverlay.MaxWidth = width;
-                _imageNavigatorOverlay.MaxHeight = Math.Max(0, height - below - metadataHeight);
+                _imageNavigatorOverlay.MaxHeight = Math.Max(0, height - below - metadataHeight - (overlaps ? topReserved : 0));
                 _imageNavigatorOverlay.Margin = new Thickness(16 + space.Left, 16, 16 + space.Right, 16 + space.Bottom + below);
                 if (_imageNavigatorOverlay.Visibility == Visibility.Visible && overlaps)
                     reserved = below + _imageNavigatorOverlay.ActualHeight + 8;
             }
             _imageMetadataOverlay.Margin = new Thickness(16 + space.Left, 16, 16 + space.Right, 16 + space.Bottom + reserved);
-            _imageMetadataOverlay.MaxHeight = Math.Max(0, height - reserved);
-            LayoutManualEnhance(leftWidth, height + space.Bottom, reserved + space.Bottom);
+            _imageMetadataOverlay.MaxHeight = Math.Max(0, height - reserved - topReserved);
+            LayoutManualEnhance(leftWidth, Math.Max(0, height + space.Bottom - topReserved), reserved + space.Bottom);
             LayoutFilmstrip();
         }
     }

@@ -110,11 +110,12 @@ internal static partial class ViewerRegressionTests
             Invoke(window, "ClearAutomaticUpscale"); Invoke(window, "SetAutomaticUpscalePixels", original); AssertZoom(window, 1, "original restoration keeps size");
             var map = Field<ShortcutMap>(window, "_shortcuts"); string error;
             Assert(map.Set("fitWidth", ShortcutKeys(Key.W), out error), "fit width rebindable");
-            Assert(map.Set("fitHeight", ShortcutKeys(Key.F6), out error), "fit height rebindable");
+            Assert(map.Set("fitHeight", ShortcutKeys(Key.F7), out error), "fit height rebindable to an unused key");
+            Assert(map.Match(Key.F6, ModifierKeys.None, false).Id == "faces", "Zoom test preserves the Faces shortcut");
             Assert(map.Set("zoomLock", ShortcutKeys(Key.L), out error), "zoom lock rebindable");
             Invoke(window, "ShortcutsChanged"); canvas.Focus();
             Invoke(window, "RunShortcut", Key.W, ModifierKeys.None, false); AssertZoom(window, canvas.ActualWidth / 1800, "width shortcut dispatches");
-            Invoke(window, "RunShortcut", Key.F6, ModifierKeys.None, false); AssertZoom(window, canvas.ActualHeight / 1000, "height shortcut dispatches");
+            Invoke(window, "RunShortcut", Key.F7, ModifierKeys.None, false); AssertZoom(window, canvas.ActualHeight / 1000, "height shortcut dispatches");
             Invoke(window, "RunShortcut", Key.L, ModifierKeys.None, false); Assert(!Capture(window).ZoomLocked, "unlock shortcut dispatches");
             Invoke(window, "OpenBrowserImage", small); Wait(delegate { return Ready(window, small); }, "unlocked next image"); AssertZoom(window, 1, "unlocked small image defaults to original size");
             ClickZoom(window, "_fitWidthButton"); AssertZoom(window, canvas.ActualWidth / 240, "explicit width enlarges small image");
@@ -226,9 +227,10 @@ internal static partial class ViewerRegressionTests
             Assert(!Capture(window).AdaptiveZoomEnabled && toggle.IsChecked == false, "A turns adaptive zoom off");
             AssertZoom(window, 1, "turning adaptive zoom off returns to normal fit");
             var map = Field<ShortcutMap>(window, "_shortcuts"); string error;
-            Assert(map.Set("adaptiveZoom", ShortcutKeys(Key.F6), out error), "adaptive shortcut can be rebound");
+            Assert(map.Set("adaptiveZoom", ShortcutKeys(Key.F7), out error), "adaptive shortcut can be rebound to an unused key");
+            Assert(map.Match(Key.F6, ModifierKeys.None, false).Id == "faces", "Adaptive zoom test preserves the Faces shortcut");
             Invoke(window, "ShortcutsChanged");
-            Assert((bool)Invoke(window, "RunShortcut", Key.F6, ModifierKeys.None, false), "rebound adaptive shortcut dispatches");
+            Assert((bool)Invoke(window, "RunShortcut", Key.F7, ModifierKeys.None, false), "rebound adaptive shortcut dispatches");
             Assert(Capture(window).AdaptiveZoomEnabled, "rebound shortcut turns adaptive zoom on");
             Render((FrameworkElement)window.Content, "adaptive-zoom.png");
             services.Sessions.Save(Capture(window));

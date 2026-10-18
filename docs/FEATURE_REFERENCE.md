@@ -1,6 +1,6 @@
 # Myoken Image Viewer: Detailed Feature Reference
 
-This long-form reference describes the Windows viewer's features and implementation limits. The current source version is **0.2.222**; see the [short README](../README.md) for the quick start and [changelog](../CHANGELOG.md) for release history. The app uses an original teal/ivory shutter icon, not proprietary photo-app branding or assets.
+This long-form reference describes the Windows viewer's features and implementation limits. The current source version is **0.2.227**; see the [short README](../README.md) for the quick start and [changelog](../CHANGELOG.md) for release history. The app uses an original teal/ivory shutter icon, not proprietary photo-app branding or assets.
 
 ## Source Repository
 
@@ -68,7 +68,9 @@ and centering them on white. **Auto columns** defaults on: image count determine
 a balanced row layout, with fewer, wider cells where needed so the final row has
 no unused boxes. Every reviewed face appears once, without stretching. Columns
 recalculate after removing crops. Disable Auto columns to enter a fixed count.
-Width and height have sliders (128-16000px) and exact pixel fields. **Aspect ratio**
+Open **Canvas size** in either Faces mode for width/height sliders (128-16000px),
+exact pixel fields and the aspect-ratio slider. The drop-down is closed by default
+to leave more preview space; Escape closes it without leaving Faces. **Aspect ratio**
 changes the overall canvas shape, not the face-crop shape. It normally ranges
 from 1:4 to 4:1 and expands to accommodate more extreme loaded/exact dimensions.
 Moving Height or Aspect ratio turns off **Auto height**; moving Width keeps
@@ -179,7 +181,7 @@ After building with tests, run `artifacts\tests\ViewerRegressionTests.exe --tab-
 
 ## Batch Tools
 
-Select items in the thumbnail browser, then choose **Batch** on the browser toolbar, **File > Batch**, or a thumbnail's right-click menu. The same commands work on the displayed image. Settings appear on the left and a virtualized preview on the right. Changes rebuild the preview in the background. Uncheck **Use** to exclude individual rows; included errors prevent execution. The final action asks for confirmation. **Cancel / Esc** requests a safe stop and keeps the result report open.
+Select items in the thumbnail browser, then choose **File > Batch** or a thumbnail's right-click menu. The same commands work on the displayed image. Settings appear on the left and a virtualized preview on the right. Changes rebuild the preview in the background. Uncheck **Use** to exclude individual rows; included errors prevent execution. The final action asks for confirmation. **Cancel / Esc** requests a safe stop and keeps the result report open.
 
 - **Rename:** files and folders, with extensions protected. `*` / `{name}` insert the original stem; runs of `#` insert a padded sequence with explicit Start and Step. Letter sequences use A-Z, AA, AB, etc. Metadata tokens include `{folder}`, `{created:yyyyMMdd}`, `{modified:yyyyMMdd}`, `{taken:yyyyMMdd}`, `{width}` and `{height}`. Missing image metadata is reported, not guessed. Text rules run in this order: template, find/replace, remove text, remove first/last characters, prefix/suffix, strip whitespace, case change. Folder names use the complete original name. Sequence order follows the selected browser order, not the order in which files finish processing.
 - **Resize:** bounding-box pixels, percentage, print size in inches/cm with DPI, long edge or short edge. Choose aspect-ratio preservation, width/height/both fitting, and enlarge/reduce restrictions. Defaults are reduce-only, original format and a `_resized` suffix. Another output format can be selected, including when the source is HEIC/HEIF.
@@ -196,11 +198,22 @@ Run `artifacts\tests\ViewerRegressionTests.exe --batch-only` after building with
 
 ## Interface And Everyday Navigation
 
-One compact toolbar contains **Open folder, Sessions, File, View, Faces, Configure and Help**, followed by task-specific commands: file actions while browsing, and Back to folder/navigation/zoom/Enhance/AI/print while viewing an image. Quick Enhance stays available in both modes. Filename search remains at the right. In narrower windows, arrow buttons scroll the tools horizontally; keyboard focus also brings commands into view. Existing keyboard and mouse navigation, tab behavior, overlays, themes and saved image adjustments are preserved.
+Image view has a passive translucent **enhancement status** at the top left:
+Quick Enhance Off, Basic or Advanced; processing, unavailable and already-saved
+states are distinguished. A second line reports active manual adjustments, or
+neutral values while the sliders are open. Closing Enhance does not hide active
+adjustments. The badge stays outside the image-processing surface, never captures
+input, and clears other overlays/carousels. It defaults on; toggle it through
+**View > Enhancement status** or **Configure > Images > Enhancement status**.
+Visibility persists in automatic/named sessions and backups; older profiles use on.
+Run `artifacts\tests\ViewerRegressionTests.exe --enhancement-status-only` for the
+focused checks, or `--enhancement-overlays-focused` to include manual/zoom/info regressions.
+
+One compact toolbar contains **Open folder, Sessions, File, View, Faces, Configure and Help**. File actions are grouped under File; Back to folder/navigation/zoom/Enhance/AI/print appear while viewing an image. Quick Enhance stays available in both modes. Filename search remains at the right. In narrower windows, arrow buttons scroll the tools horizontally; keyboard focus also brings commands into view. Existing keyboard and mouse navigation, tab behavior, overlays, themes and saved image adjustments are preserved.
 
 - **Folder navigation:** click a breadcrumb to open an ancestor; the overflow menu lists omitted parents. Click the current name or pencil, or press **Ctrl+L**, to enter a path. Relative paths and environment variables are accepted. Enter opens an existing folder; errors stay inline and Escape cancels. **Ctrl+O / Open folder** uses the native folder chooser. Existing custom shortcuts win over these new defaults.
 - **Search:** the adjacent X clears the filename filter; Escape clears it while the search box has focus. History and recursive Advanced search remain available. Clearing a filter does not erase history.
-- **File:** Copy/Cut/Paste, Rename/Move/Recycle, **Show in Explorer**, and **Copy full path** act on the current selection/image. Explorer/path actions use the current folder when nothing is selected. They do not modify originals.
+- **File:** Copy/Cut/Paste, Rename, Batch, Move and Recycle act on the current selection/image. Rename, Batch, Move and Recycle no longer have duplicate toolbar buttons; shortcuts and thumbnail context menus remain available. **Show in Explorer** and **Copy full path** use the current folder when nothing is selected and do not modify originals.
 - **View:** folder tree, metadata panel, minimap, image information, pan navigator, compact/fullscreen, maximum window height and performance details are grouped together. Thumbnail **size/shape** remain in Configure > Images, also reached directly from **Thumbnails** beside Sort.
 - **Configure:** a category sidebar replaces the old button grid. **Find setting** searches labels and commands across categories; Ctrl+F focuses this search while Configure is active. Escape clears settings search before closing the window. Changes still apply immediately. The window keeps a focused setting in view when resized.
 - **Performance:** the bottom bar retains a compact resident-image VRAM summary. Expand it for the existing colored, numbered iGPU/dGPU readings and detailed CPU/cache statistics. The expanded/collapsed choice is saved in sessions/backups. Compact mode hides the bar.

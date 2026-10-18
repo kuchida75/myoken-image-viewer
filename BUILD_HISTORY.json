@@ -1552,5 +1552,40 @@
     "CompletedUtc": "2026-10-17T13:19:03.5363949Z",
     "Result": "Built",
     "Note": "Theme app confirmation and error dialogs, including Delete and Enhance overwrite; preserve policies and add real accept/cancel regression checks."
+  },
+  {
+    "Version": "0.2.223",
+    "StartedUtc": "2026-10-18T13:34:05.8925783Z",
+    "CompletedUtc": "2026-10-18T13:34:10.3565614Z",
+    "Result": "Built",
+    "Note": "Compact File actions and Faces Canvas size dropdown; preserve keyboard, selection, live sizing and document behavior."
+  },
+  {
+    "Version": "0.2.224",
+    "StartedUtc": "2026-10-18T13:35:19.1993676Z",
+    "CompletedUtc": "2026-10-18T13:35:22.4172646Z",
+    "Result": "Built",
+    "Note": "Move file actions into File and Faces dimensions into Canvas size dropdown; correct popup editing lock found by focused tests."
+  },
+  {
+    "Version": "0.2.225",
+    "StartedUtc": "2026-10-18T13:37:28.0131795Z",
+    "CompletedUtc": "2026-10-18T13:37:31.1910694Z",
+    "Result": "Built",
+    "Note": "Compact File actions and Faces size dropdown; update legacy zoom test to preserve F6 Faces binding."
+  },
+  {
+    "Version": "0.2.226",
+    "StartedUtc": "2026-10-18T13:39:19.0006156Z",
+    "CompletedUtc": "2026-10-18T13:39:22.2749204Z",
+    "Result": "Built",
+    "Note": "Compact File and Faces layout; preserve F6 in fit/adaptive zoom rebind regression coverage."
+  },
+  {
+    "Version": "0.2.227",
+    "StartedUtc": "2026-10-18T13:59:41.0056403Z",
+    "CompletedUtc": "2026-10-18T13:59:44.1723431Z",
+    "Result": "Built",
+    "Note": "Add passive top-left enhancement mode/status overlay with manual adjustment indication and saved visibility setting."
   }
 ]

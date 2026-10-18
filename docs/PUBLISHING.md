@@ -1,6 +1,6 @@
 # Source Publication Checklist
 
-The public source repository is [kuchida75/myoken-image-viewer](https://github.com/kuchida75/myoken-image-viewer). The current source version is **0.2.222**; `version.json` is authoritative for later builds. The first Myoken build was 0.2.167, and the earlier Zen Image Viewer source baseline is tagged `v0.2.166`.
+The public source repository is [kuchida75/myoken-image-viewer](https://github.com/kuchida75/myoken-image-viewer). The current source version is **0.2.227**; `version.json` is authoritative for later builds. The first Myoken build was 0.2.167, and the earlier Zen Image Viewer source baseline is tagged `v0.2.166`.
 
 ## Before Each Source Push
 
@@ -28,4 +28,14 @@ Do not upload the local full ZIP or an executable/model pack until the [third-pa
 
 The former `kuchida75/zen-image-viewer` repository was renamed in place. Its public history, issues and Windows baseline tag were retained. Existing clones should use `https://github.com/kuchida75/myoken-image-viewer.git` as `origin`.
 
-Ubuntu/GNOME work can use a separate branch and project in this same repository. The current WPF application remains Windows-only; a shared repository does not make it cross-platform.
+## Ubuntu Migration
+
+The Avalonia/C# port is maintained separately at
+[kuchida75/myoken-ubuntu-gnome](https://github.com/kuchida75/myoken-ubuntu-gnome).
+The Windows WPF project remains Windows-only.
+
+1. Publish and verify the Windows source first. Record its exact commit and the last Windows commit already ported to Ubuntu.
+2. Compare those revisions, using the changelog, feature reference and regression tests as a migration checklist. Port behavior and reusable logic into Avalonia; do not replace compatible Ubuntu implementations or merge the entire WPF project into it.
+3. Record the Windows reference commit and ported/deferred items in the Ubuntu repository. Check Linux behavior and GUI parity there, then commit the Ubuntu changes separately.
+
+GitHub is the source of truth. A small handoff document with sanitized menu/view screenshots can supplement it when visual parity matters. A separate source ZIP is only an offline/access fallback; label it with the same commit and audit it for private data. Do not use the Windows runtime ZIP as the Ubuntu source handoff.

@@ -142,6 +142,12 @@ namespace ZonerInspiredViewer
             AddConfigurationRow(1, "Thumbnail shape", ConfigurationInline(_thumbnailAspectSlider, _thumbnailAspectText));
             AddConfigurationRow(1, "Enhancement", _configureEnhance);
             AddConfigurationRow(1, "Enhance mode", _enhanceMode);
+            _configureEnhancementStatus = new CheckBox { Content = "Show enhancement status on the image", IsChecked = _enhancementStatusEnabled };
+            RoutedEventHandler enhancementStatusChanged = delegate
+            { if ((_configureEnhancementStatus.IsChecked == true) != _enhancementStatusEnabled) SetEnhancementStatusVisible(_configureEnhancementStatus.IsChecked == true); };
+            _configureEnhancementStatus.Checked += enhancementStatusChanged; _configureEnhancementStatus.Unchecked += enhancementStatusChanged;
+            CommandPresentation.Describe(_configureEnhancementStatus, "Enhancement status", null, "Show Quick Enhance mode/state and active manual adjustments at the top left of image view. The translucent overlay does not capture clicks or panning.");
+            AddConfigurationRow(1, "Enhancement status", _configureEnhancementStatus);
             AddConfigurationRow(1, "Color management", _iccCheckBox);
             BuildImageToolsConfiguration();
             _confirmRecycleCheckBox = new CheckBox { Content = new TextBlock { Text = "Ask before deleting files and folders", TextWrapping = TextWrapping.Wrap }, IsChecked = _confirmRecycle };

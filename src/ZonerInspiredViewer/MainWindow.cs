@@ -57,9 +57,6 @@ namespace ZonerInspiredViewer
         private BrowserSortField? _appliedSortField;
         private bool _appliedSortDescending;
         private Button _sessionsButton;
-        private Button _renameButton;
-        private Button _moveButton;
-        private Button _deleteButton;
         private ToggleButton _enhanceButton;
         private bool _quickEnhanceEnabled;
         private bool _advancedQuickEnhance;
@@ -342,9 +339,8 @@ namespace ZonerInspiredViewer
             _workflowCommands = new WrapPanel { Margin = new Thickness(0, 6, 8, 6), VerticalAlignment = VerticalAlignment.Center };
             strip.Commands.Children.Add(_workflowCommands);
             _viewerNavigationCommands = WorkflowGroup(); _viewerZoomCommands = WorkflowGroup();
-            _viewerEditCommands = WorkflowGroup(); _browserFileCommands = WorkflowGroup();
+            _viewerEditCommands = WorkflowGroup();
             _workflowCommands.Children.Add(_viewerNavigationCommands); _workflowCommands.Children.Add(_viewerZoomCommands);
-            _workflowCommands.Children.Add(_browserFileCommands);
 
             left.Children.Add(CommandPresentation.Button("\uED25", "Open folder", "Ctrl+O", "Choose a folder to browse in this tab.", OpenFolderPicker, true));
             _sessionsButton = CommandPresentation.Button("\uE8F1", "Sessions", null, "Save or open a workspace session, or import/export a backup.", delegate { SessionsButtonClick(_sessionsButton, new RoutedEventArgs()); }, true);
@@ -386,15 +382,7 @@ namespace ZonerInspiredViewer
                 _enhanceButton.IsChecked = true;
                 ToggleQuickEnhance();
             };
-            _renameButton = CommandPresentation.Button("\uE8AC", "Rename", "F2", "Rename the displayed image or one selected file or folder.", RenameCurrent, true);
-            _moveButton = CommandPresentation.Button("\uE8DE", "Move", null, "Move selected files and folders to another folder. Existing items are never overwritten.", MoveCurrent, true);
-            _deleteButton = CommandPresentation.Button("\uE74D", "Recycle", "Delete", "Send selected files and folders to the Recycle Bin. In viewer mode, advance to the next image without closing the tab.", DeleteCurrent, true);
-            _browserFileCommands.Children.Add(_renameButton);
-            _batchButton = CommandPresentation.Button("\uE8F1", "Batch", null, "Rename, resize or convert the selected items with a preview.", delegate { OpenWorkflowMenu(_batchButton, BuildBatchMenu()); }, true);
-            _browserFileCommands.Children.Add(_batchButton);
-            _browserFileCommands.Children.Add(_moveButton);
-            _browserFileCommands.Children.Add(_deleteButton);
-            _fileMenuButton = CommandPresentation.Button("\uE8A5", "File", null, "Copy, cut, paste, rename, move, recycle, show in Explorer or copy the full path.",
+            _fileMenuButton = CommandPresentation.Button("\uE8A5", "File", null, "Copy, cut, paste, rename, batch tools, move, recycle, show in Explorer or copy the full path.",
                 delegate { OpenWorkflowMenu(_fileMenuButton, BuildFileActionsMenu()); }, true);
             ((StackPanel)_fileMenuButton.Content).Children.Add(new TextBlock
             {
@@ -991,6 +979,7 @@ namespace ZonerInspiredViewer
             BuildImageNavigator();
             BuildManualEnhanceOverlay();
             BuildFilmstrip();
+            BuildEnhancementStatusOverlay();
             workspace.Children.Add(_imageView);
 
             return center;
@@ -1621,6 +1610,7 @@ namespace ZonerInspiredViewer
             HideManualEnhance();
             HideImageNavigator();
             ResetZoomIndicator();
+            HideEnhancementStatus();
             _imageOverlayMetadata = null;
             _imageMetadataOverlay.Visibility = Visibility.Collapsed;
             StopAnimation();
@@ -1835,6 +1825,7 @@ namespace ZonerInspiredViewer
             HideManualEnhance();
             HideImageNavigator();
             ResetZoomIndicator();
+            HideEnhancementStatus();
             _imageMetadataOverlay.Visibility = Visibility.Collapsed;
             StopAnimation();
             CancelEnhancement();
@@ -2067,6 +2058,7 @@ namespace ZonerInspiredViewer
             if (_quickEnhanceEnabled && HasCurrentImage() && HasSavedEnhance(CurrentTabState()))
                 CommandPresentation.Describe(_enhanceButton, "Quick Enhance", null, "This saved image already contains its enhancement. Toggle Quick Enhance off and on to apply a fresh enhancement.");
             UpdateEnhanceSaveButtons();
+            UpdateEnhancementStatus();
         }
 
         private void SetImageView(ImageView view)
@@ -2826,6 +2818,7 @@ namespace ZonerInspiredViewer
                 && String.Equals(tab.Id ?? tab.Path, state.ActiveTabId ?? state.ActiveTabPath, StringComparison.OrdinalIgnoreCase));
             _quickEnhanceEnabled = state.QuickEnhanceEnabled ?? (legacyEnhanced != null && legacyEnhanced.QuickEnhanceEnabled);
             _advancedQuickEnhance = state.AdvancedQuickEnhance;
+            SetEnhancementStatusVisible(state.EnhancementStatusVisible ?? true);
             _autoSaveRotations = state.AutoSaveRotations;
             _confirmEnhanceOverwrite = state.ConfirmEnhanceOverwrite ?? true;
             _confirmRecycle = state.ConfirmRecycle; _confirmRecycleCheckBox.IsChecked = _confirmRecycle;
@@ -2987,6 +2980,7 @@ namespace ZonerInspiredViewer
             state.FolderPaneWidth = FolderPaneWidth();
             state.QuickEnhanceEnabled = _quickEnhanceEnabled;
             state.AdvancedQuickEnhance = _advancedQuickEnhance;
+            state.EnhancementStatusVisible = _enhancementStatusEnabled;
             state.SlideshowSeconds = _slideshowSeconds;
             state.SlideshowShuffle = _slideshowShuffle.IsChecked == true;
             ImageTabState latest = _latestBrowserView ?? _homeBrowser;
@@ -3105,13 +3099,7 @@ namespace ZonerInspiredViewer
             UpdateImageNavigator();
             UpdateBrowserFooter();
             UpdateEnhanceButton();
-            bool hasFileSelection = CurrentCommandPath() != null;
             UpdateWorkflowCommands();
-            _renameButton.IsEnabled = hasFileSelection;
-            bool hasItems = !_fileTransferBusy && !_rotationSaving && !_enhancementSaving && !_backupBusy
-                && (_browserView.IsVisible ? _thumbnailGrid.SelectedCount > 0 : hasFileSelection);
-            _moveButton.IsEnabled = hasItems;
-            _deleteButton.IsEnabled = hasItems;
             int budget = _services.VramCache.BudgetMb;
             _vramText.Text = budget.ToString() + " MB";
             _statusText.Text = _filteredItems.Count.ToString() + " shown / "

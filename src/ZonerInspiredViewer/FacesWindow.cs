@@ -61,6 +61,9 @@ namespace ZonerInspiredViewer
             internal Slider WidthSlider, HeightSlider, AspectSlider;
             internal TextBlock AspectValue;
             internal CheckBox AutoHeight, AutoColumns;
+            internal ToggleButton SizeButton;
+            internal Popup SizePopup;
+            internal TextBlock SizeSummary;
             internal FrameworkElement Panel;
             internal bool Syncing;
         }
@@ -154,14 +157,16 @@ namespace ZonerInspiredViewer
             _preview.MouseLeftButtonUp += delegate(object sender, MouseButtonEventArgs e)
             { CompletePan(e.GetPosition(_preview)); e.Handled = true; };
             _preview.LostMouseCapture += delegate { _drag = null; };
-            _tabs.SelectionChanged += delegate(object sender, SelectionChangedEventArgs e) { if (e.Source == _tabs) InvalidatePreview(); };
+            _tabs.SelectionChanged += delegate(object sender, SelectionChangedEventArgs e) { if (e.Source == _tabs) { CloseCanvasSizeMenus(); InvalidatePreview(); } };
             _folder.TextChanged += delegate { if (!_busy) { _faces.Clear(); InvalidatePreview(); UpdateControls(); } };
             _includeSubfolders.Checked += ScanScopeChanged; _includeSubfolders.Unchecked += ScanScopeChanged;
             PreviewMouseDown += delegate(object sender, MouseButtonEventArgs e)
             { if (e.ChangedButton == MouseButton.XButton1 && _canvasSnapshot != null) { ReturnToCanvas(); e.Handled = true; } };
-            PreviewKeyDown += delegate(object sender, KeyEventArgs e) { if (e.Key == Key.Escape) { Escape(); e.Handled = true; } };
+            PreviewKeyDown += delegate(object sender, KeyEventArgs e) { if (e.Key == Key.Escape) { if (!CloseCanvasSizeMenus(true)) Escape(); e.Handled = true; } };
+            Deactivated += delegate { CloseCanvasSizeMenus(); };
             Closing += delegate(object sender, System.ComponentModel.CancelEventArgs e)
             {
+                CloseCanvasSizeMenus();
                 if (_busy || _canvasResizeRunning)
                 {
                     e.Cancel = true; _closeRequested = true; CancelCanvasResize();
@@ -304,6 +309,7 @@ namespace ZonerInspiredViewer
         {
             if (_scan == null || _review == null) return;
             bool editing = !_busy && !_framingPending && _canvasSnapshot == null;
+            if (!editing) CloseCanvasSizeMenus();
             _scan.IsEnabled = _chooseFolder.IsEnabled = _folder.IsEnabled = _tabs.IsEnabled = editing;
             _includeSubfolders.IsEnabled = editing;
             _review.IsEnabled = editing; _remove.IsEnabled = editing && _review.SelectedItems.Count > 0;

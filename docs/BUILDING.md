@@ -3,9 +3,10 @@
 ## Windows Baseline
 
 Myoken Image Viewer is a Windows x64 C# / WPF application targeting .NET
-Framework 4.8. The current source version is **0.2.222**. The Myoken name first
+Framework 4.8. The current source version is **0.2.227**. The Myoken name first
 appeared in **0.2.167**; the earlier Zen Image Viewer source baseline is tagged
-**v0.2.166**. Ubuntu support is not implemented.
+**v0.2.166**. This WPF project is Windows-only; the separate Avalonia Ubuntu
+port and migration workflow are described in [publishing](PUBLISHING.md#ubuntu-migration).
 
 Git contains source, tests, icon assets, a documented HEIC test fixture,
 third-party notices and pinned dependency manifests. Unlike the existing local
@@ -87,6 +88,7 @@ Focused checks after a test build:
 .\artifacts\tests\ViewerRegressionTests.exe --live-canvas-only
 .\artifacts\tests\ViewerRegressionTests.exe --recycle-preference-only
 .\artifacts\tests\ViewerRegressionTests.exe --message-dialogs-only
+.\artifacts\tests\ViewerRegressionTests.exe --enhancement-overlays-focused
 .\artifacts\tests\ViewerRegressionTests.exe --backup-focused
 ```
 
@@ -107,7 +109,7 @@ cancellation. Canvas checks cover safe ZIP/JSON/PNG documents, atomic saves,
 missing-source loading, optional backup inclusion, startup without a Faces popup,
 recent-canvas access and named-session reopening. Navigator checks cover drag/click pan, clamping, zoom/resize/return,
 saved viewports, fit visibility and narrow dark/light layouts. Canvas controls
-checks cover size/aspect sliders, exact inputs, auto/manual height, limits,
+checks cover the compact Canvas size drop-down, keyboard/dismissal, live size/aspect sliders, exact inputs, auto/manual height, limits,
 save/open and the bottom scan/GPU status row. Live-canvas checks cover automatic
 slider previews, latest-only cancellation, responsive inputs, failure/Stop rollback,
 scope/tab invalidation, close joining and unchanged originals. Folder-picker checks

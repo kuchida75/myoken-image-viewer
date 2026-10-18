@@ -184,6 +184,7 @@ namespace ZonerInspiredViewer
         [DataMember] public bool FolderTreeHidden { get; set; }
         [DataMember] public double FolderPaneWidth { get; set; }
         [DataMember] public bool? QuickEnhanceEnabled { get; set; }
+        [DataMember] public bool? EnhancementStatusVisible { get; set; }
         [DataMember] public bool AdvancedQuickEnhance { get; set; }
         [DataMember] public List<string> BrowserSelectedPaths { get; set; }
         [DataMember] public List<BrowserRotationDto> HomeBrowserRotations { get; set; }

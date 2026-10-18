@@ -157,7 +157,7 @@ namespace ZonerInspiredViewer
             bool ready = !_isClosed && _imageView.IsVisible && HasCurrentImage();
             _manualEnhanceButton.IsEnabled = ready; _manualEnhanceButton.IsChecked = _manualEnhanceVisible;
             UpdateEnhanceSaveButtons();
-            if (!ready) { HideManualEnhance(); return; }
+            if (!ready) { HideManualEnhance(); UpdateEnhancementStatus(); return; }
             if (!_manualEnhanceVisible)
             {
                 if (_manualEnhanceOverlay.IsMouseCaptureWithin) Mouse.Capture(null);
@@ -175,6 +175,7 @@ namespace ZonerInspiredViewer
                 if (_manualEffect == null) _manualEffect = new ManualEnhanceEffect();
                 _manualEffect.Apply(value); _manualImageSurface.Effect = _manualEffect; _appliedManualAdjustments = value;
             }
+            UpdateEnhancementStatus();
             LayoutImageOverlays();
         }
 

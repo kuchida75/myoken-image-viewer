@@ -4,6 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
+using System.Windows.Media;
 using ZonerInspiredViewer;
 
 internal static partial class ViewerRegressionTests
@@ -20,6 +23,15 @@ internal static partial class ViewerRegressionTests
             var fields = Field<object>(window, "_reference"); var width = Field<TextBox>(fields, "Width"); var height = Field<TextBox>(fields, "Height");
             var widthSlider = Field<Slider>(fields, "WidthSlider"); var heightSlider = Field<Slider>(fields, "HeightSlider"); var aspect = Field<Slider>(fields, "AspectSlider");
             var autoHeight = Field<CheckBox>(fields, "AutoHeight");
+            var sizeButton = Field<ToggleButton>(fields, "SizeButton"); var sizeMenu = Field<Popup>(fields, "SizePopup");
+            Assert(!sizeMenu.IsOpen && !widthSlider.IsVisible && Field<FrameworkElement>(fields, "Panel").ActualHeight <= 48, "Canvas dimensions start in a closed compact drop-down");
+            sizeButton.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(window), 0, Key.Down) { RoutedEvent = Keyboard.PreviewKeyDownEvent }); Pump();
+            Assert(sizeMenu.IsOpen && widthSlider.IsVisible && heightSlider.IsVisible && aspect.IsVisible, "Keyboard opens all canvas size controls");
+            widthSlider.Value = 1024; Wait(delegate { return LiveCanvasIdle(window); }, "Drop-down slider live update");
+            Assert(sizeMenu.IsOpen && Field<Size>(window, "_canvasSize").Width == 1024, "Live preview updates while the menu remains open");
+            Render((FrameworkElement)sizeMenu.Child, "face-size-menu-dark.png");
+            PressKey(window, Key.Escape); Pump(); Assert(!sizeMenu.IsOpen && window.IsVisible && Field<Image>(window, "_preview").Source != null, "Escape dismisses size menu without closing Faces or clearing the canvas");
+            sizeButton.IsChecked = true; Pump(); Assert(sizeMenu.IsOpen, "Size menu can reopen after dismissal"); sizeButton.IsChecked = false;
             widthSlider.Value = 1536;
             Assert(width.Text == "1536" && autoHeight.IsChecked == true && heightSlider.Value == Int32.Parse(height.Text), "Width slider updates pixels and automatic height together");
             width.Text = "1001"; Assert(widthSlider.Value == 1001, "Exact width input synchronizes its slider");
@@ -40,10 +52,12 @@ internal static partial class ViewerRegressionTests
             aspect.Value = 4; Assert(Math.Abs(Int32.Parse(width.Text) / (double)Int32.Parse(height.Text) - 4) < .001, "Landscape canvas ratios preserve dimensions at the minimum side");
             width.Text = "invalid"; Invoke(window, "UpdateCanvas");
             Assert(Field<TextBlock>(window, "_status").Text.Contains("whole numbers"), "Invalid exact dimensions remain safely validated"); width.Text = "512";
-            var tabs = Field<TabControl>(window, "_tabs"); tabs.SelectedIndex = 1; Pump(); fields = Field<object>(window, "_interactive");
+            sizeButton.IsChecked = true; Pump();
+            var tabs = Field<TabControl>(window, "_tabs"); tabs.SelectedIndex = 1; Pump(); Assert(!sizeMenu.IsOpen, "Changing Faces mode dismisses the old menu"); fields = Field<object>(window, "_interactive");
             Field<Slider>(fields, "WidthSlider").Value = 1024; Field<Slider>(fields, "AspectSlider").Value = 1.6;
             Assert(Field<TextBox>(fields, "Width").Text == "1024" && Field<TextBox>(fields, "Height").Text == "640", "Each canvas mode has independent synchronized sliders");
-            Invoke(window, "UpdateCanvas"); Assert(!Field<Slider>(fields, "WidthSlider").IsEnabled && !Field<CheckBox>(window, "_includeSubfolders").IsEnabled, "Size and scan-scope controls are locked during work");
+            Field<ToggleButton>(fields, "SizeButton").IsChecked = true; Pump();
+            Invoke(window, "UpdateCanvas"); Assert(!Field<Popup>(fields, "SizePopup").IsOpen && !Field<Slider>(fields, "WidthSlider").IsEnabled && !Field<CheckBox>(window, "_includeSubfolders").IsEnabled, "Size menu closes and editing locks during work");
             Wait(delegate { return window.PendingWork.IsCompleted; }, "Slider-sized canvas renders"); Pump();
             Assert(Field<Size>(window, "_canvasSize") == new Size(1024, 640), "Rendered canvas uses slider dimensions");
             string saved = Path.Combine(root, "Sized.myokenfaces"); window.SaveCanvasFile(saved); Wait(delegate { return window.PendingWork.IsCompleted; }, "Save slider layout");
@@ -58,15 +72,22 @@ internal static partial class ViewerRegressionTests
             foreach (bool dark in new[] { true, false })
             {
                 ThemeManager.SetDarkTheme(dark); window.Width = 780; window.Height = 540; Pump();
-                foreach (var control in new FrameworkElement[] { scope, backend, status, Field<Slider>(fields, "WidthSlider"), Field<Slider>(fields, "HeightSlider"), Field<Slider>(fields, "AspectSlider"), Field<TextBox>(fields, "Width"), Field<TextBox>(fields, "Height"), Field<Button>(window, "_saveCanvas") }) AssertInside(control, (FrameworkElement)window.Content);
-                Assert(Field<ScrollViewer>(window, "_viewport").ActualHeight > 70, "Narrow layout retains usable canvas space");
+                foreach (var control in new FrameworkElement[] { scope, backend, status, Field<ToggleButton>(fields, "SizeButton"), Field<Button>(window, "_saveCanvas") }) AssertInside(control, (FrameworkElement)window.Content);
+                Assert(Field<ScrollViewer>(window, "_viewport").ActualHeight > 140, "Compact size controls leave more canvas space at minimum window size");
                 Render(window, dark ? "face-canvas-controls-narrow-dark.png" : "face-canvas-controls-narrow-light.png");
+                Field<ToggleButton>(fields, "SizeButton").IsChecked = true; Pump();
+                var popup = Field<Popup>(fields, "SizePopup"); var frame = (FrameworkElement)popup.Child;
+                Assert(popup.IsOpen && frame.ActualWidth <= window.ActualWidth, "Canvas size drop-down fits the narrow window");
+                var color = ((SolidColorBrush)((Border)frame).Background).Color; Assert(dark ? color.R < 80 : color.R > 200, "Canvas size menu follows app theme");
+                foreach (var control in new FrameworkElement[] { Field<Slider>(fields, "WidthSlider"), Field<Slider>(fields, "HeightSlider"), Field<Slider>(fields, "AspectSlider"), Field<TextBox>(fields, "Width"), Field<TextBox>(fields, "Height") }) AssertInside(control, frame);
+                Render(frame, dark ? "face-size-menu-narrow-dark.png" : "face-size-menu-narrow-light.png");
+                PressKey(window, Key.Escape); Assert(!popup.IsOpen && window.IsVisible, "Size menu Escape works after reopen in each theme");
             }
             var original = Field<Image>(window, "_preview").Source;
             scope.IsChecked = true; Assert(Field<ListBox>(window, "_review").Items.Count == 0 && Field<Image>(window, "_preview").Source == null && original != null,
                 "Relocated recursive-scan checkbox still invalidates the old review");
         }
         finally { window.Close(); Pump(); ThemeManager.SetDarkTheme(true); }
-        Console.WriteLine("PASS: canvas width/height/aspect sliders, exact-value synchronization, auto/manual height, pixel limits, independent modes, work guards, rendering/save/open, bottom scan/GPU row and narrow dark/light layouts.");
+        Console.WriteLine("PASS: compact Canvas size drop-down, keyboard/reopen/Escape, live sliders, exact-value synchronization, auto/manual height, pixel limits, independent modes, tab/work guards, rendering/save/open, bottom scan/GPU row and narrow dark/light layouts.");
     }
 }

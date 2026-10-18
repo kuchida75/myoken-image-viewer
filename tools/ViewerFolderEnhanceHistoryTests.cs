@@ -141,8 +141,8 @@ internal static partial class ViewerRegressionTests
             Invoke(window, "ShowBrowser"); WaitScan(window);
             var grid = Field<VirtualizedThumbnailGrid>(window, "_thumbnailGrid");
             grid.ApplySelection(Field<List<ImageFileItem>>(window, "_allItems").Single(i => i.Path == album), ModifierKeys.None);
-            Assert((string)Invoke(window, "CurrentCommandPath") == album && Field<Button>(window, "_renameButton").IsEnabled
-                && Field<Button>(window, "_deleteButton").IsEnabled, "selected folder enables toolbar/F2/Delete operations");
+            Assert((string)Invoke(window, "CurrentCommandPath") == album && FileAction(window, "Rename...").IsEnabled
+                && FileAction(window, "Move to Recycle Bin").IsEnabled, "selected folder enables File menu/F2/Delete operations");
             Pump(); var tile = FolderTile(window, album);
             foreach (string command in new[] { "rename", "move", "delete", "copy", "cut", "paste" })
                 Assert(tile.ContextMenu.Items.OfType<MenuItem>().Any(i => Object.Equals(i.Tag, command)), "folder menu includes " + command);
@@ -164,8 +164,8 @@ internal static partial class ViewerRegressionTests
             MakeImage(loose, 100, 80, 96); Directory.CreateDirectory(empty);
             Invoke(window, "LoadFolder", destination); WaitScan(window);
             grid.RestoreSelection(new[] { moved, loose, empty }, moved); Invoke(window, "UpdateStatus");
-            Assert(!Field<Button>(window, "_renameButton").IsEnabled && Field<Button>(window, "_moveButton").IsEnabled
-                && Field<Button>(window, "_deleteButton").IsEnabled, "mixed multi-selection supports move/recycle, single-item rename only");
+            Assert(!FileAction(window, "Rename...").IsEnabled && FileAction(window, "Move to folder...").IsEnabled
+                && FileAction(window, "Move to Recycle Bin").IsEnabled, "mixed multi-selection supports move/recycle, single-item rename only");
             int count = tabs.Count;
             WaitBackup((Task)Invoke(window, "RecycleBrowserItemsAsync", (object)new[] { moved, Path.Combine(movedChild, "Nested.png"), loose, empty })); WaitScan(window);
             Assert(!Directory.Exists(moved) && !Directory.Exists(empty) && !File.Exists(loose) && File.Exists(unrelated), "recursive/mixed deletion recycles only selected top-level items");

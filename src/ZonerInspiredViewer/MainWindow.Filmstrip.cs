@@ -242,10 +242,13 @@ namespace ZonerInspiredViewer
             return _filmstripPosition == "Left center" ? new Thickness(size.Width + 8, 0, 0, 0) : new Thickness(0, 0, size.Width + 8, 0);
         }
 
+        private double FilmstripTopClearance()
+        { return _enhancementStatusOverlay != null && _enhancementStatusOverlay.Visibility == Visibility.Visible ? Math.Max(56, _enhancementStatusOverlay.ActualHeight + 8) : 56; }
+
         private Size FilmstripDimensions()
         {
             bool vertical = _filmstripPosition != "Bottom center";
-            double width = Math.Max(0, _imageView.ActualWidth - 32), height = Math.Max(0, _imageView.ActualHeight - 32 - (vertical ? 56 : 0));
+            double width = Math.Max(0, _imageView.ActualWidth - 32), height = Math.Max(0, _imageView.ActualHeight - 32 - (vertical ? FilmstripTopClearance() : 0));
             // The seven frames taper together; reserve caption, padding and gaps before fitting the central frame.
             double gaps = 6 * FilmstripTileGap;
             double size = Math.Min(_filmstripSizePixels, Math.Min(Math.Max(0, width - 12 - (vertical ? 0 : gaps)) / (vertical ? 1 : 5.32),
@@ -263,7 +266,8 @@ namespace ZonerInspiredViewer
             double stripWidth = dimensions.Width;
             double x = vertical ? (_filmstripPosition == "Left center" ? 16 : 16 + width - stripWidth) : 16 + (width - stripWidth) / 2;
             double stripHeight = dimensions.Height;
-            double y = vertical ? 16 + 56 + Math.Max(0, height - 56 - stripHeight) / 2 : 16 + height - stripHeight;
+            double top = FilmstripTopClearance();
+            double y = vertical ? 16 + top + Math.Max(0, height - top - stripHeight) / 2 : 16 + height - stripHeight;
             _filmstripOverlay.Width = stripWidth; _filmstripOverlay.Height = stripHeight;
             Canvas.SetLeft(_filmstripOverlay, x);
             Canvas.SetTop(_filmstripOverlay, Math.Max(16, y));

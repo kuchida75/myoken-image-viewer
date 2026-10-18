@@ -13,7 +13,7 @@ namespace ZonerInspiredViewer
 {
     internal sealed partial class MainWindow
     {
-        private WrapPanel _workflowCommands, _viewerNavigationCommands, _viewerZoomCommands, _viewerEditCommands, _browserFileCommands;
+        private WrapPanel _workflowCommands, _viewerNavigationCommands, _viewerZoomCommands, _viewerEditCommands;
         private Button _fileMenuButton, _viewMenuButton, _clearSearchButton, _fitImageButton;
         private ToggleButton _performanceToggle;
         private StackPanel _performanceDetails;
@@ -46,10 +46,11 @@ namespace ZonerInspiredViewer
         private void ClearFolderSearch()
         { _searchBox.Clear(); _searchTimer.Stop(); ApplySearch(); _searchBox.Focus(); }
 
-        private MenuItem WorkflowMenuItem(string name, string glyph, string command, Action action, bool enabled)
+        private MenuItem WorkflowMenuItem(string name, string glyph, string command, Action action, bool enabled, string description = null)
         {
             var item = new MenuItem { Header = name, IsEnabled = enabled, Icon = CommandPresentation.Label(glyph, null) };
             if (command != null) { string keys = _shortcuts.Display(command); item.InputGestureText = keys == "Unassigned" ? "" : keys; }
+            CommandPresentation.Describe(item, name, item.InputGestureText, description ?? name);
             item.Click += delegate { action(); }; return item;
         }
 
@@ -59,16 +60,19 @@ namespace ZonerInspiredViewer
         private ContextMenu BuildFileActionsMenu()
         {
             var menu = new ContextMenu();
-            bool selected = SelectedFilePaths().Length > 0 && !_fileTransferBusy;
+            string[] paths = SelectedFilePaths();
+            bool ready = !_fileTransferBusy && !_backupBusy && !_rotationSaving && !_enhancementSaving;
+            bool selected = paths.Length > 0 && ready;
             menu.Items.Add(WorkflowMenuItem("Copy", "\uE8C8", "copy", delegate { CopySelectedFiles(false); }, selected));
             menu.Items.Add(WorkflowMenuItem("Cut", "\uE8C6", "cut", delegate { CopySelectedFiles(true); }, selected));
-            menu.Items.Add(WorkflowMenuItem("Paste into this folder", "\uE77F", "paste", delegate { PasteFiles(_currentFolder); }, CanPasteFiles()));
+            menu.Items.Add(WorkflowMenuItem("Paste into this folder", "\uE77F", "paste", delegate { PasteFiles(_currentFolder); }, ready && CanPasteFiles()));
             menu.Items.Add(new Separator());
-            menu.Items.Add(WorkflowMenuItem("Rename...", "\uE8AC", "rename", RenameCurrent, selected && SelectedFilePaths().Length == 1));
+            menu.Items.Add(WorkflowMenuItem("Rename...", "\uE8AC", "rename", RenameCurrent, selected && paths.Length == 1, "Rename the displayed image or one selected file or folder."));
             menu.Items.Add(BatchMenuItem());
-            menu.Items.Add(WorkflowMenuItem("Faces reference and canvas...", "\uE716", "faces", ShowFaces, !_fileTransferBusy && !_backupBusy && !_rotationSaving && !_enhancementSaving));
-            menu.Items.Add(WorkflowMenuItem("Move to folder...", "\uE8DE", null, MoveCurrent, selected));
-            menu.Items.Add(WorkflowMenuItem("Move to Recycle Bin", "\uE74D", "delete", DeleteCurrent, selected));
+            menu.Items.Add(WorkflowMenuItem("Move to folder...", "\uE8DE", null, MoveCurrent, selected, "Move selected files and folders to another folder. Existing items are never overwritten."));
+            menu.Items.Add(WorkflowMenuItem("Move to Recycle Bin", "\uE74D", "delete", DeleteCurrent, selected, "Recycle selected files and folders. In viewer mode, advance to the next image without closing the tab."));
+            menu.Items.Add(new Separator());
+            menu.Items.Add(WorkflowMenuItem("Faces reference and canvas...", "\uE716", "faces", ShowFaces, ready));
             menu.Items.Add(new Separator());
             menu.Items.Add(WorkflowMenuItem("Show in Explorer", "\uED25", null, ShowCurrentInExplorer, !String.IsNullOrEmpty(WorkflowPath())));
             menu.Items.Add(WorkflowMenuItem("Copy full path", "\uE8C8", null, CopyCurrentPath, !String.IsNullOrEmpty(WorkflowPath())));
@@ -109,6 +113,7 @@ namespace ZonerInspiredViewer
             AddViewToggle(menu, "Thumbnail minimap", "\uE8A5", "minimap", _minimapVisible, delegate { SetThumbnailMinimap(!_minimapVisible, true); });
             menu.Items.Add(new Separator());
             AddViewToggle(menu, "Image information", "\uE946", "metadata", _imageMetadataOverlayEnabled, delegate { SetImageMetadataOverlay(!_imageMetadataOverlayEnabled); });
+            AddViewToggle(menu, "Enhancement status", "\uE790", null, _enhancementStatusEnabled, delegate { SetEnhancementStatusVisible(!_enhancementStatusEnabled); });
             AddViewToggle(menu, "Pan navigator", "\uE9D9", "navigator", _imageNavigatorEnabled, delegate { SetImageNavigator(!_imageNavigatorEnabled); });
             menu.Items.Add(new Separator());
             AddViewToggle(menu, "Compact mode", "\uE8A0", "compact", _isCompactMode, delegate { SetCompactMode(!_isCompactMode); });
@@ -157,8 +162,6 @@ namespace ZonerInspiredViewer
             bool viewing = _imageView.Visibility == Visibility.Visible;
             foreach (var group in new[] { _viewerNavigationCommands, _viewerZoomCommands, _viewerEditCommands })
                 group.Visibility = viewing ? Visibility.Visible : Visibility.Collapsed;
-            _browserFileCommands.Visibility = viewing ? Visibility.Collapsed : Visibility.Visible;
-            if (_batchButton != null) _batchButton.IsEnabled = SelectedFilePaths().Length > 0 && !_fileTransferBusy && !_backupBusy && !_rotationSaving && !_enhancementSaving;
             _fitImageButton.IsEnabled = HasCurrentImage();
             _clearSearchButton.IsEnabled = !String.IsNullOrEmpty(_searchBox.Text);
             if (_folderLocation != null) _folderLocation.SetPath(_currentFolder);

@@ -137,11 +137,16 @@ internal static partial class ViewerRegressionTests
         Invoke(window, "OpenImageTab", gif, true); Wait(delegate { return Ready(window, gif); }, "return to animated folder");
         PressKey(window, Key.Enter); Pump();
         Assert(Field<ImageAnimation>(window, "_animation") == null && !Field<System.Windows.Threading.DispatcherTimer>(window, "_animationTimer").IsEnabled, "browser return releases GIF frames and timer");
-        foreach (string name in new[] { "_helpButton", "_configureButton", "_renameButton", "_deleteButton", "_sessionsButton" })
+        foreach (string name in new[] { "_helpButton", "_configureButton", "_fileMenuButton", "_sessionsButton" })
         {
             var button = Field<Button>(window, name);
             Assert(button.ToolTip is ToolTip && !String.IsNullOrEmpty(AutomationProperties.GetName(button)), "discoverable command " + name);
             Assert(ToolTipService.GetShowOnDisabled(button), "disabled commands retain explanations " + name);
+        }
+        foreach (string name in new[] { "Rename...", "Move to Recycle Bin" })
+        {
+            var item = FileAction(window, name);
+            Assert(item.ToolTip is ToolTip && !String.IsNullOrEmpty(AutomationProperties.GetName(item)) && ToolTipService.GetShowOnDisabled(item), "File menu retains accessible descriptions " + name);
         }
         Assert(AutomationProperties.GetAcceleratorKey(Field<Button>(window, "_configureButton")) == "Ctrl+,", "Configure shortcut exposed");
         Render((FrameworkElement)window.Content, "formats-toolbar-dark.png");

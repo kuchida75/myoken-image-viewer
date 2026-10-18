@@ -11,6 +11,8 @@ using ZonerInspiredViewer;
 
 internal static partial class ViewerRegressionTests
 {
+    private static MenuItem FileAction(MainWindow window, string header)
+    { return ((ContextMenu)Invoke(window, "BuildFileActionsMenu")).Items.OfType<MenuItem>().Single(item => (string)item.Header == header); }
     private static void CheckWorkflowBounds(MainWindow window)
     {
         Pump(); CheckSearchAlignment(window, false);
@@ -50,8 +52,9 @@ internal static partial class ViewerRegressionTests
                 && fileLabel[2].Text == "\uE70D", "File uses document icon, label and trailing dropdown chevron");
             Assert(AutomationProperties.GetName(fileButton) == "File" && fileButton.ToolTip != null,
                 "File button retains accessible name and description");
-            Assert(Field<WrapPanel>(window, "_browserFileCommands").IsVisible && !Field<WrapPanel>(window, "_viewerZoomCommands").IsVisible
+            Assert(!Field<WrapPanel>(window, "_viewerZoomCommands").IsVisible
                 && !Field<WrapPanel>(window, "_viewerEditCommands").IsVisible, "browser excludes image-only controls");
+            Assert(!StackVisuals<Button>((DependencyObject)Field<UIElement>(window, "_topToolbar")).Any(button => new[] { "Rename", "Batch", "Move", "Recycle" }.Contains(AutomationProperties.GetName(button))), "File commands no longer duplicate toolbar buttons");
             Assert(!Field<StackPanel>(window, "_performanceDetails").IsVisible, "diagnostics begin collapsed");
             Assert(Field<ToggleButton>(window, "_enhanceButton").IsVisible, "global Quick Enhance remains accessible in browser");
             Field<TextBox>(window, "_searchBox").Focus();
@@ -80,9 +83,11 @@ internal static partial class ViewerRegressionTests
             Invoke(window, "OpenImageTab", a, true); WaitGpuImage(window, a); CheckWorkflowBounds(window);
             Assert(!location.IsEditing, "opening an image cancels stale address editing");
             Assert(Field<WrapPanel>(window, "_viewerZoomCommands").IsVisible && Field<WrapPanel>(window, "_viewerEditCommands").IsVisible
-                && !Field<WrapPanel>(window, "_browserFileCommands").IsVisible, "viewer exposes navigation/zoom/editing and keeps file menu");
+                && Field<Button>(window, "_fileMenuButton").IsVisible, "viewer exposes navigation/zoom/editing and keeps file menu");
             Assert((string)Invoke(window, "WorkflowPath") == a, "file utility targets displayed image");
             var fileMenu = (ContextMenu)Invoke(window, "BuildFileActionsMenu");
+            foreach (string header in new[] { "Rename...", "Batch", "Move to folder...", "Move to Recycle Bin" }) Assert(FileAction(window, header).IsEnabled, "File menu keeps selected-image command " + header);
+            Assert(FileAction(window, "Batch").Items.Count == 4 && FileAction(window, "Rename...").InputGestureText == "F2" && FileAction(window, "Move to Recycle Bin").InputGestureText == "Delete", "Batch tools and default shortcut hints remain in File");
             Assert(fileMenu.Items.OfType<MenuItem>().Any(m => (string)m.Header == "Copy full path" && m.IsEnabled)
                 && fileMenu.Items.OfType<MenuItem>().Any(m => (string)m.Header == "Show in Explorer" && m.IsEnabled), "file utilities are available without launching Explorer or changing clipboard in tests");
             fileMenu.PlacementTarget = Field<Button>(window, "_fileMenuButton"); fileMenu.IsOpen = true; Pump(); Render(fileMenu, "workflow-file-menu.png"); fileMenu.IsOpen = false;

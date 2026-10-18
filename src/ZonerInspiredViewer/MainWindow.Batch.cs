@@ -11,7 +11,6 @@ namespace ZonerInspiredViewer
     {
         private BatchWindow _batchWindow;
         private List<BatchPreset> _batchPresets = new List<BatchPreset>();
-        private Button _batchButton;
 
         private ContextMenu BuildBatchMenu()
         {
@@ -27,7 +26,8 @@ namespace ZonerInspiredViewer
         }
         private MenuItem BatchMenuItem()
         {
-            var group = new MenuItem { Header = "Batch", Icon = CommandPresentation.Label("\uE8F1", null), IsEnabled = SelectedFilePaths().Length > 0 && !_fileTransferBusy };
+            var group = new MenuItem { Header = "Batch", Icon = CommandPresentation.Label("\uE8F1", null), IsEnabled = SelectedFilePaths().Length > 0 && !_fileTransferBusy && !_backupBusy && !_rotationSaving && !_enhancementSaving };
+            CommandPresentation.Describe(group, "Batch", null, "Rename, resize, convert or auto-orient the selected files and folders with a preview.");
             var menu = BuildBatchMenu(); var children = menu.Items.Cast<MenuItem>().ToArray(); menu.Items.Clear();
             foreach (var child in children) group.Items.Add(child); return group;
         }

@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.227 - 2026-10-18
+
+- Added a passive translucent status overlay at the top left of image view. It reports Quick Enhance Off, Basic or Advanced, processing, unavailable and already-saved states, plus active or neutral manual adjustments.
+- Status follows image/tab/mode/slider changes without altering pixels, zoom or pan. Overlay layout reserves space around zoom, metadata, Enhance, slideshow, navigation and carousel controls.
+- Added View > Enhancement status and Configure > Images > Enhancement status. Visibility defaults on and persists in automatic/named sessions and backups.
+- Added mode/manual/failure/saved, live update, passive layout, theme/compact/fullscreen/carousel, source preservation and persistence checks.
+
+## 0.2.223-0.2.226 - 2026-10-18
+
+- Removed the duplicate Rename, Batch, Move and Recycle toolbar buttons. File groups these actions together, with the same selection handling, shortcuts, context menus and batch tools, plus accessible descriptions.
+- Moved canvas width, height and aspect-ratio sliders and exact dimension inputs into a themed Canvas size drop-down in both Faces modes. Live updates, automatic sizing, saved dimensions and limits are unchanged; the closed menu frees preview space.
+- Added drop-down keyboard/open/reopen/Escape, tab/work dismissal, live preview and dark/light/narrow layout checks; updated file-menu, mixed folder selection and command accessibility regressions.
+- Bound popup editing availability explicitly to the parent control so sizing stays disabled during scans/exports, including after the menu closes.
+- Updated fit/adaptive zoom rebinding regressions to use an unassigned key instead of conflicting with the existing F6 Faces shortcut; app defaults are unchanged.
+
 ## 0.2.222 - 2026-10-17
 
 - Application confirmations, warnings, errors and information messages now follow the app's dark/light theme, including Delete, Enhance Save overwrite, rotation saves, sessions, batch operations, transfers and backups.

@@ -1,6 +1,6 @@
 # Myoken Image Viewer
 
-Myoken is a Windows-native photo browser and image viewer built with C# and WPF. The current source version is **0.2.222**. It targets Windows 10/11 x64 with .NET Framework 4.8.
+Myoken is a Windows-native photo browser and image viewer built with C# and WPF. The current source version is **0.2.227**. It targets Windows 10/11 x64 with .NET Framework 4.8.
 
 ## Highlights
 

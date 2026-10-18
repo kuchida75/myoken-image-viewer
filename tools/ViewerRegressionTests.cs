@@ -30,6 +30,9 @@ internal static partial class ViewerRegressionTests
             if (args.Contains("--natural-sort-only")) return 0;
             var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
             ThemeManager.Initialize(app, true);
+            if (args.Contains("--enhancement-status-only")) { RunEnhancementStatusChecks(); app.Shutdown(); return 0; }
+            if (args.Contains("--enhancement-overlays-focused")) { RunEnhancementStatusChecks(); RunManualEnhanceChecks(); RunZoomIndicatorChecks(); RunMetadataOverlayChecks(); app.Shutdown(); return 0; }
+            if (args.Length == 0) RunEnhancementStatusChecks();
             if (args.Contains("--message-dialogs-only")) { RunMessageDialogChecks(); app.Shutdown(); return 0; }
             if (args.Length == 0) RunMessageDialogChecks();
             if (args.Contains("--enhance-save-focused")) { RunOverwritePreferenceChecks(); RunEnhanceSaveChecks(); app.Shutdown(); return 0; }

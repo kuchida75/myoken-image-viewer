@@ -4,6 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace ZonerInspiredViewer
 {
@@ -17,10 +22,8 @@ namespace ZonerInspiredViewer
             fields.AspectSlider = new Slider { Minimum = .25, Maximum = 4, Value = 1, SmallChange = .01, LargeChange = .25, TickFrequency = .01, IsSnapToTickEnabled = true };
             fields.AspectValue = new TextBlock { Text = "1:1", Width = 64, TextAlignment = TextAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
             CommandPresentation.Describe(fields.AspectSlider, "Canvas aspect ratio", null, "Change the overall canvas width-to-height ratio, not the face crop shape. Sets height from width and turns off Auto height. The canvas updates automatically after a short pause.");
-            panel.Children.Add(CanvasSliderRow("Width (px)", fields.WidthSlider, fields.Width));
-            panel.Children.Add(CanvasSliderRow("Height (px)", fields.HeightSlider, fields.Height));
-            panel.Children.Add(CanvasSliderRow("Aspect ratio", fields.AspectSlider, fields.AspectValue));
             var modes = new WrapPanel(); panel.Children.Add(modes);
+            modes.Children.Add(CanvasSizeMenu(fields));
             fields.AutoColumns = new CheckBox { Content = "Auto columns", IsChecked = true, Margin = new Thickness(0, 0, 14, 0), VerticalAlignment = VerticalAlignment.Center };
             fields.Columns.IsReadOnly = true; modes.Children.Add(fields.AutoColumns);
             CommandPresentation.Describe(fields.AutoColumns, "Auto columns", null, "Balance the reviewed faces across populated rows with no empty cells. Disable to choose a fixed column count.");
@@ -42,6 +45,51 @@ namespace ZonerInspiredViewer
             RoutedEventHandler heightChanged = delegate { fields.Height.IsReadOnly = fields.AutoHeight.IsChecked == true; CanvasFieldsChanged(fields); };
             fields.AutoHeight.Checked += heightChanged; fields.AutoHeight.Unchecked += heightChanged;
             return fields;
+        }
+        private FrameworkElement CanvasSizeMenu(CanvasFields fields)
+        {
+            var host = new Grid { Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
+            fields.SizeButton = new ToggleButton { Width = 146, Height = 30, Content = CommandPresentation.Label("\uE740", "Canvas size") };
+            ((StackPanel)fields.SizeButton.Content).Children.Add(new TextBlock { Text = "\uE70D", FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                FontSize = 10, Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
+            CommandPresentation.Describe(fields.SizeButton, "Canvas size", null, "Open width, height and aspect-ratio sliders and exact pixel values. Slider changes update the canvas automatically. Esc closes this menu.");
+            host.Children.Add(fields.SizeButton);
+            var content = new StackPanel { Margin = new Thickness(14) };
+            var heading = new DockPanel { Margin = new Thickness(0, 0, 0, 12) };
+            fields.SizeSummary = new TextBlock { Text = "2048 x 2048 px", HorizontalAlignment = HorizontalAlignment.Right };
+            ThemeManager.Bind(fields.SizeSummary, TextBlock.ForegroundProperty, ThemeKeys.MutedText);
+            DockPanel.SetDock(fields.SizeSummary, Dock.Right); heading.Children.Add(fields.SizeSummary);
+            heading.Children.Add(new TextBlock { Text = "Canvas size", FontWeight = FontWeights.SemiBold }); content.Children.Add(heading);
+            content.Children.Add(CanvasSliderRow("Width (px)", fields.WidthSlider, fields.Width));
+            content.Children.Add(CanvasSliderRow("Height (px)", fields.HeightSlider, fields.Height));
+            content.Children.Add(CanvasSliderRow("Aspect ratio", fields.AspectSlider, fields.AspectValue));
+            KeyboardNavigation.SetTabNavigation(content, KeyboardNavigationMode.Cycle);
+            var frame = new Border { Width = 440, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(2), Child = content };
+            ThemeManager.Bind(frame, Border.BackgroundProperty, ThemeKeys.ControlBackground);
+            ThemeManager.Bind(frame, Border.BorderBrushProperty, ThemeKeys.Border);
+            frame.SetBinding(IsEnabledProperty, new Binding("IsEnabled") { Source = fields.SizeButton });
+            TextElement.SetFontFamily(frame, new FontFamily("Segoe UI")); TextElement.SetFontSize(frame, 12);
+            frame.SetResourceReference(TextElement.ForegroundProperty, ThemeKeys.Text);
+            fields.SizePopup = new Popup { Child = frame, PlacementTarget = fields.SizeButton, Placement = PlacementMode.Bottom,
+                VerticalOffset = 4, AllowsTransparency = true, StaysOpen = false };
+            fields.SizePopup.SetBinding(Popup.IsOpenProperty, new Binding("IsChecked") { Source = fields.SizeButton, Mode = BindingMode.TwoWay });
+            host.Children.Add(fields.SizePopup);
+            fields.SizePopup.Opened += delegate { fields.WidthSlider.Focus(); };
+            fields.SizePopup.PreviewKeyDown += delegate(object sender, KeyEventArgs e)
+            { if (e.Key == Key.Escape) { fields.SizeButton.IsChecked = false; fields.SizeButton.Focus(); e.Handled = true; } };
+            fields.SizeButton.PreviewKeyDown += delegate(object sender, KeyEventArgs e)
+            { if (e.Key == Key.Enter || e.Key == Key.Down) { fields.SizeButton.IsChecked = true; e.Handled = true; } };
+            fields.SizeButton.IsVisibleChanged += delegate { if (!fields.SizeButton.IsVisible) fields.SizeButton.IsChecked = false; };
+            fields.SizeButton.IsEnabledChanged += delegate { if (!fields.SizeButton.IsEnabled) fields.SizeButton.IsChecked = false; };
+            return host;
+        }
+        private bool CloseCanvasSizeMenus(bool restoreFocus = false)
+        {
+            bool closed = false;
+            foreach (var fields in new[] { _reference, _interactive })
+                if (fields != null && fields.SizePopup != null && fields.SizePopup.IsOpen)
+                { fields.SizeButton.IsChecked = false; closed = true; if (restoreFocus) fields.SizeButton.Focus(); }
+            return closed;
         }
         private static Slider DimensionSlider(string label)
         {
@@ -81,6 +129,7 @@ namespace ZonerInspiredViewer
                 fields.AspectSlider.Minimum = Math.Min(fields.AspectSlider.Minimum, ratio); fields.AspectSlider.Maximum = Math.Max(fields.AspectSlider.Maximum, ratio);
                 fields.AspectSlider.Value = ratio; fields.AspectValue.Text = ratio >= 1 ? ratio.ToString("0.##", CultureInfo.InvariantCulture) + ":1" : "1:" + (1 / ratio).ToString("0.##", CultureInfo.InvariantCulture);
                 fields.AspectValue.ToolTip = width + " x " + height + " px";
+                fields.SizeSummary.Text = width + " x " + height + " px";
             }
             finally { fields.Syncing = false; }
         }
