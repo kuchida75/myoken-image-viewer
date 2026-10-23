@@ -129,9 +129,7 @@ internal static partial class ViewerRegressionTests
             Assert((string)((ComboBoxItem)Field<ComboBox>(window, "_configureUpscaleModel").SelectedItem).Tag == UpscaleModels.SwinIr, "Configure model selection follows toolbar");
             menu = (ContextMenu)Invoke(window, "BuildUpscaleModelMenu");
             Assert(menu.Items.OfType<MenuItem>().Single(i => i.IsChecked).Tag.Equals(UpscaleModels.SwinIr), "SwinIR is the sole checked model");
-            window.Width = 980; Pump(); Render(window, "upscale-model-viewer-narrow.png");
-            AssertInside(Field<Button>(window, "_upscaleButton"), (FrameworkElement)window.Content);
-            AssertInside(Field<Button>(window, "_upscaleModelButton"), (FrameworkElement)window.Content);
+            CheckNarrowUpscaleCommands(window);
             var state = Capture(window); services.Sessions.Save(state);
             Assert(services.Sessions.Load().SuperResolutionModel == UpscaleModels.SwinIr, "SwinIR persists on disk");
             var document = (ViewerBackupDocument)Invoke(window, "CaptureBackupSnapshot");
@@ -155,6 +153,38 @@ internal static partial class ViewerRegressionTests
     {
         DateTime limit = DateTime.UtcNow.AddSeconds(90); while (!task.IsCompleted && DateTime.UtcNow < limit) Pump();
         Assert(task.IsCompleted, "viewer model job finished"); task.GetAwaiter().GetResult();
+    }
+
+    private static void CheckNarrowUpscaleCommands(MainWindow window)
+    {
+        var search = Field<TextBox>(window, "_searchBox");
+        var strip = (ToolbarCommandStrip)((ToolbarCommandPanel)((StackPanel)search.Parent).Parent).Children[0];
+        foreach (bool dark in new[] { true, false })
+        {
+            ThemeManager.SetDarkTheme(dark);
+            foreach (double width in new[] { 980.0, 1100, 1440 })
+            {
+                window.Width = width; Pump(); CheckSearchAlignment(window, false);
+                foreach (string name in new[] { "_upscaleButton", "_upscaleModelButton" })
+                {
+                    var button = Field<Button>(window, name);
+                    strip.Viewport.ScrollToLeftEnd(); Pump();
+                    if (strip.Viewport.ScrollableWidth > 0)
+                    {
+                        for (int attempt = 0; attempt < 20; attempt++) { strip.Scroll(1); Pump(); }
+                    }
+                    AssertInside(button, strip.Viewport);
+                    strip.Viewport.ScrollToLeftEnd(); Pump();
+                    Assert(button.Focus(), "AI command accepts keyboard focus in narrow toolbar");
+                    Pump(); AssertInside(button, strip.Viewport);
+                    AssertInside(button, (FrameworkElement)window.Content);
+                }
+                AssertInside(search, (FrameworkElement)window.Content);
+            }
+        }
+        ThemeManager.SetDarkTheme(true); window.Width = 980; Pump();
+        Field<Button>(window, "_upscaleModelButton").BringIntoView(); Pump();
+        Render(window, "upscale-model-viewer-narrow.png");
     }
 
     private static void CheckModelTiles(string id, GpuAdapterMemoryInfo adapter)

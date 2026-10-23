@@ -25,8 +25,12 @@ internal static partial class ViewerRegressionTests
 
     private static void CheckManualLayout(MainWindow window)
     {
-        window.UpdateLayout();
         var view = Field<Grid>(window, "_imageView"); var panel = Field<Border>(window, "_manualEnhanceOverlay");
+        Wait(delegate
+        {
+            window.UpdateLayout();
+            return !Field<bool>(window, "_imageViewPending") && panel.IsVisible && panel.ActualHeight >= 80;
+        }, "manual panel settles after image/viewport layout");
         Assert(panel.IsVisible && panel.ActualHeight >= 80, "manual panel remains usable"); AssertInside(panel, view);
         Rect bounds = new Rect(panel.TranslatePoint(new Point(), view), panel.RenderSize);
         AssertNear(bounds.Left, 16, "manual panel left inset");

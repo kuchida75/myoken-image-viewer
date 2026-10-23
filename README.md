@@ -1,6 +1,6 @@
 # Myoken Image Viewer
 
-Myoken is a Windows-native photo browser and image viewer built with C# and WPF. The current source version is **0.2.227**. It targets Windows 10/11 x64 with .NET Framework 4.8.
+Myoken is a Windows-native photo browser and image viewer built with C# and WPF. The current source version is **0.2.229**. It targets Windows 10/11 x64 with .NET Framework 4.8.
 
 ## Highlights
 
@@ -22,7 +22,7 @@ The default workspace is dark, normal mode, with the folder tree visible and the
 
 This repository contains **source, not a prebuilt executable**. A fresh clone must restore the pinned codec and enhancement dependencies before building. Follow the [Windows build guide](docs/BUILDING.md); its build script produces `artifacts\MyokenImageViewer\MyokenImageViewer.exe` and advances the build number each time it runs. Optional NVIDIA JPEG acceleration has a separate restore step.
 
-There is no public binary release yet. Bundled codecs, runtimes and AI weights require a [third-party distribution review](THIRD_PARTY_NOTICES.md) before a full executable package is published.
+Private portable previews are available under [Releases in the Blackbox Windows repository](https://192.168.8.100:3000/kuchida/Myoken-Image-viewer-Windows/releases). Extract the complete ZIP and run `MyokenImageViewer.exe`. These previews are not certified public binary releases; bundled codecs, runtimes and AI weights still require a [third-party distribution review](THIRD_PARTY_NOTICES.md) before public distribution.
 
 ## Everyday Keys
 

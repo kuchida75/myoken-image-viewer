@@ -1,6 +1,6 @@
 # Source Publication Checklist
 
-The public source repository is [kuchida75/myoken-image-viewer](https://github.com/kuchida75/myoken-image-viewer). The current source version is **0.2.227**; `version.json` is authoritative for later builds. The first Myoken build was 0.2.167, and the earlier Zen Image Viewer source baseline is tagged `v0.2.166`.
+The primary Windows repository is [Myoken on Blackbox](https://192.168.8.100:3000/kuchida/Myoken-Image-viewer-Windows), remote `blackbox`, branch `main`. The current source version is **0.2.229**; `version.json` is authoritative for later builds. Use Blackbox for ordinary pushes and releases. GitHub `origin` is historical and is updated only on explicit request. The first Myoken build was 0.2.167, and the earlier Zen Image Viewer source baseline is tagged `v0.2.166`.
 
 ## Before Each Source Push
 
@@ -8,7 +8,7 @@ The public source repository is [kuchida75/myoken-image-viewer](https://github.c
 2. Confirm the staged tree contains only reviewed source, tests, assets, docs and notices. The root `.gitignore` is an allowlist; never stage `sources`, `artifacts`, runtime DLLs, AI weights, profiles, sessions, thumbnail/search caches, private photos, saved face canvases, backups or credentials. The only photographic test fixtures are the pinned, licensed public examples documented in `tools/Fixtures`.
 3. Keep the complete root [Apache-2.0 license](../LICENSE), [NOTICE](../NOTICE), and [third-party notices](../THIRD_PARTY_NOTICES.md). The project's license does not relicense downloaded codecs, runtimes or model weights.
 4. Check that the app's built-in first-run defaults have no personal settings. A developer's local profile is separate from the source tree; do not reset or publish it merely to make a source commit.
-5. Fetch/check GitHub's `main` before pushing. Never force-push over unexpected remote history. Verify the remote commit after the push.
+5. Fetch/check Blackbox's `main` before pushing. Never force-push over unexpected remote history. Verify the remote commit after the push. Push to GitHub only when explicitly requested.
 
 See [building from source](BUILDING.md) and [default state and recovery](DEFAULT_STATE.md).
 
@@ -22,7 +22,7 @@ normal Windows profile, and is a safeguard rather than a guarantee of secret det
 
 ## Binary Releases
 
-Do not upload the local full ZIP or an executable/model pack until the [third-party distribution review](../THIRD_PARTY_NOTICES.md) is complete. A future binary release needs exact dependency/model versions, checksums, notices, a source revision and test notes.
+Public executable/model distribution remains pending the [third-party distribution review](../THIRD_PARTY_NOTICES.md). Explicitly requested private Blackbox previews must remain private and marked as prereleases; that does not certify third-party redistribution. Include exact dependency/model versions, checksums, notices, source revision and test notes. Upload binaries as release attachments, never Git source history. Audit ZIP contents for profiles, thumbnails, other caches, saved canvases, backups, credentials and private images, then download the attachments and verify their hashes before publishing the draft release.
 
 ## Historical Repository Rename
 
@@ -38,4 +38,4 @@ The Windows WPF project remains Windows-only.
 2. Compare those revisions, using the changelog, feature reference and regression tests as a migration checklist. Port behavior and reusable logic into Avalonia; do not replace compatible Ubuntu implementations or merge the entire WPF project into it.
 3. Record the Windows reference commit and ported/deferred items in the Ubuntu repository. Check Linux behavior and GUI parity there, then commit the Ubuntu changes separately.
 
-GitHub is the source of truth. A small handoff document with sanitized menu/view screenshots can supplement it when visual parity matters. A separate source ZIP is only an offline/access fallback; label it with the same commit and audit it for private data. Do not use the Windows runtime ZIP as the Ubuntu source handoff.
+Blackbox is the source of truth for current Windows work. The GitHub links above describe the historical public repositories; do not mirror there automatically. A small handoff document with sanitized menu/view screenshots can supplement the source when visual parity matters. A separate source ZIP is only an offline/access fallback; label it with the same commit and audit it for private data. Do not use the Windows runtime ZIP as the Ubuntu source handoff.

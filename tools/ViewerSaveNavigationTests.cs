@@ -73,13 +73,20 @@ internal static partial class ViewerRegressionTests
             }
             finally { File.SetAttributes(current, FileAttributes.Normal); Invoke(window, "SetAutoSaveRotations", false, false); }
 
-            PressFocusedKey(Key.Oem6); Invoke(window, "SetManualEnhanceVisible", true); Pump();
+            Assert(((ImageTabState)Invoke(window, "CurrentTabState")).RotationQuarterTurns == 1,
+                "failed rotation remains view-only after navigating away and back");
+            Invoke(window, "SetManualEnhanceVisible", true); Pump();
             Field<CheckBox>(window, "_confirmEnhanceOverwriteCheckBox").IsChecked = false;
             var save = Field<Button>(window, "_manualSaveButton");
             Assert(save.IsEnabled && save.Focus(), "Enhance Save takes focus like a mouse click");
             save.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
             var enhance = Field<Task<EnhancedSaveResult>>(window, "_enhanceSaveTask"); WaitBackup(enhance);
             Assert(enhance.Result != null && ReadToolImage(current).PixelWidth == 480, "Enhance saves rotation with progress window");
+            Assert(((ImageTabState)Invoke(window, "CurrentTabState")).RotationQuarterTurns == 0
+                && !((ImageTabState)Invoke(window, "CurrentTabState")).BrowserRotations.ContainsKey(current),
+                "Enhance overwrite clears baked rotation from image and browser state");
+            Assert(Capture(window).Tabs.All(t => t.BrowserRotations == null || t.BrowserRotations.All(r => r.Path != current)),
+                "saved sessions do not retain a stale baked browser rotation");
             CheckNavigationAfterSave(window, first, current, last, "Enhance rotation save");
 
             var slider = Field<List<Slider>>(window, "_manualSliders")[1]; slider.Value = 12; slider.Focus();

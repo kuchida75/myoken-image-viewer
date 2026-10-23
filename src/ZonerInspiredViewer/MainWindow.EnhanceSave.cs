@@ -123,6 +123,7 @@ namespace ZonerInspiredViewer
                             tab.ManualAdjustments = null; tab.RotationQuarterTurns = 0; tab.HasCustomView = false;
                             tab.SavedEnhanceRevision = result.Revision;
                         }
+                        ClearBrowserRotationEverywhere(result.Path);
                         if (!String.Equals(source, result.Path, StringComparison.OrdinalIgnoreCase))
                             ActivateImageTab(_tabOrder.First(id => !_tabs[id].IsBrowser && String.Equals(_tabs[id].Path, result.Path, StringComparison.OrdinalIgnoreCase)));
                         else DisplayTab();

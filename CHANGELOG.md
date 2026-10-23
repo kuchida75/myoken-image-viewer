@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.228-0.2.229 - 2026-10-23
+
+- Fixed Enhance Save cleanup so a rotation baked into the output is also removed from browser and session rotation state, consistent with rotation-only saves.
+- Corrected the save-navigation regression to reuse the view-only rotation deliberately retained after a failed save, rather than rotating a second time before expecting a quarter-turn result. Kept real saved-pixel, backup, focus, navigation, cancel/failure and Save As checks.
+- Updated narrow AI-toolbar coverage for the existing single-row scrolling toolbar. Tests now verify that overflow scrolling and keyboard focus reveal both AI commands at multiple widths in dark and light themes, without overlapping the search field.
+- Added a focused save-navigation test entry point and more informative shared layout assertion diagnostics.
+- Made Enhance layout checks wait for the asynchronous image/viewport layout to settle after resizing before checking panel usability and bounds. A broader wrapper exposed this timing issue after the focused save tests passed; no size/bounds assertion was removed.
+
 ## 0.2.227 - 2026-10-18
 
 - Added a passive translucent status overlay at the top left of image view. It reports Quick Enhance Off, Basic or Advanced, processing, unavailable and already-saved states, plus active or neutral manual adjustments.

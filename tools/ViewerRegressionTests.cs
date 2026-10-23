@@ -36,6 +36,7 @@ internal static partial class ViewerRegressionTests
             if (args.Contains("--message-dialogs-only")) { RunMessageDialogChecks(); app.Shutdown(); return 0; }
             if (args.Length == 0) RunMessageDialogChecks();
             if (args.Contains("--enhance-save-focused")) { RunOverwritePreferenceChecks(); RunEnhanceSaveChecks(); app.Shutdown(); return 0; }
+            if (args.Contains("--save-navigation-focused")) { RunSaveNavigationChecks(); app.Shutdown(); return 0; }
             if (args.Contains("--file-picker-only")) { RunFilePickerChecks(); app.Shutdown(); return 0; }
             if (args.Length == 0) RunFilePickerChecks();
             if (args.Contains("--recycle-preference-only")) { RunRecyclePreferenceChecks(); app.Shutdown(); return 0; }
@@ -1125,7 +1126,7 @@ internal static partial class ViewerRegressionTests
     {
         Rect bounds = element.TransformToAncestor(frame).TransformBounds(new Rect(element.RenderSize));
         Assert(bounds.Left >= 0 && bounds.Right <= frame.ActualWidth + 1 && bounds.Bottom <= frame.ActualHeight + 1,
-            "thumbnail control fits narrow browser");
+            element.GetType().Name + " fits " + frame.GetType().Name + ": " + bounds + " within " + frame.RenderSize);
     }
 
     private static AppServices Prepare()

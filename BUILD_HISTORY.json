@@ -1587,5 +1587,19 @@
     "CompletedUtc": "2026-10-18T13:59:44.1723431Z",
     "Result": "Built",
     "Note": "Add passive top-left enhancement mode/status overlay with manual adjustment indication and saved visibility setting."
+  },
+  {
+    "Version": "0.2.228",
+    "StartedUtc": "2026-10-23T14:01:58.9014769Z",
+    "CompletedUtc": "2026-10-23T14:02:02.2312733Z",
+    "Result": "Built",
+    "Note": "Fix baked Enhance rotation cleanup and correct save-navigation and narrow AI toolbar regressions."
+  },
+  {
+    "Version": "0.2.229",
+    "StartedUtc": "2026-10-23T14:12:15.7766181Z",
+    "CompletedUtc": "2026-10-23T14:12:18.7419779Z",
+    "Result": "Built",
+    "Note": "Fix baked Enhance rotation cleanup and stale save/toolbar expectations; wait for settled Enhance layout in broader regression checks."
   }
 ]
