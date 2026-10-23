@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.230-0.2.231 - 2026-10-23
+
+- Reuse the already-verified saved JPEG/PNG pixels in the decoded cache after rotation, avoiding another full-resolution decode before redisplaying the image. Skip the full active-tab rebuild when the saved file remains open in the viewer.
+- Preserve original-file backups, atomic replacement, concurrent-edit digest checks, output validation, revision-aware cache admission and existing watcher behavior. ICC-enabled viewing retains its normal profile-aware reload path.
+- Added saved-pixel/backup parity, ICC fallback, stale-preview rejection, duplicate-decode counting, tab/focus/navigation and external-edit regression coverage.
+
 ## 0.2.228-0.2.229 - 2026-10-23
 
 - Fixed Enhance Save cleanup so a rotation baked into the output is also removed from browser and session rotation state, consistent with rotation-only saves.

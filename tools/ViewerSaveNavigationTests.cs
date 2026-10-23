@@ -81,7 +81,8 @@ internal static partial class ViewerRegressionTests
             Assert(save.IsEnabled && save.Focus(), "Enhance Save takes focus like a mouse click");
             save.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
             var enhance = Field<Task<EnhancedSaveResult>>(window, "_enhanceSaveTask"); WaitBackup(enhance);
-            Assert(enhance.Result != null && ReadToolImage(current).PixelWidth == 480, "Enhance saves rotation with progress window");
+            Assert(enhance.Result != null && ReadToolImage(current).PixelWidth == 480,
+                "Enhance saves rotation with progress window: " + Field<TextBlock>(window, "_enhanceSaveStatus").Text);
             Assert(((ImageTabState)Invoke(window, "CurrentTabState")).RotationQuarterTurns == 0
                 && !((ImageTabState)Invoke(window, "CurrentTabState")).BrowserRotations.ContainsKey(current),
                 "Enhance overwrite clears baked rotation from image and browser state");

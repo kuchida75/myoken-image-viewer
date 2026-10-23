@@ -27,6 +27,13 @@ namespace ZonerInspiredViewer
         public bool Matches(string path) { return Length >= 0 && Equals(Read(path)); }
     }
 
+    internal sealed class RotationSaveResult
+    {
+        public string Backup { get; set; }
+        public FileRevision Revision { get; set; }
+        public BitmapSource Pixels { get; set; }
+    }
+
     internal static class ImageRotationService
     {
         public static bool CanSave(string path)
@@ -40,6 +47,15 @@ namespace ZonerInspiredViewer
         public static string BackupFolder(string path) { return Path.Combine(Path.GetDirectoryName(path), ".viewer-rotation-backups"); }
 
         public static string Save(string path, int turns, FileRevision expected, CancellationToken token)
+        {
+            RotationSaveResult result = SaveCore(path, turns, expected, token, false, false);
+            return result == null ? null : result.Backup;
+        }
+
+        public static RotationSaveResult SaveWithPreview(string path, int turns, FileRevision expected, CancellationToken token, bool colorManaged)
+        { return SaveCore(path, turns, expected, token, true, colorManaged); }
+
+        private static RotationSaveResult SaveCore(string path, int turns, FileRevision expected, CancellationToken token, bool preview, bool colorManaged)
         {
             turns = ImageViewport.NormalizeRotation(turns);
             if (turns == 0) return null;
@@ -61,6 +77,8 @@ namespace ZonerInspiredViewer
                 try
                 {
                     byte[] digest;
+                    BitmapSource verifiedPixels = null;
+                    FileRevision outputRevision;
                     using (var input = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
                         using (var sha = SHA256.Create()) digest = sha.ComputeHash(input);
@@ -96,10 +114,19 @@ namespace ZonerInspiredViewer
                         token.ThrowIfCancellationRequested();
                         using (var verify = File.OpenRead(temporary))
                         {
-                            var decoded = BitmapDecoder.Create(verify, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+                            var options = BitmapCreateOptions.PreservePixelFormat;
+                            if (preview && !colorManaged) options |= BitmapCreateOptions.IgnoreColorProfile;
+                            var decoded = BitmapDecoder.Create(verify, options, BitmapCacheOption.OnLoad);
                             if (decoded.Frames.Count != 1 || decoded.Frames[0].PixelWidth != rotated.PixelWidth || decoded.Frames[0].PixelHeight != rotated.PixelHeight)
                                 throw new IOException("The rotated output could not be verified.");
+                            // The saved file was just decoded for verification; reuse those exact pixels.
+                            if (preview && !colorManaged)
+                            {
+                                verifiedPixels = new CachedBitmap(decoded.Frames[0], BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+                                verifiedPixels.Freeze();
+                            }
                         }
+                        outputRevision = FileRevision.Read(temporary);
                     }
                     token.ThrowIfCancellationRequested();
                     if (!expected.Matches(path)) throw new IOException("The file changed while rotation was being saved. It was not overwritten.");
@@ -111,7 +138,8 @@ namespace ZonerInspiredViewer
                             throw new IOException("The source content changed during rotation. It was not overwritten.");
                         File.Replace(temporary, path, backup, false);
                     }
-                    return backup;
+                    return new RotationSaveResult { Backup = backup, Revision = outputRevision,
+                        Pixels = outputRevision.Matches(path) ? verifiedPixels : null };
                 }
                 finally
                 {

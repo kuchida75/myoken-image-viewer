@@ -1601,5 +1601,19 @@
     "CompletedUtc": "2026-10-23T14:12:18.7419779Z",
     "Result": "Built",
     "Note": "Fix baked Enhance rotation cleanup and stale save/toolbar expectations; wait for settled Enhance layout in broader regression checks."
+  },
+  {
+    "Version": "0.2.230",
+    "StartedUtc": "2026-10-23T14:37:44.2416356Z",
+    "CompletedUtc": "2026-10-23T14:37:47.2868745Z",
+    "Result": "Built",
+    "Note": "Reuse verified rotation output for immediate redisplay, avoiding duplicate decoding and full tab rebuild; retain save safety and ICC fallback."
+  },
+  {
+    "Version": "0.2.231",
+    "StartedUtc": "2026-10-23T14:40:22.3541130Z",
+    "CompletedUtc": "2026-10-23T14:40:24.9134444Z",
+    "Result": "Built",
+    "Note": "Use a detached frozen pixel cache for verified rotation output, preserving later Enhance saves and avoiding another disk decode."
   }
 ]

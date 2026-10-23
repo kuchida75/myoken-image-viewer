@@ -37,6 +37,7 @@ internal static partial class ViewerRegressionTests
             if (args.Length == 0) RunMessageDialogChecks();
             if (args.Contains("--enhance-save-focused")) { RunOverwritePreferenceChecks(); RunEnhanceSaveChecks(); app.Shutdown(); return 0; }
             if (args.Contains("--save-navigation-focused")) { RunSaveNavigationChecks(); app.Shutdown(); return 0; }
+            if (args.Contains("--rotation-save-focused")) { RunRotationPreviewChecks(); RunSaveNavigationChecks(); app.Shutdown(); return 0; }
             if (args.Contains("--file-picker-only")) { RunFilePickerChecks(); app.Shutdown(); return 0; }
             if (args.Length == 0) RunFilePickerChecks();
             if (args.Contains("--recycle-preference-only")) { RunRecyclePreferenceChecks(); app.Shutdown(); return 0; }

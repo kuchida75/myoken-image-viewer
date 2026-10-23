@@ -1,6 +1,6 @@
 # Myoken Image Viewer: Detailed Feature Reference
 
-This long-form reference describes the Windows viewer's features and implementation limits. The current source version is **0.2.229**; see the [short README](../README.md) for the quick start and [changelog](../CHANGELOG.md) for release history. The app uses an original teal/ivory shutter icon, not proprietary photo-app branding or assets.
+This long-form reference describes the Windows viewer's features and implementation limits. The current source version is **0.2.231**; see the [short README](../README.md) for the quick start and [changelog](../CHANGELOG.md) for release history. The app uses an original teal/ivory shutter icon, not proprietary photo-app branding or assets.
 
 ## Source Repository
 

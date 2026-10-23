@@ -165,11 +165,12 @@ namespace ZonerInspiredViewer
             IsEnabled = false;
             _configurationContent.IsEnabled = false;
             SetRotationStatus("Saving rotation...", null);
-            string backup = null;
+            RotationSaveResult result = null;
+            bool colorManaged = _services.LowPriorityIccEnabled;
             Exception failure = null;
             try
             {
-                backup = await Task.Run(delegate { return ImageRotationService.Save(path, turns, revision, CancellationToken.None); }).ConfigureAwait(false);
+                result = await Task.Run(delegate { return ImageRotationService.SaveWithPreview(path, turns, revision, CancellationToken.None, colorManaged); }).ConfigureAwait(false);
             }
             catch (Exception error) { failure = error; }
             await Dispatcher.InvokeAsync(new Action(delegate
@@ -180,12 +181,18 @@ namespace ZonerInspiredViewer
                     else
                     {
                         _services.VramCache.Remove(path);
+                        if (result.Pixels != null) _services.VramCache.Add(path, result.Pixels, result.Revision);
                         foreach (ImageTabState tab in _tabs.Values)
                             if (String.Equals(tab.Path, path, StringComparison.OrdinalIgnoreCase))
                             { tab.RotationQuarterTurns = 0; tab.HasCustomView = false; }
                         ClearBrowserRotationEverywhere(path);
-                        SetRotationStatus("Rotation saved; original backup kept", backup);
-                        if (!browser) DisplayTab();
+                        SetRotationStatus("Rotation saved; original backup kept", result.Backup);
+                        if (!browser)
+                        {
+                            if (result.Pixels != null && _imageView.IsVisible && String.Equals(path, _activeTabPath, StringComparison.OrdinalIgnoreCase))
+                            { LoadMetadata(path); LoadImage(path); }
+                            else DisplayTab();
+                        }
                         RefreshFolder(); ScheduleSessionSave();
                     }
                 }
