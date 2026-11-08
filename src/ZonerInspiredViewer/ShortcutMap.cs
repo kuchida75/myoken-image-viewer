@@ -86,7 +86,7 @@ namespace ZonerInspiredViewer
                     case "parent": case "browserParent": return "Open the parent of the current folder.";
                     case "forward": return "Return to the child folder in forward navigation history.";
                     case "enhance": return "Toggle automatic enhancement across all tabs in this window.";
-                    case "slideshow": return "Start or stop the current folder's windowed slideshow.";
+                    case "slideshow": return "Start a windowed slideshow at one selected image, play multiple selected images/folders, or stop playback.";
                     case "pauseSlideshow": return "Pause or resume an active slideshow.";
                     default: return Name;
                 }

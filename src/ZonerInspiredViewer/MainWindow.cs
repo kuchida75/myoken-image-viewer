@@ -270,6 +270,7 @@ namespace ZonerInspiredViewer
             root.Children.Add(_topToolbar);
 
             var body = new Grid();
+            _edgeBody = body;
             ThemeManager.Bind(body, Panel.BackgroundProperty, ThemeKeys.PaneBackground);
             _folderColumn = new ColumnDefinition { Width = new GridLength(260) };
             _folderSplitterColumn = new ColumnDefinition { Width = new GridLength(24) };
@@ -322,6 +323,7 @@ namespace ZonerInspiredViewer
             body.Children.Add(_metadataPanel);
             SetMetadataPanelVisible(false);
             _performanceBar = BuildPerformanceBar(); Grid.SetRow(_performanceBar, 2); root.Children.Add(_performanceBar);
+            InitializeEdgeViewing(root);
         }
 
         private UIElement BuildToolbar()
@@ -712,14 +714,17 @@ namespace ZonerInspiredViewer
         private UIElement BuildCenterPane()
         {
             var center = new Grid();
+            _edgeCenter = center;
             center.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             center.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
             center.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             UIElement footer = BuildBrowserFooter();
+            _edgeFooter = (FrameworkElement)footer;
             Grid.SetRow(footer, 2);
             center.Children.Add(footer);
 
             var tabBar = new DockPanel();
+            _edgeTabs = tabBar;
             tabBar.MinHeight = 46;
             ThemeManager.Bind(tabBar, Panel.BackgroundProperty, ThemeKeys.TabBarBackground);
             tabBar.AllowDrop = true;
@@ -770,6 +775,7 @@ namespace ZonerInspiredViewer
             center.Children.Add(tabBar);
 
             var workspace = new Grid();
+            _edgeWorkspace = workspace;
             Grid.SetRow(workspace, 1);
             center.Children.Add(workspace);
 
@@ -2810,6 +2816,8 @@ namespace ZonerInspiredViewer
 
             _services.LowPriorityIccEnabled = state.LowPriorityIccEnabled;
             _performanceToggle.IsChecked = state.PerformanceDetailsVisible;
+            _edgeEnabled = state.EdgeToEdgeViewing;
+            _edgeCheck.IsChecked = _edgeEnabled;
             _batchPresets = (state.BatchPresets ?? new List<BatchPreset>()).Where(BatchPreset.IsValid).Take(32).Select(p => p.Copy()).ToList();
             RestoreGpuSettings(state);
             RestoreImageGpuSettings(state);
@@ -3006,6 +3014,7 @@ namespace ZonerInspiredViewer
             state.ActiveTabId = _activeTabId;
             state.VramBudgetMb = _services.VramCache.BudgetMb;
             state.PerformanceDetailsVisible = _performanceToggle.IsChecked == true;
+            state.EdgeToEdgeViewing = _edgeEnabled;
             state.BatchPresets = _batchPresets.Select(p => p.Copy()).ToList();
             CaptureImageGpuSettings(state);
             state.LowPriorityIccEnabled = _services.LowPriorityIccEnabled;

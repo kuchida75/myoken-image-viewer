@@ -119,7 +119,7 @@ namespace ZonerInspiredViewer
             if (_imageMetadataOverlay == null) return;
             Thickness space = FilmstripSpace();
             double width = Math.Max(0, _imageView.ActualWidth - 32 - space.Left - space.Right);
-            double height = Math.Max(0, _imageView.ActualHeight - 32 - space.Bottom);
+            double height = Math.Max(0, _imageView.ActualHeight - 32 - space.Bottom - EdgeTopInset);
             double topReserved = LayoutEnhancementStatus();
             double rightHeight = 0, reserved = 0;
             bool metadataVisible = _imageMetadataOverlay.Visibility == Visibility.Visible;

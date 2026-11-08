@@ -67,6 +67,7 @@ namespace ZonerInspiredViewer
 
         private double LayoutEnhancementStatus()
         {
+            if (_enhancementStatusOverlay != null) _enhancementStatusOverlay.Margin = new Thickness(16, 16 + EdgeTopInset, 16, 16);
             if (_enhancementStatusOverlay == null || _enhancementStatusOverlay.Visibility != Visibility.Visible) return 0;
             // Keep a stable top-right lane for the transient zoom factor, even while it is hidden.
             _enhancementStatusOverlay.MaxWidth = Math.Max(0, _imageView.ActualWidth - 32 - 120);

@@ -106,6 +106,13 @@ namespace ZonerInspiredViewer
             AddConfigurationRow(0, "Backups", _includeCanvasBackupCheck);
             AddConfigurationRow(0, "Navigation", _configureTree);
             AddConfigurationRow(0, "Workspace", _configureCompact);
+            _edgeCheck = new CheckBox { Content = "Edge-to-edge image viewing" };
+            CommandPresentation.Describe(_edgeCheck, "Edge-to-edge image viewing", null,
+                "Use the whole app content area for photos with menus, tabs and status bars hidden. Press Esc, Enter or double-click the image to return directly to thumbnails with controls restored. Mouse movement, navigation and zoom keep controls hidden. Images are never cropped or stretched.");
+            RoutedEventHandler edgeChanged = delegate
+            { if ((_edgeCheck.IsChecked == true) != _edgeEnabled) SetEdgeViewing(_edgeCheck.IsChecked == true); };
+            _edgeCheck.Checked += edgeChanged; _edgeCheck.Unchecked += edgeChanged;
+            AddConfigurationRow(0, "Image workspace", _edgeCheck);
             AddConfigurationRow(0, "Window height", _configureVerticalHeight);
             AddConfigurationRow(0, "Details", _metadataToggle);
             _configureImageMetadata = new CheckBox { Content = "Image metadata overlay" };
@@ -324,6 +331,7 @@ namespace ZonerInspiredViewer
             _cacheUsageText.Text = ImageExtensions.FormatBytes(_services.VramCache.UsedBytes);
             _configureTree.IsChecked = FolderTreeVisible;
             _configureCompact.IsChecked = _isCompactMode;
+            _edgeCheck.IsChecked = _edgeEnabled;
             _configureEnhance.IsChecked = _quickEnhanceEnabled;
             _configureImageMetadata.IsChecked = _imageMetadataOverlayEnabled;
             _configureImageNavigator.IsChecked = _imageNavigatorEnabled;

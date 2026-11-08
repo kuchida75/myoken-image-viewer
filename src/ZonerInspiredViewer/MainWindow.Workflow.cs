@@ -108,6 +108,7 @@ namespace ZonerInspiredViewer
         {
             var menu = new ContextMenu();
             AddViewToggle(menu, "Folder tree", "\uE8B7", "tree", FolderTreeVisible, ToggleFolderTree);
+            AddViewToggle(menu, "Edge-to-edge viewing", "\uE740", null, _edgeEnabled, delegate { SetEdgeViewing(!_edgeEnabled); });
             AddViewToggle(menu, "Metadata panel", "\uE946", null, _metadataPanel.Visibility == Visibility.Visible,
                 delegate { _metadataToggle.IsChecked = _metadataToggle.IsChecked != true; });
             AddViewToggle(menu, "Thumbnail minimap", "\uE8A5", "minimap", _minimapVisible, delegate { SetThumbnailMinimap(!_minimapVisible, true); });
@@ -160,6 +161,7 @@ namespace ZonerInspiredViewer
         {
             if (_viewerNavigationCommands == null || _imageView == null) return;
             bool viewing = _imageView.Visibility == Visibility.Visible;
+            UpdateEdgeViewing();
             foreach (var group in new[] { _viewerNavigationCommands, _viewerZoomCommands, _viewerEditCommands })
                 group.Visibility = viewing ? Visibility.Visible : Visibility.Collapsed;
             _fitImageButton.IsEnabled = HasCurrentImage();

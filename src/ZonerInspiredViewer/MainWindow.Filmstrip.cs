@@ -236,10 +236,10 @@ namespace ZonerInspiredViewer
         private Thickness FilmstripSpace()
         {
             // Clearance for other overlay controls only; never inset or resize the image canvas.
-            if (_filmstripOverlay == null || _filmstripOverlay.Visibility != Visibility.Visible) return new Thickness();
+            if (_filmstripOverlay == null || _filmstripOverlay.Visibility != Visibility.Visible) return new Thickness(0, 0, 0, EdgeBottomInset);
             Size size = FilmstripDimensions();
-            if (_filmstripPosition == "Bottom center") return new Thickness(0, 0, 0, size.Height + 8);
-            return _filmstripPosition == "Left center" ? new Thickness(size.Width + 8, 0, 0, 0) : new Thickness(0, 0, size.Width + 8, 0);
+            if (_filmstripPosition == "Bottom center") return new Thickness(0, 0, 0, size.Height + 8 + EdgeBottomInset);
+            return _filmstripPosition == "Left center" ? new Thickness(size.Width + 8, 0, 0, EdgeBottomInset) : new Thickness(0, 0, size.Width + 8, EdgeBottomInset);
         }
 
         private double FilmstripTopClearance()
@@ -248,7 +248,7 @@ namespace ZonerInspiredViewer
         private Size FilmstripDimensions()
         {
             bool vertical = _filmstripPosition != "Bottom center";
-            double width = Math.Max(0, _imageView.ActualWidth - 32), height = Math.Max(0, _imageView.ActualHeight - 32 - (vertical ? FilmstripTopClearance() : 0));
+            double width = Math.Max(0, _imageView.ActualWidth - 32), height = Math.Max(0, _imageView.ActualHeight - 32 - EdgeTopInset - EdgeBottomInset - (vertical ? FilmstripTopClearance() : 0));
             // The seven frames taper together; reserve caption, padding and gaps before fitting the central frame.
             double gaps = 6 * FilmstripTileGap;
             double size = Math.Min(_filmstripSizePixels, Math.Min(Math.Max(0, width - 12 - (vertical ? 0 : gaps)) / (vertical ? 1 : 5.32),
@@ -260,14 +260,14 @@ namespace ZonerInspiredViewer
         private void LayoutFilmstrip()
         {
             if (_filmstripOverlay == null || _filmstripOverlay.Visibility != Visibility.Visible) return;
-            double width = Math.Max(0, _imageView.ActualWidth - 32), height = Math.Max(0, _imageView.ActualHeight - 32);
+            double width = Math.Max(0, _imageView.ActualWidth - 32), height = Math.Max(0, _imageView.ActualHeight - 32 - EdgeTopInset - EdgeBottomInset);
             bool vertical = _filmstripPosition != "Bottom center";
             Size dimensions = FilmstripDimensions();
             double stripWidth = dimensions.Width;
             double x = vertical ? (_filmstripPosition == "Left center" ? 16 : 16 + width - stripWidth) : 16 + (width - stripWidth) / 2;
             double stripHeight = dimensions.Height;
             double top = FilmstripTopClearance();
-            double y = vertical ? 16 + top + Math.Max(0, height - top - stripHeight) / 2 : 16 + height - stripHeight;
+            double y = EdgeTopInset + (vertical ? 16 + top + Math.Max(0, height - top - stripHeight) / 2 : 16 + height - stripHeight);
             _filmstripOverlay.Width = stripWidth; _filmstripOverlay.Height = stripHeight;
             Canvas.SetLeft(_filmstripOverlay, x);
             Canvas.SetTop(_filmstripOverlay, Math.Max(16, y));

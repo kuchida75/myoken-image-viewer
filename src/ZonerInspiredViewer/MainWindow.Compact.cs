@@ -34,6 +34,7 @@ namespace ZonerInspiredViewer
             _topToolbar.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
             if (_performanceBar != null) _performanceBar.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
             ApplyFolderLayout();
+            PositionEdgeBars();
         }
 
         private bool FolderTreeVisible { get { return _isCompactMode ? _compactTreeVisible : !_folderTreeHidden; } }

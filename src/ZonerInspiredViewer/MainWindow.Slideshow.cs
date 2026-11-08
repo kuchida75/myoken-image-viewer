@@ -48,7 +48,7 @@ namespace ZonerInspiredViewer
                 }
             };
             AutomationProperties.SetName(_slideshowButton, "Slideshow");
-            CommandPresentation.Describe(_slideshowButton, "Start / stop slideshow", "F5", "Play selected images and folders recursively, or the current folder when nothing is selected. Press again to stop.");
+            CommandPresentation.Describe(_slideshowButton, "Start / stop slideshow", "F5", "Start at a single selected image and play its folder. Multiple images or folders play only the selection, recursively for folders. With no selection, play the current folder. Press again to stop.");
             var options = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 12, 4) };
             _slideshowInterval = new TextBox { Text = "3", Width = 56, Height = 28, VerticalContentAlignment = VerticalAlignment.Center,
                 ToolTip = "Seconds per image (0.5 to 3600)" };
@@ -142,9 +142,10 @@ namespace ZonerInspiredViewer
             if (_folderScanPending || _fileTransferBusy) { StopSlideshow(); return; }
             ApplySlideshowInterval();
             ImageFileItem[] selected = _browserView.Visibility == Visibility.Visible ? _thumbnailGrid.SelectedItems.ToArray() : new ImageFileItem[0];
-            if (selected.Length == 0)
+            if (selected.Length == 0 || (selected.Length == 1 && !selected[0].IsDirectory))
             {
-                BeginSlideshow(_allItems.Where(item => !item.IsDirectory).Select(item => item.Path).ToArray());
+                BeginSlideshow(_allItems.Where(item => !item.IsDirectory).Select(item => item.Path).ToArray(),
+                    selected.Length == 1 ? selected[0].Path : null);
                 return;
             }
 
@@ -190,10 +191,10 @@ namespace ZonerInspiredViewer
             }));
         }
 
-        private void BeginSlideshow(string[] paths)
+        private void BeginSlideshow(string[] paths, string startPath = null)
         {
             _slideshowSourcePaths = paths;
-            ResetSlideshowSequence();
+            _slideshowSequence = new SlideshowSequence(paths, _slideshowShuffle.IsChecked == true, startPath ?? _activeTabPath);
             if (_slideshowSequence.Count == 0) { StopSlideshow(); return; }
             if (_isFullscreen) ToggleFullscreen();
             _slideshowPlaying = true;

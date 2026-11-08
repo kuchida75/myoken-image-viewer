@@ -1163,7 +1163,7 @@
   },
   {
     "Version": "0.2.167",
-    "StartedUtc": "2026-09-18T12:05:22.0879310Z",
+    "StartedUtc": "2026-09-18T12:05:22.087931Z",
     "CompletedUtc": "2026-09-18T12:05:25.2695697Z",
     "Result": "Built",
     "Note": "Rename app, executable, source project and repository branding to Myoken Image Viewer; preserve Windows features and existing profiles."
@@ -1178,7 +1178,7 @@
   {
     "Version": "0.2.169",
     "StartedUtc": "2026-09-23T17:51:05.1291184Z",
-    "CompletedUtc": "2026-09-23T17:51:07.6282290Z",
+    "CompletedUtc": "2026-09-23T17:51:07.628229Z",
     "Result": "Built",
     "Note": "Complete U/H/W shortcut and arrow-carousel update; fix regression test compilation."
   },
@@ -1611,9 +1611,44 @@
   },
   {
     "Version": "0.2.231",
-    "StartedUtc": "2026-10-23T14:40:22.3541130Z",
+    "StartedUtc": "2026-10-23T14:40:22.354113Z",
     "CompletedUtc": "2026-10-23T14:40:24.9134444Z",
     "Result": "Built",
     "Note": "Use a detached frozen pixel cache for verified rotation output, preserving later Enhance saves and avoiding another disk decode."
+  },
+  {
+    "Version": "0.2.232",
+    "StartedUtc": "2026-11-07T11:57:59.351264Z",
+    "CompletedUtc": "2026-11-07T11:58:02.6900986Z",
+    "Result": "Built",
+    "Note": "F5 on a single selected image starts the complete current-folder slideshow at that image; preserve selective multiple-image/folder playback, order, shuffle and cancellation."
+  },
+  {
+    "Version": "0.2.233",
+    "StartedUtc": "2026-11-08T12:25:51.6861781Z",
+    "CompletedUtc": "2026-11-08T12:25:54.9231575Z",
+    "Result": "Built",
+    "Note": "Add optional persistent edge-to-edge image viewing with full-content framing, translucent idle-fading controls and normal browser restoration."
+  },
+  {
+    "Version": "0.2.234",
+    "StartedUtc": "2026-11-08T12:28:07.0727975Z",
+    "CompletedUtc": "2026-11-08T12:28:09.6802472Z",
+    "Result": "Built",
+    "Note": "Refine edge-to-edge overlay clearance, native settings toggle synchronization and fullscreen/layout regression coverage."
+  },
+  {
+    "Version": "0.2.235",
+    "StartedUtc": "2026-11-08T13:09:26.28995Z",
+    "CompletedUtc": "2026-11-08T13:09:29.9164571Z",
+    "Result": "Built",
+    "Note": "Keep edge-view menus, tabs and status bars hidden until Esc or double-click; preserve navigation, zoom and slideshow cancellation; add regression coverage."
+  },
+  {
+    "Version": "0.2.236",
+    "StartedUtc": "2026-11-08T13:16:48.1635306Z",
+    "CompletedUtc": "2026-11-08T13:16:51.3612051Z",
+    "Result": "Built",
+    "Note": "Return directly from edge-mode images to thumbnails with menus and status bars restored on Esc, Enter or double-click; cover fullscreen and slideshow exits."
   }
 ]

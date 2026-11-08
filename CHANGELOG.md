@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.2.236 - 2026-11-08
+
+- Esc and double-click now exit edge-to-edge image viewing directly to thumbnails in one action, restoring menus, tabs and status bars immediately. Enter retains the same direct exit behavior.
+- Edge controls remain hidden throughout image viewing; removed the intermediate controls-only view. Esc also exits fullscreen or stops slideshow playback, restores thumbnail selection/focus and keeps the edge preference enabled for the next image.
+- Updated help and added single-action exit checks for Esc, double-click, Enter, fullscreen and slideshow.
+
+## 0.2.235 - 2026-11-08
+
+- Edge-to-edge image viewing now immediately hides menus, tabs and status bars. Mouse movement, image navigation, zoom and idle time keep them hidden.
+- Press Esc or double-click the image to reveal translucent controls while keeping the image open. A second Esc or double-click returns to thumbnails. Esc still stops an active slideshow; reopening image view hides the bars again.
+- Hidden bars cannot intercept clicks or keyboard focus. Revealing controls does not resize the image, and overlays use the free frame space while bars are hidden. Added navigation, zoom, explicit reveal and slideshow cancellation checks.
+
+## 0.2.233-0.2.234 - 2026-11-08
+
+- Added optional edge-to-edge image viewing under Configure > Appearance and View. Photos use the entire app content frame behind translucent toolbars, tabs and status bars, without cropping or stretching; Windows caption/resize controls are unchanged.
+- Controls fade after two idle seconds and return on mouse movement or keyboard input. Input-focused controls and settings stay available. Browser mode restores the normal panels and their preferences.
+- The setting defaults off for compatibility and is saved in automatic/named sessions and backups. Added framing, fading, input, theme, resize, compact/browser and persistence checks.
+
+## 0.2.232 - 2026-11-07
+
+- F5 with one image selected now starts the current folder's windowed slideshow at that image, follows the folder sort order and loops until canceled. Shuffle still starts with the chosen image.
+- Multiple selected images and selected folders retain selective playback, including recursive folder collection. No-selection and image-view slideshow behavior is unchanged.
+- Updated slideshow hints/help and added first/middle/last starts, wraparound, descending sort, shuffle, timer advancement, same-tab reuse, cancellation and selection compatibility tests.
+
 ## 0.2.230-0.2.231 - 2026-10-23
 
 - Reuse the already-verified saved JPEG/PNG pixels in the decoded cache after rotation, avoiding another full-resolution decode before redisplaying the image. Skip the full active-tab rebuild when the saved file remains open in the viewer.
