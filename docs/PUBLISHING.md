@@ -1,6 +1,6 @@
 # Source Publication Checklist
 
-The primary Windows repository is [Myoken on Blackbox](https://192.168.8.100:3000/kuchida/Myoken-Image-viewer-Windows), remote `blackbox`, branch `main`. The current source version is **0.2.239**; `version.json` is authoritative for later builds. Use Blackbox for ordinary pushes and releases. GitHub `origin` is historical and is updated only on explicit request. The first Myoken build was 0.2.167, and the earlier Zen Image Viewer source baseline is tagged `v0.2.166`.
+The primary Windows repository is [Myoken on Blackbox](https://192.168.8.100:3000/kuchida/Myoken-Image-viewer-Windows), remote `blackbox`, branch `main`. The current source version is **0.2.246**; `version.json` is authoritative for later builds. Use Blackbox for ordinary pushes and releases. GitHub `origin` is historical and is updated only on explicit request. The first Myoken build was 0.2.167, and the earlier Zen Image Viewer source baseline is tagged `v0.2.166`.
 
 ## Before Each Source Push
 

@@ -3,7 +3,7 @@
 ## Windows Baseline
 
 Myoken Image Viewer is a Windows x64 C# / WPF application targeting .NET
-Framework 4.8. The current source version is **0.2.239**. The Myoken name first
+Framework 4.8. The current source version is **0.2.246**. The Myoken name first
 appeared in **0.2.167**; the earlier Zen Image Viewer source baseline is tagged
 **v0.2.166**. This WPF project is Windows-only; the separate Avalonia Ubuntu
 port and migration workflow are described in [publishing](PUBLISHING.md#ubuntu-migration).

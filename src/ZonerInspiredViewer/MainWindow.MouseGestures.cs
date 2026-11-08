@@ -5,25 +5,25 @@ using System.Windows.Input;
 
 namespace ZonerInspiredViewer
 {
-    internal enum ImageMouseGesture { None, FitWindow, OriginalSize, FitWidth, FitHeight }
+    internal enum ImageMouseGesture { None, FitWindow, OriginalSize, FitWidth, FitHeight, RotateLeft, RotateRight, ZoomLock, SlideshowStart, SlideshowResume, SlideshowRunning, AdaptiveZoom }
 
     internal sealed partial class MainWindow
     {
         private bool _mouseGesturesEnabled = true, _rightGestureActive, _rightGestureWheelUsed;
-        private Point _rightGestureStart;
+        private MouseGesturePath _rightGesturePath;
         private CheckBox _mouseGesturesCheckBox;
 
         private void BuildMouseGestureConfiguration()
         {
-            _mouseGesturesCheckBox = new CheckBox { Content = "Right-button drag gestures in image view", IsChecked = _mouseGesturesEnabled };
+            _mouseGesturesCheckBox = new CheckBox { Content = "Right-button gestures in image view", IsChecked = _mouseGesturesEnabled };
             CommandPresentation.Describe(_mouseGesturesCheckBox, "Mouse gestures", null,
-                "Hold the right mouse button, drag at least 40 pixels and release: up = Fit window, down = Original size (100%), left = Fit width, right = Fit height. Right-button wheel zoom cancels the pending gesture. Applies only to the image, including edge and fullscreen modes.");
+                "Right-button gestures: double-click toggles Zoom lock; triple-click starts/resumes slideshow. The double-click action waits briefly for a possible third click. Drag up = Fit window, down = Original size, left/right = Fit width/height; Up then Left/Right rotates 90 degrees. Each drag leg needs 40 pixels. Center cues preview and confirm actions. Wheel zoom cancels pending actions; rotation follows the auto-save setting.");
             RoutedEventHandler changed = delegate { SetMouseGesturesEnabled(_mouseGesturesCheckBox.IsChecked == true); };
             _mouseGesturesCheckBox.Checked += changed;
             _mouseGesturesCheckBox.Unchecked += changed;
             var controls = new StackPanel();
             controls.Children.Add(_mouseGesturesCheckBox);
-            controls.Children.Add(new TextBlock { Text = "Hold right button, drag, then release.\nUp: Fit window    Down: Original size (100%)\nLeft: Fit width    Right: Fit height",
+            controls.Children.Add(new TextBlock { Text = "Hold right button, drag, then release.\nUp: Fit window    Down: Original size (100%)\nLeft: Fit width    Right: Fit height\nUp then Left: Rotate left 90\u00b0\nUp then Right: Rotate right 90\u00b0\nDouble right-click: Toggle Zoom lock\nTriple right-click: Start/resume slideshow",
                 TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 0, 0) });
             AddConfigurationRow(0, "Mouse gestures", controls);
         }
@@ -54,7 +54,9 @@ namespace ZonerInspiredViewer
             if (!_mouseGesturesEnabled || _rightGestureActive || _isPanning || _isClosed
                 || !_imageView.IsVisible || !HasCurrentImage() || Mouse.Captured != null) return false;
             _imageCanvas.Focus();
-            _rightGestureStart = point;
+            CancelRightClickAction();
+            HideMouseGestureFeedback();
+            _rightGesturePath = new MouseGesturePath(point);
             _rightGestureWheelUsed = false;
             _rightGestureActive = _imageCanvas.CaptureMouse();
             if (_rightGestureActive && _slideshowTimer != null) _slideshowTimer.Stop();
@@ -66,16 +68,22 @@ namespace ZonerInspiredViewer
             if (!_rightGestureActive) return false;
             ImageMouseGesture gesture = _mouseGesturesEnabled && !_rightGestureWheelUsed && _imageCanvas.IsMouseCaptured
                 && _imageView.IsVisible && HasCurrentImage() && new Rect(_imageCanvas.RenderSize).Contains(point)
-                ? ClassifyMouseGesture(_rightGestureStart, point) : ImageMouseGesture.None;
+                ? _rightGesturePath.Track(point) : ImageMouseGesture.None;
             CancelMouseGesture();
             switch (gesture)
             {
-                case ImageMouseGesture.FitWindow: FitImageToView(true); break;
+                case ImageMouseGesture.FitWindow: FitWindowFromGesture(); break;
                 case ImageMouseGesture.OriginalSize: SetZoomOneToOne(); break;
                 case ImageMouseGesture.FitWidth: FitImageAxis(true); break;
                 case ImageMouseGesture.FitHeight: FitImageAxis(false); break;
+                case ImageMouseGesture.RotateLeft:
+                case ImageMouseGesture.RotateRight:
+                    if (_rotationSaving || _fileTransferBusy || _backupBusy) return false;
+                    RotateImage(gesture == ImageMouseGesture.RotateLeft ? -1 : 1);
+                    break;
                 default: return false;
             }
+            ShowMouseGestureFeedback(gesture, true);
             return true;
         }
 
@@ -84,6 +92,9 @@ namespace ZonerInspiredViewer
             bool wasActive = _rightGestureActive;
             _rightGestureActive = false;
             _rightGestureWheelUsed = false;
+            _rightGesturePath = null;
+            CancelRightClickAction();
+            HideMouseGestureFeedback();
             if (!wasActive) return;
             if (_imageCanvas.IsMouseCaptured) _imageCanvas.ReleaseMouseCapture();
             if (_slideshowTimer != null) ArmSlideshow();
@@ -92,14 +103,14 @@ namespace ZonerInspiredViewer
         private void ImageCanvasMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.LeftButton != MouseButtonState.Pressed && Keyboard.Modifiers == ModifierKeys.None)
-                BeginMouseGesture(e.GetPosition(_imageCanvas));
+                BeginRightButtonInput(e.GetPosition(_imageCanvas), e.ClickCount);
             e.Handled = true;
         }
 
         private void ImageCanvasMouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (!_rightGestureActive) return;
-            CompleteMouseGesture(e.GetPosition(_imageCanvas));
+            CompleteRightButtonInput(e.GetPosition(_imageCanvas));
             e.Handled = true;
         }
     }

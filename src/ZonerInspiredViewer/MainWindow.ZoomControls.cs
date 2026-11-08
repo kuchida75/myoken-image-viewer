@@ -79,6 +79,7 @@ namespace ZonerInspiredViewer
                 SaveActiveViewState();
             }
             ScheduleSessionSave();
+            ShowMouseGestureFeedback(ImageMouseGesture.AdaptiveZoom, true);
         }
 
         private void RememberLockedZoom()
@@ -136,6 +137,17 @@ namespace ZonerInspiredViewer
             EndImagePan();
             _imageNavigator.EndDrag();
             SetImageView(ImageViewport.FitAxis(DisplayedImageSize(), _imageCanvas.RenderSize, width));
+            MarkActiveViewCustom();
+        }
+
+        private void FitWindowFromGesture()
+        {
+            if (!HasCurrentImage() || !_imageView.IsVisible) return;
+            EndImagePan();
+            _imageNavigator.EndDrag();
+            // Explicit Fit window fills the current canvas, including space freed by hidden bars.
+            // Unlike default Fit, this action may enlarge small images to reach a frame edge.
+            SetImageView(ImageViewport.FitAdaptive(DisplayedImageSize(), _imageCanvas.RenderSize));
             MarkActiveViewCustom();
         }
 

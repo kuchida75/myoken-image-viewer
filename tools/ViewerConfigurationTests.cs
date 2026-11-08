@@ -73,12 +73,9 @@ internal static partial class ViewerRegressionTests
         Assert(TabHeader(window, shortImage).Width == shortWidth, "closing a wider title leaves narrowest-based width unchanged");
         Invoke(window, "ShowBrowser"); WaitScan(window);
         Console.WriteLine("Configure check: pinned colors verified");
-        var arrow = Field<Button>(window, "_minimapToggle");
-        Assert(arrow.IsVisible && AutomationProperties.GetName(arrow).Contains("Show"), "collapsed minimap retains show arrow");
-        arrow.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent)); Pump();
-        Assert(Capture(window).ThumbnailMinimapVisible && AutomationProperties.GetName(arrow).Contains("Hide"), "minimap arrow expands view");
-        arrow.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent)); Pump();
-        Assert(!Capture(window).ThumbnailMinimapVisible && arrow.IsVisible, "minimap arrow collapses without vanishing");
+        Assert(!Capture(window).ThumbnailMinimapVisible, "retired browser minimap cannot be restored");
+        AssertNear(Field<VirtualizedThumbnailGrid>(window, "_thumbnailGrid").ActualWidth,
+            Field<Grid>(window, "_thumbnailWorkspace").ActualWidth, "browser uses space freed by the minimap divider");
 
         Field<Button>(window, "_configureButton").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent)); Pump();
         Console.WriteLine("Configure check: settings opened");
@@ -133,7 +130,7 @@ internal static partial class ViewerRegressionTests
         Invoke(window, "SetPinnedTabColor", "invalid");
         Assert(Capture(window).PinnedTabColor == "#2F78A6", "legacy/invalid ordinary session color has safe default");
         window.Close(); Pump(); services.Dispose();
-        Console.WriteLine("PASS: Configure pages, live settings and persistence, readable chosen pin colors, adaptive uniform tabs, minimap arrow and system VRAM.");
+        Console.WriteLine("PASS: Configure pages, live settings and persistence, readable chosen pin colors, adaptive uniform tabs, full-width thumbnail browser and system VRAM.");
     }
 
     private static void RunSystemVramChecks()

@@ -1671,5 +1671,54 @@
     "CompletedUtc": "2026-11-08T13:36:23.9725233Z",
     "Result": "Built",
     "Note": "Keep Browser command width stable with stronger active-tab highlighting; include right-button fitting gestures and all associated regression checks."
+  },
+  {
+    "Version": "0.2.240",
+    "StartedUtc": "2026-11-08T14:23:41.941819Z",
+    "CompletedUtc": "2026-11-08T14:23:45.0942077Z",
+    "Result": "Built",
+    "Note": "Add centered gesture direction/action feedback and Applied confirmation; fit the Up gesture to the full current canvas, enlarging small images without obsolete bar margins; add regression coverage."
+  },
+  {
+    "Version": "0.2.241",
+    "StartedUtc": "2026-11-08T14:42:35.8509135Z",
+    "CompletedUtc": "2026-11-08T14:42:39.3995063Z",
+    "Result": "Built",
+    "Note": "Add Up-Left and Up-Right right-button gestures for 90-degree rotation, with two-arrow feedback, bounded path recognition, jitter filtering, wheel cancellation and regression coverage."
+  },
+  {
+    "Version": "0.2.242",
+    "StartedUtc": "2026-11-08T14:50:37.8896361Z",
+    "CompletedUtc": "2026-11-08T14:50:41.0339115Z",
+    "Result": "Built",
+    "Note": "Add double right-click Zoom lock and triple right-click slideshow, with centered status cues, OS-timed disambiguation, drag/wheel cancellation and regression coverage; include two-leg rotation gestures."
+  },
+  {
+    "Version": "0.2.243",
+    "StartedUtc": "2026-11-08T15:05:33.783076Z",
+    "CompletedUtc": "2026-11-08T15:05:37.0500985Z",
+    "Result": "Built",
+    "Note": "Extend edge-mode photos into a translucent title bar with interactive window controls, native caption hit testing, fullscreen/browser restoration and regression coverage."
+  },
+  {
+    "Version": "0.2.244",
+    "StartedUtc": "2026-11-08T15:07:08.4231771Z",
+    "CompletedUtc": "2026-11-08T15:07:11.6580702Z",
+    "Result": "Built",
+    "Note": "Keep the translucent edge title bar and image inside maximized monitor bounds; retain native window interactions and fullscreen/browser restoration."
+  },
+  {
+    "Version": "0.2.245",
+    "StartedUtc": "2026-11-08T15:17:22.7199493Z",
+    "CompletedUtc": "2026-11-08T15:17:25.9342054Z",
+    "Result": "Built",
+    "Note": "Fully hide edge-mode title bar and window buttons, remove caption overlay and drag region, restore native controls in thumbnails, retain resizing/fullscreen/work-area behavior and update regression checks."
+  },
+  {
+    "Version": "0.2.246",
+    "StartedUtc": "2026-11-08T15:34:46.2409188Z",
+    "CompletedUtc": "2026-11-08T15:34:49.3954252Z",
+    "Result": "Built",
+    "Note": "Show auto zoom On/Off confirmations for toolbar/keyboard toggles; remove browser thumbnail minimap, divider, controls and T binding while preserving legacy imports and image pan overview."
   }
 ]

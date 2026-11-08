@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.2.246 - 2026-11-08
+
+- Adaptive / auto zoom now shows a brief centered Auto zoom: On or Auto zoom: Off confirmation when toggled through the toolbar, A or a rebound shortcut, including caption-free edge mode. The passive cue expires automatically and is not shown during session restoration.
+- Removed the file browser's thumbnail minimap, divider/toggle strip, Configure/View controls, default T binding and background preview worker. Thumbnails now use the full browser width with the standard scrollbar. The image-view pan overview and face-canvas navigator are retained.
+- Older sessions/backups may still contain the retired minimap preference/binding; these are ignored while preserving other settings and custom keys. Added full-width browser/navigation and legacy restore coverage, and updated adaptive zoom cue checks.
+
+## 0.2.245 - 2026-11-08
+
+- Edge image viewing now fully hides the top title bar, app title/icon and window buttons. Removed the translucent caption overlay and its reserved overlay clearance; the image and controls use the recovered space.
+- Esc, Enter or double-click returns directly to thumbnails with the normal title bar restored. Border resizing, maximized work-area handling and fullscreen transitions are retained; the hidden title strip no longer intercepts image gestures as window dragging.
+- Updated caption-free frame, maximize/restore, overlay clearance and title-bar restoration checks.
+
+## 0.2.243-0.2.244 - 2026-11-08
+
+- Edge image viewing now extends into the title-bar area with a translucent title and overlaid minimize, maximize/restore and close buttons. The image uses that space without a separate caption row; title-bar drag, double-click maximize, system-menu and resize behavior use Windows chrome handling.
+- Returning to thumbnails or disabling edge mode restores the normal Windows title bar. Fullscreen hides the overlay caption and restores it on exit. Image information/zoom overlays clear the caption without shrinking the image.
+- Added caption placement, interactive-button, maximize/restore/work-area, fullscreen and browser restoration checks.
+- Exclude off-screen maximized resize borders from the visible image frame, keeping the title controls inside the monitor work area.
+
+## 0.2.242 - 2026-11-08
+
+- Double right-click in image view toggles Zoom lock; triple right-click starts or resumes slideshow playback. Double-click waits for the Windows double-click interval so a triple-click cannot also change Zoom lock.
+- Added centered Zoom locked/unlocked and Slideshow started/resumed/running confirmations. Single clicks, drags and wheel zoom do not trigger click commands; leaving the image, keyboard input, deactivation and disabling gestures cancel pending actions.
+- Both commands follow Configure > Appearance > Mouse gestures. Added timed recognition, visual cues, no-overlap, slideshow, wheel/drag and image/settings isolation checks.
+
+## 0.2.241 - 2026-11-08
+
+- Added image-view right-button Up then Left / Up then Right gestures to rotate 90 degrees left/right on release. Both legs require clear 40-DIP movements; a straight Up drag still fits the window.
+- The centered preview shows both direction arrows and the rotation action, then Applied. Recognition tolerates small hand jitter, rejects diagonals as rotation paths and cancels extra distinct strokes. Wheel zoom and existing cancellation rules also suppress rotation.
+- Rotation uses the existing command: non-destructive by default, following the configured auto-save rotations option. Added path, exact quarter-turn, single-execution, unchanged-original, preview, edge/fullscreen and wheel-cancellation checks.
+
+## 0.2.240 - 2026-11-08
+
+- Added a centered, translucent direction arrow and action name while dragging a mouse gesture, with a Release to apply hint. Successful gestures show Applied for 0.9 seconds, including when the zoom was already correct. Feedback does not intercept input or reserve image space.
+- The Up / Fit window gesture now explicitly enlarges or reduces an image to the first current frame edge, using the full edge-mode canvas without old status-bar margins. It preserves aspect ratio, stays centered and survives a queued layout refresh without enabling global Adaptive zoom. Default Fit / 0 still avoids enlarging small images.
+- Wheel zoom, canceled/unrecognized gestures, navigation and closing clear feedback. Added feedback direction/label, centering, expiry, wheel cancellation, small-image first-edge fitting and layout refresh checks.
+
 ## 0.2.238-0.2.239 - 2026-11-08
 
 - Made the active tab easier to identify with full opacity, bold text and a stronger colored outline/underline. Inactive tabs are dimmer, including on hover; pinned colors remain intact.

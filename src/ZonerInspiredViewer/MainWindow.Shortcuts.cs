@@ -30,7 +30,7 @@ namespace ZonerInspiredViewer
                 { _folderLocation.CancelEdit(); _thumbnailGrid.Focus(); e.Handled = true; return; }
                 if (_searchBox.IsKeyboardFocusWithin && !String.IsNullOrEmpty(_searchBox.Text))
                 { StopSlideshow(); ClearFolderSearch(); e.Handled = true; return; }
-                _thumbnailMinimap.EndDrag(); _imageNavigator.EndDrag(); StopSlideshow();
+                _imageNavigator.EndDrag(); StopSlideshow();
                 if (_isFullscreen) { ToggleFullscreen(); e.Handled = true; }
                 if (_imageView.Visibility == Visibility.Visible) { BrowseActiveTab(); e.Handled = true; }
                 return;
@@ -77,7 +77,6 @@ namespace ZonerInspiredViewer
                 case "fullscreen": ToggleFullscreen(); break;
                 case "compact": SetCompactMode(!_isCompactMode); break;
                 case "tree": ToggleFolderTree(); break;
-                case "minimap": SetThumbnailMinimap(!_minimapVisible, true); break;
                 case "metadata": SetImageMetadataOverlay(!_imageMetadataOverlayEnabled); break;
                 case "navigator": SetImageNavigator(!_imageNavigatorEnabled); break;
                 case "manualEnhance": ToggleManualEnhanceFromKeyboard(); break;

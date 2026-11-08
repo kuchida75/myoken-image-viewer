@@ -99,7 +99,6 @@ namespace ZonerInspiredViewer
             _darkThemeCheckBox.Unchecked += delegate { ScheduleSessionSave(); };
             _metadataToggle.Checked += delegate { ScheduleSessionSave(); };
             _metadataToggle.Unchecked += delegate { ScheduleSessionSave(); };
-            _minimapButton.Margin = new Thickness(0);
             AddConfigurationRow(0, "Theme", _darkThemeCheckBox);
             _includeCanvasBackupCheck = new CheckBox { Content = "Include saved face canvases in ZIP backups", IsChecked = _includeFaceCanvasesInBackup };
             _includeCanvasBackupCheck.Click += delegate { _includeFaceCanvasesInBackup = _includeCanvasBackupCheck.IsChecked == true; ScheduleSessionSave(); };
@@ -108,7 +107,7 @@ namespace ZonerInspiredViewer
             AddConfigurationRow(0, "Workspace", _configureCompact);
             _edgeCheck = new CheckBox { Content = "Edge-to-edge image viewing" };
             CommandPresentation.Describe(_edgeCheck, "Edge-to-edge image viewing", null,
-                "Use the whole app content area for photos with menus, tabs and status bars hidden. Press Esc, Enter or double-click the image to return directly to thumbnails with controls restored. Mouse movement, navigation and zoom keep controls hidden. Images are never cropped or stretched.");
+                "Use the whole window for photos with the title bar, window buttons, menus, tabs and status bars fully hidden. Press Esc, Enter or double-click the image to return to thumbnails with normal controls restored. Border resizing remains available. Images are never cropped or stretched.");
             RoutedEventHandler edgeChanged = delegate
             { if ((_edgeCheck.IsChecked == true) != _edgeEnabled) SetEdgeViewing(_edgeCheck.IsChecked == true); };
             _edgeCheck.Checked += edgeChanged; _edgeCheck.Unchecked += edgeChanged;
@@ -124,7 +123,6 @@ namespace ZonerInspiredViewer
             CommandPresentation.Describe(_configureImageNavigator, "Image navigator", "P", "Show a draggable image overview when the image extends beyond the frame.");
             _configureImageNavigator.Click += delegate { SetImageNavigator(_configureImageNavigator.IsChecked == true); };
             AddConfigurationRow(0, "Image navigation", _configureImageNavigator);
-            AddConfigurationRow(0, "Thumbnail minimap", _minimapButton);
             var colors = new WrapPanel();
             foreach (string color in new[] { "#2F78A6", "#397C55", "#9A6530", "#A44364", "#7555A6", "#3D7E83" })
             {
@@ -277,7 +275,7 @@ namespace ZonerInspiredViewer
         private void ShowConfigure()
         {
             if (_configureWindow != null) { _configureWindow.Activate(); return; }
-            EndImagePan(); _thumbnailMinimap.EndDrag(); _imageNavigator.EndDrag();
+            EndImagePan(); _imageNavigator.EndDrag();
             var window = new Window { Title = "Configure", Owner = this, Width = 900, Height = 680,
                 MinWidth = 760, MinHeight = 440, ShowInTaskbar = false, WindowStartupLocation = WindowStartupLocation.CenterOwner };
             ThemeManager.PrepareWindow(window);

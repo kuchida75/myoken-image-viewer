@@ -190,6 +190,11 @@ internal static partial class ViewerRegressionTests
             AssertZoom(window, 1, "normal fit retains small pixels at 100 percent");
             ClickZoom(window, "_adaptiveZoomButton");
             Assert(toggle.IsChecked == true && Capture(window).AdaptiveZoomEnabled, "adaptive toolbar toggles the saved mode");
+            Assert(Field<Border>(window, "_mouseGestureFeedback").IsVisible
+                && Field<TextBlock>(window, "_mouseGestureAction").Text == "Auto zoom: On", "toolbar toggle confirms auto zoom on inside image");
+            Assert(!Field<Border>(window, "_mouseGestureFeedback").IsHitTestVisible, "auto zoom status does not intercept image input");
+            PumpZoomFor(1050);
+            Assert(!Field<Border>(window, "_mouseGestureFeedback").IsVisible, "auto zoom status expires");
             AssertZoom(window, Math.Min(canvas.ActualWidth / 240, canvas.ActualHeight / 120), "small landscape fills first frame edge");
             CheckZoomCentered(window);
             ClickZoom(window, "_zoomLockButton");
@@ -225,6 +230,8 @@ internal static partial class ViewerRegressionTests
                 && services.Sessions.LoadNamed("Adaptive zoom").AdaptiveZoomEnabled, "sessions and backups retain adaptive zoom");
             Assert((bool)Invoke(window, "RunShortcut", Key.A, ModifierKeys.None, false), "A dispatches adaptive zoom");
             Assert(!Capture(window).AdaptiveZoomEnabled && toggle.IsChecked == false, "A turns adaptive zoom off");
+            Assert(Field<Border>(window, "_mouseGestureFeedback").IsVisible
+                && Field<TextBlock>(window, "_mouseGestureAction").Text == "Auto zoom: Off", "keyboard toggle confirms auto zoom off");
             AssertZoom(window, 1, "turning adaptive zoom off returns to normal fit");
             var map = Field<ShortcutMap>(window, "_shortcuts"); string error;
             Assert(map.Set("adaptiveZoom", ShortcutKeys(Key.F7), out error), "adaptive shortcut can be rebound to an unused key");
@@ -232,6 +239,14 @@ internal static partial class ViewerRegressionTests
             Invoke(window, "ShortcutsChanged");
             Assert((bool)Invoke(window, "RunShortcut", Key.F7, ModifierKeys.None, false), "rebound adaptive shortcut dispatches");
             Assert(Capture(window).AdaptiveZoomEnabled, "rebound shortcut turns adaptive zoom on");
+            Invoke(window, "SetEdgeViewing", true); Wait(delegate { return Ready(window, portrait); }, "auto zoom status in edge mode");
+            Invoke(window, "RunShortcut", Key.F7, ModifierKeys.None, false);
+            Assert(Field<TextBlock>(window, "_mouseGestureAction").Text == "Auto zoom: Off" && Field<Border>(window, "_mouseGestureFeedback").IsVisible,
+                "auto zoom off is visible with menus hidden");
+            Invoke(window, "RunShortcut", Key.F7, ModifierKeys.None, false);
+            Assert(Field<TextBlock>(window, "_mouseGestureAction").Text == "Auto zoom: On" && Field<Border>(window, "_mouseGestureFeedback").IsVisible,
+                "auto zoom on is visible with menus hidden");
+            CheckEdgeBars(window, false);
             Render((FrameworkElement)window.Content, "adaptive-zoom.png");
             services.Sessions.Save(Capture(window));
         }
@@ -244,6 +259,7 @@ internal static partial class ViewerRegressionTests
             Wait(delegate { return Ready(reopened, portrait); }, "adaptive zoom restored image");
             Assert(Capture(reopened).AdaptiveZoomEnabled && Field<ToggleButton>(reopened, "_adaptiveZoomButton").IsChecked == true,
                 "adaptive zoom restores on restart");
+            Assert(!Field<Border>(reopened, "_mouseGestureFeedback").IsVisible, "restoring auto zoom does not show a toggle notification");
             var canvas = Field<Canvas>(reopened, "_imageCanvas");
             Size displayed = (Size)Invoke(reopened, "DisplayedImageSize");
             AssertZoom(reopened, Math.Min(canvas.ActualWidth / displayed.Width, canvas.ActualHeight / displayed.Height),

@@ -195,7 +195,7 @@ namespace ZonerInspiredViewer
 
             PreviewKeyDown += MainWindowPreviewKeyDown;
             PreviewMouseDown += MainWindowPreviewMouseDown;
-            Deactivated += delegate { EndImagePan(); _thumbnailMinimap.EndDrag(); _imageNavigator.EndDrag(); };
+            Deactivated += delegate { EndImagePan(); _imageNavigator.EndDrag(); };
             Drop += MainWindowDrop;
             DragOver += MainWindowDragOver;
             Closing += delegate(object sender, System.ComponentModel.CancelEventArgs e)
@@ -241,7 +241,6 @@ namespace ZonerInspiredViewer
                 if (_scanCancellation != null) _scanCancellation.Cancel();
                 if (_watcher != null) { _watcher.Dispose(); _watcher = null; }
                 _folderNavigation.Dispose();
-                _thumbnailMinimap.Dispose();
                 _tabReorder.Dispose();
                 if (_heightSource != null) _heightSource.RemoveHook(VerticalHeightMessage);
                 if (_configureWindow != null) _configureWindow.Close();
@@ -874,7 +873,6 @@ namespace ZonerInspiredViewer
                 ShowConfigure(); SelectConfigurationPage(1); _thumbnailSizeSlider.Focus(); _thumbnailSizeSlider.BringIntoView();
             }, true);
             thumbnailSettings.Margin = new Thickness(12, 0, 0, 0); thumbnailControls.Children.Add(thumbnailSettings);
-            BuildMinimapButton();
             browserHeader.Children.Add(thumbnailControls);
 
             _folderTitle = new TextBlock();
@@ -988,6 +986,7 @@ namespace ZonerInspiredViewer
             BuildManualEnhanceOverlay();
             BuildFilmstrip();
             BuildEnhancementStatusOverlay();
+            BuildMouseGestureFeedback();
             workspace.Children.Add(_imageView);
 
             return center;
@@ -1827,6 +1826,7 @@ namespace ZonerInspiredViewer
 
         private void LoadImage(string path)
         {
+            HideMouseGestureFeedback();
             if (_pendingBrowserRotationSaveTabId != _activeTabId) _pendingBrowserRotationSaveTabId = null;
             HideManualEnhance();
             HideImageNavigator();
@@ -2222,6 +2222,7 @@ namespace ZonerInspiredViewer
         {
             if (!rightPressed || delta == 0 || !HasCurrentImage()) return false;
             if (_rightGestureActive) _rightGestureWheelUsed = true;
+            HideMouseGestureFeedback();
             double oldZoom = _imageScale.ScaleX;
             double factor = Math.Pow(1.15, delta / 120.0);
             double newZoom = Math.Max(0.02, Math.Min(64, oldZoom * factor));
@@ -2251,6 +2252,12 @@ namespace ZonerInspiredViewer
 
         private void ImageCanvasMouseMove(object sender, MouseEventArgs e)
         {
+            if (_rightGestureActive)
+            {
+                if (e.RightButton == MouseButtonState.Pressed) UpdateMouseGestureFeedback(e.GetPosition(_imageCanvas));
+                else CancelMouseGesture();
+                return;
+            }
             UpdateImagePan(e.GetPosition(_imageCanvas), e.LeftButton == MouseButtonState.Pressed);
         }
 
@@ -2709,6 +2716,7 @@ namespace ZonerInspiredViewer
                 _savedResizeMode = ResizeMode;
                 _savedWindowState = WindowState;
                 _isFullscreen = true;
+                UpdateEdgeCaption();
                 WindowStyle = WindowStyle.None;
                 ResizeMode = ResizeMode.NoResize;
                 WindowState = WindowState.Maximized;
@@ -2724,6 +2732,7 @@ namespace ZonerInspiredViewer
                 Height = _normalWindowBounds.Height;
                 WindowState = _savedWindowState;
                 _isFullscreen = false;
+                UpdateEdgeCaption();
                 RememberWindowPlacement();
             }
             UpdateVerticalHeightControls();
@@ -2856,7 +2865,6 @@ namespace ZonerInspiredViewer
             _thumbnailAspectText.Text = AspectRatioLabel(_thumbnailAspectRatio);
             _thumbnailSizeTimer.Stop();
             ApplyThumbnailSize();
-            SetThumbnailMinimap(state.ThumbnailMinimapVisible, false);
             _metadataPanelWidth = state.MetadataPanelWidth >= 180
                 ? state.MetadataPanelWidth
                 : 330;
@@ -3026,7 +3034,7 @@ namespace ZonerInspiredViewer
             state.Theme = ThemeManager.IsDarkTheme ? "Dark" : "Light";
             state.ThumbnailSizePixels = _thumbnailSizePixels;
             state.ThumbnailAspectRatio = _thumbnailAspectRatio;
-            state.ThumbnailMinimapVisible = _minimapVisible;
+            state.ThumbnailMinimapVisible = false; // Legacy backup field; browser minimap has been removed.
             state.PinnedTabColor = _pinnedTabColor;
             state.AutoSaveRotations = _autoSaveRotations;
             state.ConfirmEnhanceOverwrite = _confirmEnhanceOverwrite;

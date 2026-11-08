@@ -55,7 +55,6 @@ namespace ZonerInspiredViewer
                     case "fullscreen": return "Enter or leave fullscreen mode.";
                     case "compact": return "Toggle the toolbar and folder tree for a compact workspace.";
                     case "tree": return "Show or hide the folder navigation tree.";
-                    case "minimap": return "Show or hide the browser's thumbnail minimap.";
                     case "metadata": return "Show or hide image details in the lower-left overlay.";
                     case "navigator": return "Show or hide the overview used to pan a zoomed image.";
                     case "manualEnhance": return "Open or close manual adjustment sliders for the current image.";
@@ -114,7 +113,6 @@ namespace ZonerInspiredViewer
             Add("fullscreen", "Fullscreen", 3, Key.F11);
             Add("compact", "Compact mode", 3, Key.U);
             Add("tree", "Folder tree", 3, Key.J);
-            Add("minimap", "Thumbnail minimap", 1, Key.T);
             Add("metadata", "Image metadata overlay", 2, Key.I);
             Add("navigator", "Image navigator", 2, Key.P);
             Add("manualEnhance", "Enhance adjustments", 2, Key.E);
@@ -240,6 +238,8 @@ namespace ZonerInspiredViewer
 
         internal bool Load(List<ShortcutOverride> saved, out string error)
         {
+            // Retired command: preserve other custom bindings when importing older sessions/backups.
+            if (saved != null) saved = saved.Where(item => item == null || item.Action != "minimap").ToList();
             var next = Commands.ToDictionary(c => c.Id, c => c.Defaults.Select(g => g.Copy()).ToList());
             var seen = new HashSet<string>(); error = null;
             if (saved != null)

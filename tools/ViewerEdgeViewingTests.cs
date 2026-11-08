@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shell;
 using ZonerInspiredViewer;
 
 internal static partial class ViewerRegressionTests
@@ -30,6 +31,19 @@ internal static partial class ViewerRegressionTests
                 Wait(delegate { return Ready(window, photo) && canvas.ActualWidth > normal.Width && canvas.ActualHeight > normal.Height; }, "edge image gains space");
                 AssertNear(canvas.ActualWidth, frame.ActualWidth, "edge canvas fills whole content width");
                 AssertNear(canvas.ActualHeight, frame.ActualHeight, "edge canvas fills whole content height");
+                Assert(WindowChrome.GetWindowChrome(window) != null && WindowChrome.GetWindowChrome(window).CaptionHeight == 0,
+                    "edge image has no title bar or invisible caption hit region");
+                Assert((double)typeof(MainWindow).GetProperty("EdgeTopInset", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(window, null) == 0,
+                    "hidden caption reserves no space above image overlays");
+                Assert(canvas.ActualHeight >= window.ActualHeight - 20, "edge canvas recovers title-bar height");
+                SystemCommands.MaximizeWindow(window);
+                Wait(delegate { return window.WindowState == WindowState.Maximized && Ready(window, photo); }, "borderless edge window maximizes");
+                var work = WindowPlacement.CurrentWorkArea(window);
+                Point frameScreen = frame.PointToScreen(new Point(frame.ActualWidth / 2, 0));
+                Point workScreen = PresentationSource.FromVisual(window).CompositionTarget.TransformToDevice.Transform(new Point(work.Left, work.Top));
+                Assert(frameScreen.Y >= workScreen.Y - 1, "maximized image stays inside monitor work area");
+                SystemCommands.RestoreWindow(window);
+                Wait(delegate { return window.WindowState == WindowState.Normal && Ready(window, photo); }, "borderless edge window restores");
                 Assert(Field<Grid>(window, "_edgeBody").Visibility == Visibility.Hidden, "side panels cannot intercept edge input");
                 CheckCentered(window); CheckVisible(window);
                 Size edge = canvas.RenderSize;
@@ -81,8 +95,10 @@ internal static partial class ViewerRegressionTests
                 Invoke(window, "SetCompactMode", false); Pump();
                 Invoke(window, "ToggleFullscreen"); Pump();
                 Wait(delegate { return Ready(window, photo); }, "edge fullscreen layout");
+                Assert(WindowChrome.GetWindowChrome(window) == null, "fullscreen releases edge chrome");
                 AssertNear(canvas.ActualHeight, frame.ActualHeight, "fullscreen edge uses full content height");
                 Invoke(window, "ToggleFullscreen"); Pump();
+                Assert(WindowChrome.GetWindowChrome(window) != null && WindowChrome.GetWindowChrome(window).CaptionHeight == 0, "leaving fullscreen keeps title bar hidden");
                 var saved = Capture(window); Assert(saved.EdgeToEdgeViewing, "edge preference captured");
                 services.Sessions.SaveNamed("Edge", saved);
                 Assert(services.Sessions.LoadNamed("Edge").EdgeToEdgeViewing, "named session retains edge setting");
@@ -91,6 +107,7 @@ internal static partial class ViewerRegressionTests
                 Assert(ViewerBackupStore.Load(file).Workspace.EdgeToEdgeViewing, "backup retains edge setting");
                 Invoke(window, "BrowseActiveTab"); WaitScan(window); Pump();
                 Assert(!Field<bool>(window, "_edgeActive") && Field<Grid>(window, "_edgeBody").IsVisible, "browser restores original panels");
+                Assert(WindowChrome.GetWindowChrome(window) == null, "browser restores normal Windows title bar");
                 Assert(Capture(window).EdgeToEdgeViewing, "browsing does not clear preference");
                 Invoke(window, "OpenBrowserImage", photo); Wait(delegate { return Ready(window, photo); }, "edge image reopened");
                 Assert(Field<bool>(window, "_edgeActive"), "returning to an image restores edge mode");
@@ -98,6 +115,7 @@ internal static partial class ViewerRegressionTests
                 Invoke(window, "SetEdgeViewing", false); Wait(delegate { return Ready(window, photo); }, "normal view restored");
                 Assert(Field<Grid>(window, "_imageView").Parent == Field<Grid>(window, "_edgeWorkspace"), "normal image reattached to workspace");
                 Assert(!Capture(window).EdgeToEdgeViewing, "edge setting can be disabled");
+                Assert(WindowChrome.GetWindowChrome(window) == null, "disabling edge restores normal title bar");
                 Invoke(window, "ApplySessionState", saved, false); Wait(delegate { return Ready(window, photo); }, "edge saved session applied");
                 Assert(Field<bool>(window, "_edgeActive"), "session restores edge layout");
                 CheckEdgeBars(window, false);

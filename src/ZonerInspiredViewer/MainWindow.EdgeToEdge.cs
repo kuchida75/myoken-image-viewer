@@ -13,6 +13,7 @@ namespace ZonerInspiredViewer
         private void InitializeEdgeViewing(Grid root)
         {
             _edgeRoot = root;
+            BuildEdgeCaption();
             foreach (FrameworkElement bar in EdgeBars()) bar.SizeChanged += delegate { PositionEdgeBars(); };
         }
 
@@ -31,9 +32,10 @@ namespace ZonerInspiredViewer
         {
             if (_edgeRoot == null) return;
             bool active = _edgeEnabled && _imageView.Visibility == Visibility.Visible;
-            if (active == _edgeActive) return;
+            if (active == _edgeActive) { UpdateEdgeCaption(); return; }
             EndImagePan();
             _edgeActive = active;
+            UpdateEdgeCaption();
             if (active)
             {
                 _edgeWorkspace.Children.Remove(_imageView);

@@ -30,6 +30,7 @@ internal static partial class ViewerRegressionTests
             if (args.Contains("--natural-sort-only")) return 0;
             var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
             ThemeManager.Initialize(app, true);
+            if (args.Contains("--browser-workspace-only") || args.Contains("--minimap-only")) { RunMinimapChecks(); app.Shutdown(); return 0; }
             if (args.Contains("--mouse-gestures-only")) { RunMouseGestureChecks(); app.Shutdown(); return 0; }
             if (args.Length == 0) RunMouseGestureChecks();
             if (args.Contains("--edge-viewing-only")) { RunEdgeViewingChecks(); app.Shutdown(); return 0; }
@@ -157,11 +158,6 @@ internal static partial class ViewerRegressionTests
                 return 0;
             }
             RunMinimapChecks();
-            if (args.Contains("--minimap-only"))
-            {
-                app.Shutdown();
-                return 0;
-            }
             RunHelpSearchChecks();
             if (args.Contains("--help-search-only"))
             {

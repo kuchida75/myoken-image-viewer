@@ -111,7 +111,6 @@ namespace ZonerInspiredViewer
             AddViewToggle(menu, "Edge-to-edge viewing", "\uE740", null, _edgeEnabled, delegate { SetEdgeViewing(!_edgeEnabled); });
             AddViewToggle(menu, "Metadata panel", "\uE946", null, _metadataPanel.Visibility == Visibility.Visible,
                 delegate { _metadataToggle.IsChecked = _metadataToggle.IsChecked != true; });
-            AddViewToggle(menu, "Thumbnail minimap", "\uE8A5", "minimap", _minimapVisible, delegate { SetThumbnailMinimap(!_minimapVisible, true); });
             menu.Items.Add(new Separator());
             AddViewToggle(menu, "Image information", "\uE946", "metadata", _imageMetadataOverlayEnabled, delegate { SetImageMetadataOverlay(!_imageMetadataOverlayEnabled); });
             AddViewToggle(menu, "Enhancement status", "\uE790", null, _enhancementStatusEnabled, delegate { SetEnhancementStatusVisible(!_enhancementStatusEnabled); });

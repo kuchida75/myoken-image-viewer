@@ -238,7 +238,7 @@ namespace ZonerInspiredViewer
         public double ThumbnailAspectRatio { get; set; }
 
         [DataMember]
-        public bool ThumbnailMinimapVisible { get; set; }
+        public bool ThumbnailMinimapVisible { get; set; } // Legacy import field; retired browser minimap is never restored.
 
         [DataMember]
         public bool MetadataPanelVisible { get; set; }

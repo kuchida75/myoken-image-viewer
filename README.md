@@ -1,15 +1,16 @@
 # Myoken Image Viewer
 
-Myoken is a Windows-native photo browser and image viewer built with C# and WPF. The current source version is **0.2.239**. It targets Windows 10/11 x64 with .NET Framework 4.8.
+Myoken is a Windows-native photo browser and image viewer built with C# and WPF. The current source version is **0.2.246**. It targets Windows 10/11 x64 with .NET Framework 4.8.
 
 ## Highlights
 
 - Browse folders and images in a three-pane workspace with a virtualized thumbnail grid, adjustable thumbnail size and shape, natural filename sorting, favorites and recursive filename search.
 - Keep one image per tab, group tabs into named stacks, and restore tabs, stacks, sessions and window settings. Export or import JSON settings or ZIP backups with saved face canvases.
 - Navigate with the keyboard, mouse wheel or nearby-image carousel; zoom, pan, rotate, step through neighboring images and run a windowed slideshow.
-- Keep small images centered and fitted to the frame with persistent Adaptive zoom, including during slideshows.
-- Optional edge-to-edge viewing hides menus, tabs and status bars. Esc, Enter or a double-click returns directly to thumbnails with controls restored. Enable it under Configure > Appearance; browser panels and existing preferences are retained.
-- In image view, hold the right mouse button, drag and release: up fits the window, down shows 100%, left fits width and right fits height. Configure > Appearance can disable gestures; right-button wheel zoom remains available.
+- Keep small images centered and fitted with persistent Adaptive zoom, including during slideshows, with on-image On/Off confirmations. The thumbnail browser uses its full width and normal scrollbar.
+- Optional edge-to-edge viewing fully hides the title bar, window buttons, menus, tabs and status bars. Esc, Enter or a double-click returns directly to thumbnails with normal controls restored. Enable it under Configure > Appearance.
+- In image view, hold the right mouse button, drag and release: up fits the full frame, down shows 100%, left fits width and right fits height. Up then left/right rotates 90 degrees left/right. A translucent arrow/action preview confirms the gesture. Configure > Appearance can disable gestures; right-button wheel zoom remains available.
+- Double right-click toggles Zoom lock; triple right-click starts/resumes the slideshow. Centered confirmations show the action taken.
 - Copy, move, rename and recycle files or folders; drag files to and from Windows Explorer. Batch rename selections, or resize and convert selected images.
 - Auto-orient selected images or folders recursively from EXIF orientation flags, with a preview and original-file backups.
 - Rotate multiple selected thumbnails in place; JPEG/PNG rotations can optionally be saved with per-image backups.
