@@ -1650,5 +1650,26 @@
     "CompletedUtc": "2026-11-08T13:16:51.3612051Z",
     "Result": "Built",
     "Note": "Return directly from edge-mode images to thumbnails with menus and status bars restored on Esc, Enter or double-click; cover fullscreen and slideshow exits."
+  },
+  {
+    "Version": "0.2.237",
+    "StartedUtc": "2026-11-08T13:31:50.3698275Z",
+    "CompletedUtc": "2026-11-08T13:31:53.5551448Z",
+    "Result": "Built",
+    "Note": "Add right-button image-view gestures for fit window, original size, fit width and fit height, with wheel-safe cancellation, configurable persistence and regression coverage."
+  },
+  {
+    "Version": "0.2.238",
+    "StartedUtc": "2026-11-08T13:34:13.6447898Z",
+    "CompletedUtc": "2026-11-08T13:34:16.779606Z",
+    "Result": "Built",
+    "Note": "Highlight the active tab and dim inactive tabs, retaining pinned colors and stack/browser emphasis; include right-button image fitting gestures and regression coverage."
+  },
+  {
+    "Version": "0.2.239",
+    "StartedUtc": "2026-11-08T13:36:20.8055352Z",
+    "CompletedUtc": "2026-11-08T13:36:23.9725233Z",
+    "Result": "Built",
+    "Note": "Keep Browser command width stable with stronger active-tab highlighting; include right-button fitting gestures and all associated regression checks."
   }
 ]

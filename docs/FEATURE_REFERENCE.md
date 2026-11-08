@@ -1,12 +1,24 @@
 # Myoken Image Viewer: Detailed Feature Reference
 
-This long-form reference describes the Windows viewer's features and implementation limits. The current source version is **0.2.236**; see the [short README](../README.md) for the quick start and [changelog](../CHANGELOG.md) for release history. The app uses an original teal/ivory shutter icon, not proprietary photo-app branding or assets.
+This long-form reference describes the Windows viewer's features and implementation limits. The current source version is **0.2.239**; see the [short README](../README.md) for the quick start and [changelog](../CHANGELOG.md) for release history. The app uses an original teal/ivory shutter icon, not proprietary photo-app branding or assets.
 
 ## Edge-To-Edge Viewing
 
 Enable **Configure > Appearance > Edge-to-edge image viewing**, or use **View > Edge-to-edge viewing**. This opt-in mode gives the photo the entire app content frame with toolbar, tab and status controls hidden. The Windows caption and resize controls remain unchanged. Photos stay centered, preserve aspect ratio and are not cropped; normal Fit still does not enlarge small images unless Adaptive zoom is enabled.
 
 Menus, tabs and status bars are hidden immediately on entering image view and stay hidden during mouse movement, navigation, zoom and idle time. Press **Esc**, **Enter** or **double-click the image** to return directly to thumbnails with menus, tabs and status bars restored in the same action. Esc also stops an active slideshow and leaves fullscreen. Hidden controls cannot take pointer input or keyboard focus. Returning to thumbnails restores the current selection, keyboard focus and normal folder/metadata panels without changing their preferences; opening an image again restores edge-to-edge mode with hidden controls. Disable the option to restore the previous viewer layout. The preference is saved in automatic/named sessions and backups and defaults off in older and new profiles. Reset restores it to off.
+
+## Active Tab Emphasis
+
+The active workspace tab uses full opacity, a bold title and a stronger colored outline/underline; inactive tabs are dimmer and brighten slightly on hover. This also applies to pinned tabs and stack headers, retaining their colors. The fixed Browser tab receives a stronger accent when active. Active titles keep their normal width while inactive tabs share the compact width.
+
+## Mouse Gestures
+
+In image view, hold the **right mouse button**, drag in one direction and release over the image frame: **up** uses normal Fit window, **down** shows original size (100%), **left** fits width and **right** fits height. These use the existing zoom commands, preserve proportions and center the image. Normal Fit keeps small images at their native size; width/height fitting can enlarge them.
+
+Gestures require 40 device-independent pixels in a clear direction. Small movements, plain clicks and ambiguous diagonal drags do nothing. A gesture runs once on release, including in edge-to-edge and fullscreen view. Right-button wheel zoom suppresses the pending gesture until release. Leaving the image frame before release, capture loss, keyboard input, window deactivation or image navigation cancels the gesture. Slideshow timing waits during a gesture and resumes afterward. Thumbnail, tab and folder context menus are unaffected.
+
+**Configure > Appearance > Mouse gestures** enables or disables the feature. It defaults on for new/older profiles and Reset, and is saved in automatic/named sessions and backups. It does not change keyboard shortcuts.
 
 ## Source Repository
 

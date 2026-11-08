@@ -113,6 +113,7 @@ namespace ZonerInspiredViewer
             { if ((_edgeCheck.IsChecked == true) != _edgeEnabled) SetEdgeViewing(_edgeCheck.IsChecked == true); };
             _edgeCheck.Checked += edgeChanged; _edgeCheck.Unchecked += edgeChanged;
             AddConfigurationRow(0, "Image workspace", _edgeCheck);
+            BuildMouseGestureConfiguration();
             AddConfigurationRow(0, "Window height", _configureVerticalHeight);
             AddConfigurationRow(0, "Details", _metadataToggle);
             _configureImageMetadata = new CheckBox { Content = "Image metadata overlay" };

@@ -215,7 +215,8 @@ namespace ZonerInspiredViewer
             bool active = members.Contains(_activeTabId, StringComparer.OrdinalIgnoreCase);
             int color = ThemeManager.TabColorIndex(stack.Id);
             var border = new Border { Tag = stack, Height = 34, Width = 190, Margin = new Thickness(4, 4, 4, 4),
-                BorderThickness = new Thickness(1, active ? 4 : 2, 1, 1), CornerRadius = new CornerRadius(3, 3, 0, 0) };
+                CornerRadius = new CornerRadius(3, 3, 0, 0) };
+            ApplyTabEmphasis(border, active);
             ThemeManager.Bind(border, Border.BackgroundProperty, "Tab." + (active ? "Active." : "Fill.") + color);
             ThemeManager.Bind(border, Border.BorderBrushProperty, "Tab.Accent." + color);
             border.ToolTip = stack.Name + " (" + members.Count + " tabs)" + (active ? "\nActive: " + TabLabel(_tabs[_activeTabId]) : "");
@@ -235,7 +236,7 @@ namespace ZonerInspiredViewer
             var count = new TextBlock { Text = members.Count.ToString(), Margin = new Thickness(6, 0, 2, 0), VerticalAlignment = VerticalAlignment.Center };
             DockPanel.SetDock(count, Dock.Right); dock.Children.Add(count);
             dock.Children.Add(new TextBlock { Text = stack.Name, TextTrimming = TextTrimming.CharacterEllipsis,
-                FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center });
+                FontWeight = active ? FontWeights.Bold : FontWeights.Normal, VerticalAlignment = VerticalAlignment.Center });
             border.Child = dock;
             _tabReorder.Bind(border, StackDragPrefix + stack.Id, delegate { ToggleTabStack(stack.Id); });
             return border;

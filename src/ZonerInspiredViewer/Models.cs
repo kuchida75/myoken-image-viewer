@@ -153,6 +153,7 @@ namespace ZonerInspiredViewer
         [DataMember] public List<BatchPreset> BatchPresets { get; set; }
         [DataMember] public bool PerformanceDetailsVisible { get; set; }
         [DataMember] public bool EdgeToEdgeViewing { get; set; }
+        [DataMember] public bool? MouseGesturesEnabled { get; set; }
         [DataMember] public bool? GpuImagesEnabled { get; set; }
         [DataMember] public bool? GpuJpegEnabled { get; set; }
         [DataMember] public string ImageGpuKey { get; set; }

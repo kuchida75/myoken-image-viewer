@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.238-0.2.239 - 2026-11-08
+
+- Made the active tab easier to identify with full opacity, bold text and a stronger colored outline/underline. Inactive tabs are dimmer, including on hover; pinned colors remain intact.
+- Applied the same emphasis to tab stacks and the fixed Browser tab. Updated title-width measurement for bold active labels and extended tab lifecycle/width checks.
+- Keep the Browser command's width stable when changing active tabs.
+
+## 0.2.237 - 2026-11-08
+
+- Added image-view right-button drag gestures: up fits the window, down shows original size (100%), left fits width and right fits height. Actions run on release after a clear 40-DIP movement; small movements and ambiguous diagonals are ignored.
+- Right-button wheel zoom suppresses the pending gesture so releasing does not reset zoom. Capture loss, keyboard input, leaving image view, disabling the option and closing the window cancel pending gestures. Slideshow advancement waits during a gesture and resumes after release.
+- Added an enabled-by-default Mouse gestures option under Configure > Appearance, saved in automatic/named sessions and backups. Thumbnail navigation and context menus are unchanged. Added tests for fitting, wheel compatibility, cancellation, rotated/small images, edge/fullscreen modes and settings persistence.
+
 ## 0.2.236 - 2026-11-08
 
 - Esc and double-click now exit edge-to-edge image viewing directly to thumbnails in one action, restoring menus, tabs and status bars immediately. Enter retains the same direct exit behavior.

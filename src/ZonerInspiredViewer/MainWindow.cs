@@ -215,6 +215,7 @@ namespace ZonerInspiredViewer
             Closed += delegate
             {
                 _isClosed = true;
+                CancelMouseGesture();
                 StopGpuPresentation();
                 ClearAutomaticUpscale();
                 if (_gpuSettingsTimer != null) _gpuSettingsTimer.Stop();
@@ -945,7 +946,8 @@ namespace ZonerInspiredViewer
             _imageCanvas.MouseMove += ImageCanvasMouseMove;
             _imageCanvas.MouseLeftButtonUp += ImageCanvasMouseLeftButtonUp;
             _imageCanvas.LostMouseCapture += delegate { EndImagePan(); };
-            _imageCanvas.MouseRightButtonDown += delegate(object sender, MouseButtonEventArgs e) { e.Handled = true; };
+            _imageCanvas.MouseRightButtonDown += ImageCanvasMouseRightButtonDown;
+            _imageCanvas.MouseRightButtonUp += ImageCanvasMouseRightButtonUp;
             _imageCanvas.SizeChanged += delegate
             {
                 _manualImageSurface.Width = _imageCanvas.ActualWidth;
@@ -1678,6 +1680,12 @@ namespace ZonerInspiredViewer
 
             NormalizeTabOrder();
             _tabStrip.Children.Clear();
+            bool browserActive = String.IsNullOrWhiteSpace(_activeTabId);
+            _browserTabButton.Opacity = browserActive ? 1 : .68;
+            // Keep this fixed command the same width when the active workspace changes.
+            _browserTabButton.FontWeight = FontWeights.SemiBold;
+            _browserTabButton.BorderThickness = new Thickness(2);
+            ThemeManager.Bind(_browserTabButton, Control.BorderBrushProperty, browserActive ? ThemeKeys.Accent : ThemeKeys.Border);
             if (String.IsNullOrWhiteSpace(_activeTabId))
             {
                 ThemeManager.Bind(_browserTabButton, Control.BackgroundProperty, ThemeKeys.SelectedBackground);
@@ -1719,7 +1727,7 @@ namespace ZonerInspiredViewer
             var border = new Border();
             border.Margin = new Thickness(0, 4, 4, 4);
             border.Padding = new Thickness(10, 2, 4, 2);
-            border.BorderThickness = new Thickness(1, active ? 4 : 2, 1, 1);
+            ApplyTabEmphasis(border, active);
             border.CornerRadius = new CornerRadius(3, 3, 0, 0);
             border.Height = 34;
             border.Width = 208;
@@ -1729,14 +1737,6 @@ namespace ZonerInspiredViewer
             ThemeManager.Bind(border, Border.BackgroundProperty, active ? activeFill : fill);
             border.Tag = id;
             border.ContextMenu = BuildTabContextMenu(id);
-            border.MouseEnter += delegate
-            {
-                ThemeManager.Bind(border, Border.BackgroundProperty, activeFill);
-            };
-            border.MouseLeave += delegate
-            {
-                ThemeManager.Bind(border, Border.BackgroundProperty, active ? activeFill : fill);
-            };
             var preview = new TabPreview(state.IsBrowser ? state.FolderPath : path, _services.Thumbnails, state.IsBrowser);
             border.ToolTip = preview;
             border.Unloaded += delegate { preview.IsOpen = false; };
@@ -1778,7 +1778,7 @@ namespace ZonerInspiredViewer
 
             var text = new TextBlock();
             text.Text = label;
-            text.FontWeight = active ? FontWeights.SemiBold : FontWeights.Normal;
+            text.FontWeight = active ? FontWeights.Bold : FontWeights.Normal;
             text.VerticalAlignment = VerticalAlignment.Center;
             text.TextTrimming = TextTrimming.CharacterEllipsis;
             ThemeManager.Bind(text, TextBlock.ForegroundProperty, state.IsPinned ? "Tab.Pinned.Text" : ThemeKeys.Text);
@@ -2221,6 +2221,7 @@ namespace ZonerInspiredViewer
         private bool ApplyMouseWheelZoom(Point point, int delta, bool rightPressed)
         {
             if (!rightPressed || delta == 0 || !HasCurrentImage()) return false;
+            if (_rightGestureActive) _rightGestureWheelUsed = true;
             double oldZoom = _imageScale.ScaleX;
             double factor = Math.Pow(1.15, delta / 120.0);
             double newZoom = Math.Max(0.02, Math.Min(64, oldZoom * factor));
@@ -2236,6 +2237,7 @@ namespace ZonerInspiredViewer
 
         private void ImageCanvasMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            CancelMouseGesture();
             _imageCanvas.Focus();
             if (e.ClickCount >= 2 && _activeTabId != null)
             {
@@ -2282,6 +2284,7 @@ namespace ZonerInspiredViewer
 
         private void EndImagePan()
         {
+            CancelMouseGesture();
             _isPanning = false;
             if (_imageCanvas != null && _imageCanvas.IsMouseCaptured) _imageCanvas.ReleaseMouseCapture();
             Cursor = Cursors.Arrow;
@@ -2818,6 +2821,7 @@ namespace ZonerInspiredViewer
             _performanceToggle.IsChecked = state.PerformanceDetailsVisible;
             _edgeEnabled = state.EdgeToEdgeViewing;
             _edgeCheck.IsChecked = _edgeEnabled;
+            SetMouseGesturesEnabled(state.MouseGesturesEnabled ?? true);
             _batchPresets = (state.BatchPresets ?? new List<BatchPreset>()).Where(BatchPreset.IsValid).Take(32).Select(p => p.Copy()).ToList();
             RestoreGpuSettings(state);
             RestoreImageGpuSettings(state);
@@ -3015,6 +3019,7 @@ namespace ZonerInspiredViewer
             state.VramBudgetMb = _services.VramCache.BudgetMb;
             state.PerformanceDetailsVisible = _performanceToggle.IsChecked == true;
             state.EdgeToEdgeViewing = _edgeEnabled;
+            state.MouseGesturesEnabled = _mouseGesturesEnabled;
             state.BatchPresets = _batchPresets.Select(p => p.Copy()).ToList();
             CaptureImageGpuSettings(state);
             state.LowPriorityIccEnabled = _services.LowPriorityIccEnabled;

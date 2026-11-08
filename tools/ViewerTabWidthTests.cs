@@ -21,7 +21,12 @@ internal static partial class ViewerRegressionTests
             && (inactive.Length == 0 || active.Width >= inactive[0].Width), "active tab keeps its normal title-based width");
         foreach (var tab in headers)
         {
+            bool selected = Object.Equals(tab.Tag, activeId);
+            Assert(selected ? tab.Opacity == 1 && tab.BorderThickness.Bottom == 3
+                : tab.Opacity >= .68 && tab.Opacity <= .84 && tab.BorderThickness.Bottom == 1,
+                "active tab remains fully visible with a strong accent; inactive tabs stay dimmer even on hover");
             var label = ((DockPanel)tab.Child).Children.OfType<TextBlock>().Last();
+            Assert(label.FontWeight == (selected ? FontWeights.Bold : FontWeights.Normal), "active title uses stronger text weight");
             Assert(label.TextTrimming == TextTrimming.CharacterEllipsis && tab.ToolTip is TabPreview,
                 "narrow titles retain ellipsis and hover previews");
             foreach (Button close in ((DockPanel)tab.Child).Children.OfType<Button>()) AssertInside(close, tab);

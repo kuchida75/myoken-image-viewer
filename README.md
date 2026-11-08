@@ -1,6 +1,6 @@
 # Myoken Image Viewer
 
-Myoken is a Windows-native photo browser and image viewer built with C# and WPF. The current source version is **0.2.236**. It targets Windows 10/11 x64 with .NET Framework 4.8.
+Myoken is a Windows-native photo browser and image viewer built with C# and WPF. The current source version is **0.2.239**. It targets Windows 10/11 x64 with .NET Framework 4.8.
 
 ## Highlights
 
@@ -9,6 +9,7 @@ Myoken is a Windows-native photo browser and image viewer built with C# and WPF.
 - Navigate with the keyboard, mouse wheel or nearby-image carousel; zoom, pan, rotate, step through neighboring images and run a windowed slideshow.
 - Keep small images centered and fitted to the frame with persistent Adaptive zoom, including during slideshows.
 - Optional edge-to-edge viewing hides menus, tabs and status bars. Esc, Enter or a double-click returns directly to thumbnails with controls restored. Enable it under Configure > Appearance; browser panels and existing preferences are retained.
+- In image view, hold the right mouse button, drag and release: up fits the window, down shows 100%, left fits width and right fits height. Configure > Appearance can disable gestures; right-button wheel zoom remains available.
 - Copy, move, rename and recycle files or folders; drag files to and from Windows Explorer. Batch rename selections, or resize and convert selected images.
 - Auto-orient selected images or folders recursively from EXIF orientation flags, with a preview and original-file backups.
 - Rotate multiple selected thumbnails in place; JPEG/PNG rotations can optionally be saved with per-image backups.

@@ -19,6 +19,7 @@ globally just to test a clean launch.
 - Enhancements and slideshow off until enabled; no saved image adjustments.
 - On-image enhancement status visible, with Quick Enhance initially shown as Off.
 - Square 128-pixel browser thumbnails; caches populate locally as needed.
+- Right-button image-view fitting gestures enabled; configurable under Appearance.
 - Default memory/GPU settings, with hardware-dependent fallback where needed.
 
 The browser can open the current user's Pictures folder on first launch.

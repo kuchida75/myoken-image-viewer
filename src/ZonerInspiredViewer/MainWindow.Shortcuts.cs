@@ -22,6 +22,7 @@ namespace ZonerInspiredViewer
         private void MainWindowPreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (_configureWindow != null && _configureWindow.IsKeyboardFocusWithin) return;
+            CancelMouseGesture();
             Key key = e.Key == Key.System ? e.SystemKey : e.Key;
             if (key == Key.Escape)
             {

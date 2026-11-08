@@ -220,7 +220,7 @@ namespace ZonerInspiredViewer
 
         private void ArmSlideshow()
         {
-            if (_isClosed || !_slideshowPlaying || _slideshowPaused || _slideshowTimer.IsEnabled || _activeTabId != _slideshowTabId
+            if (_isClosed || !_slideshowPlaying || _slideshowPaused || _rightGestureActive || _slideshowTimer.IsEnabled || _activeTabId != _slideshowTabId
                 || (_imageNavigator != null && _imageNavigator.IsDragging)
                 || (_manualEnhanceOverlay != null && (_manualEnhanceOverlay.IsKeyboardFocusWithin || _manualEnhanceOverlay.IsMouseCaptureWithin))
                 || (_slideshowOverlayInterval != null && _slideshowOverlayInterval.IsKeyboardFocusWithin)

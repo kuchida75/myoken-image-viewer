@@ -17,6 +17,15 @@ namespace ZonerInspiredViewer
         private double _idealTabWidth = 96;
         private double _activeTabWidth = 96;
 
+        private static void ApplyTabEmphasis(Border tab, bool active)
+        {
+            tab.BorderThickness = active ? new Thickness(2, 4, 2, 3) : new Thickness(1);
+            tab.Opacity = active ? 1 : .68;
+            // Hover reveals an inactive title without making it look like the selected tab.
+            tab.MouseEnter += delegate { tab.Opacity = active ? 1 : .84; };
+            tab.MouseLeave += delegate { tab.Opacity = active ? 1 : .68; };
+        }
+
         internal static bool IsValidTabColor(string color)
         {
             uint value;
@@ -67,7 +76,7 @@ namespace ZonerInspiredViewer
                 ImageTabState state;
                 if (!_tabs.TryGetValue(id, out state)) continue;
                 var text = new FormattedText(TabLabel(state) ?? "", CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
-                    new Typeface(FontFamily, FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal), FontSize, Brushes.Black,
+                    new Typeface(FontFamily, FontStyles.Normal, FontWeights.Bold, FontStretches.Normal), FontSize, Brushes.Black,
                     VisualTreeHelper.GetDpi(this).PixelsPerDip);
                 double normalWidth = Math.Max(96, Math.Min(280, Math.Ceiling(text.WidthIncludingTrailingWhitespace + 50)));
                 narrowest = Math.Min(narrowest, normalWidth);
