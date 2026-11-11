@@ -16,7 +16,6 @@ namespace ZonerInspiredViewer
 {
     internal sealed partial class MainWindow
     {
-        private TextBlock _itemCountText;
         private TextBlock _transferText;
         private ToggleButton _slideshowButton;
         private TextBox _slideshowInterval;
@@ -68,13 +67,9 @@ namespace ZonerInspiredViewer
                 ScheduleSessionSave();
             };
             options.Children.Add(_slideshowShuffle);
-            _itemCountText = new TextBlock { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 14, 4),
-                TextWrapping = TextWrapping.Wrap };
-            ThemeManager.Bind(_itemCountText, TextBlock.ForegroundProperty, ThemeKeys.MutedText);
-            controls.Children.Add(_itemCountText);
-            controls.SizeChanged += delegate { _itemCountText.MaxWidth = Math.Max(1, controls.ActualWidth - 14); };
+            BuildFilmstripSizeControl(controls);
+            BuildUpscaleSizeControl(controls);
             footer.Children.Add(controls);
-            BuildImageStatusBar(footer, controls);
             _transferText = new TextBlock { TextTrimming = TextTrimming.CharacterEllipsis, Visibility = Visibility.Collapsed };
             ThemeManager.Bind(_transferText, TextBlock.ForegroundProperty, ThemeKeys.MutedText);
             footer.Children.Add(_transferText);
@@ -96,23 +91,27 @@ namespace ZonerInspiredViewer
 
         private void UpdateBrowserFooter()
         {
-            if (_itemCountText == null || _thumbnailGrid == null) return;
+            if (_imageStatusBar == null || _thumbnailGrid == null) return;
+            bool browsing = _browserView.Visibility == Visibility.Visible;
+            ImageFileItem selection = browsing ? _thumbnailGrid.SelectedItem : null;
+            if (browsing) UpdateThumbnailMetadataRequest(selection);
             UpdateImageStatusBar(DisplayedImageDetails());
             _slideshowButton.IsEnabled = _slideshowPlaying || _slideshowSelectionCancellation != null
                 || (!_folderScanPending && !_fileTransferBusy && (_imageOrdinals.Count > 0
-                    || (_browserView.Visibility == Visibility.Visible && _thumbnailGrid.SelectedCount > 0)));
+                    || (browsing && _thumbnailGrid.SelectedCount > 0)));
             string counts = _folderSummary == null ? (_isScanningFolder ? "Scanning..." : "Folder unavailable")
-                : _folderSummary.FileCount + " files (" + _folderSummary.ImageCount + " images), " + _folderSummary.FolderCount + " folders";
-            string path = _imageView != null && _imageView.Visibility == Visibility.Visible ? _activeTabPath
-                : _thumbnailGrid.SelectedItem == null ? null : _thumbnailGrid.SelectedItem.Path;
+                : _folderSummary.FileCount + " files (" + _folderSummary.ImageCount + " images), "
+                    + _folderSummary.FolderCount + (_folderSummary.FolderCount == 1 ? " folder" : " folders");
+            string path = browsing ? (selection == null ? null : selection.Path) : _activeTabPath;
             int ordinal;
             if (path != null && _imageOrdinals.TryGetValue(path, out ordinal)) counts += " | Image " + ordinal + " / " + _imageOrdinals.Count;
-            if (_browserView.Visibility == Visibility.Visible)
+            if (browsing)
             {
                 if (_thumbnailGrid.SelectedCount > 0) counts += " | " + _thumbnailGrid.SelectedCount + " selected";
                 if (!String.IsNullOrWhiteSpace(_searchBox.Text)) counts += " | " + _filteredItems.Count + " shown";
             }
-            _itemCountText.Text = counts;
+            _itemCountText.Text = "Folder: " + counts;
+            _itemCountText.ToolTip = _currentFolder;
             _transferText.Text = _transferStatus ?? "";
             ThemeManager.Bind(_transferText, TextBlock.ForegroundProperty, !String.IsNullOrEmpty(_autoUpscaleStatus) && _transferStatus == _autoUpscaleStatus
                 ? UpscalePresentation.TextKey(_autoUpscaleStatusKind) : ThemeKeys.MutedText);

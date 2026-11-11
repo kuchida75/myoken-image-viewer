@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.248-0.2.249 - 2026-11-11
+
+- The bottom status bar now shows the active thumbnail's path, original resolution, bit depth, last modified date and time, and other file details. The folder total stays visible when no image is selected.
+- Keyboard navigation keeps the selected thumbnail in view when its details change the status bar height.
+
+## 0.2.247 - 2026-11-11
+
+- Added a full-width image status strip at the bottom of the window with the file path, resolution, bit depth, last modified date and time, and the current folder's total file count. The count includes non-image files directly in the folder and updates as files are added or removed.
+
 ## 0.2.246 - 2026-11-08
 
 - Adaptive / auto zoom now shows a brief centered Auto zoom: On or Auto zoom: Off confirmation when toggled through the toolbar, A or a rebound shortcut, including caption-free edge mode. The passive cue expires automatically and is not shown during session restoration.

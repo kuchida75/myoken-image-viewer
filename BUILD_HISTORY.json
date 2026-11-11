@@ -1720,5 +1720,26 @@
     "CompletedUtc": "2026-11-08T15:34:49.3954252Z",
     "Result": "Built",
     "Note": "Show auto zoom On/Off confirmations for toolbar/keyboard toggles; remove browser thumbnail minimap, divider, controls and T binding while preserving legacy imports and image pan overview."
+  },
+  {
+    "Version": "0.2.247",
+    "StartedUtc": "2026-11-11T10:37:49.7574818Z",
+    "CompletedUtc": "2026-11-11T10:37:54.0834313Z",
+    "Result": "Built",
+    "Note": "Full-width image status bar with live total file count and metadata."
+  },
+  {
+    "Version": "0.2.248",
+    "StartedUtc": "2026-11-11T10:47:22.7547615Z",
+    "CompletedUtc": "2026-11-11T10:47:25.9518828Z",
+    "Result": "Built",
+    "Note": "Show the active thumbnail metadata and folder count in the shared bottom status bar."
+  },
+  {
+    "Version": "0.2.249",
+    "StartedUtc": "2026-11-11T10:48:53.4224239Z",
+    "CompletedUtc": "2026-11-11T10:48:56.6504849Z",
+    "Result": "Built",
+    "Note": "Keep keyboard-selected thumbnails visible when the shared status bar resizes."
   }
 ]

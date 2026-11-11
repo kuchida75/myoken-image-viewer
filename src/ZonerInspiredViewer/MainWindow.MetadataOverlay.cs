@@ -84,20 +84,24 @@ namespace ZonerInspiredViewer
             ImageMetadata metadata = _imageOverlayMetadata;
             if (metadata != null && (!String.Equals(metadata.Path, _displayedImagePath, StringComparison.OrdinalIgnoreCase)
                 || !_imageOverlayMetadataRevision.Equals(_displayedImageRevision))) metadata = null;
-            string extension = Path.GetExtension(_displayedImagePath).ToLowerInvariant();
+            return DescribeImage(_displayedImagePath, _displayedImageRevision, metadata, (BitmapSource)_mainImage.Source);
+        }
+
+        private static string[] DescribeImage(string path, FileRevision revision, ImageMetadata metadata, BitmapSource bitmap = null)
+        {
+            string extension = Path.GetExtension(path).ToLowerInvariant();
             string type = metadata == null || String.IsNullOrEmpty(metadata.FileType)
                 ? extension.TrimStart('.').ToUpperInvariant() : metadata.FileType;
-            var bitmap = (BitmapSource)_mainImage.Source;
-            int width = metadata != null && metadata.PixelWidth > 0 ? metadata.PixelWidth : bitmap.PixelWidth;
-            int height = metadata != null && metadata.PixelHeight > 0 ? metadata.PixelHeight : bitmap.PixelHeight;
+            int width = metadata != null && metadata.PixelWidth > 0 ? metadata.PixelWidth : bitmap == null ? 0 : bitmap.PixelWidth;
+            int height = metadata != null && metadata.PixelHeight > 0 ? metadata.PixelHeight : bitmap == null ? 0 : bitmap.PixelHeight;
             return new[]
             {
-                _displayedImageRevision.Length >= 0 ? ImageExtensions.FormatBytes(_displayedImageRevision.Length) : "Unavailable",
+                revision.Length >= 0 ? ImageExtensions.FormatBytes(revision.Length) : "Unavailable",
                 type + " (" + extension + ")",
-                Path.GetFileName(_displayedImagePath),
-                _displayedImageRevision.Modified > 0
-                    ? new DateTime(_displayedImageRevision.Modified, DateTimeKind.Utc).ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") : "Unavailable",
-                width + " x " + height + " px",
+                Path.GetFileName(path),
+                revision.Modified > 0
+                    ? new DateTime(revision.Modified, DateTimeKind.Utc).ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") : "Unavailable",
+                width > 0 && height > 0 ? width + " x " + height + " px" : "Unavailable",
                 metadata == null || String.IsNullOrEmpty(metadata.BitDepth) ? "Unavailable" : metadata.BitDepth
             };
         }

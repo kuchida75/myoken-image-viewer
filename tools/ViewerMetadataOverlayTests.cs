@@ -68,11 +68,15 @@ internal static partial class ViewerRegressionTests
         var statusPath = Field<TextBlock>(window, "_imageStatusPath");
         var details = Field<TextBlock[]>(window, "_imageStatusValues");
         var values = (string[])Invoke(window, "DisplayedImageDetails");
-        string[] labels = { "Size: ", "Type: ", "Name: ", "Modified: ", "Resolution: ", "Depth: " };
+        string[] labels = { "Size: ", "Type: ", "Name: ", "Last modified: ", "Resolution: ", "Bit depth: " };
         Assert(statusPath.IsVisible && statusPath.Text == path && (string)statusPath.ToolTip == path, "status bar shows complete current path with full tooltip");
         window.UpdateLayout();
         var canvas = Field<Canvas>(window, "_imageCanvas");
         var root = (FrameworkElement)window.Content;
+        var bar = Field<FrameworkElement>(window, "_imageStatusBar");
+        Point barOrigin = bar.TranslatePoint(new Point(), root);
+        AssertNear(bar.ActualWidth, root.ActualWidth, "image status spans the window with side panes open");
+        AssertNear(barOrigin.Y + bar.ActualHeight, root.ActualHeight, "image status is the bottommost bar");
         double bottom = canvas.TranslatePoint(new Point(0, canvas.ActualHeight), root).Y;
         Assert(statusPath.TranslatePoint(new Point(), root).Y >= bottom, "status bar is below image, not an overlay");
         AssertInside(statusPath, root);
@@ -81,6 +85,60 @@ internal static partial class ViewerRegressionTests
             Assert(details[i].IsVisible && details[i].Text == labels[i] + values[i], "status field uses current revision: " + labels[i]);
             AssertInside(details[i], root);
         }
+    }
+
+    private static void CheckThumbnailStatus(MainWindow window, string path, int width, int height)
+    {
+        var statusPath = Field<TextBlock>(window, "_imageStatusPath");
+        var details = Field<TextBlock[]>(window, "_imageStatusValues");
+        var file = new FileInfo(path);
+        Wait(delegate
+        {
+            return statusPath.Text == path && details[4].Text == "Resolution: " + width + " x " + height + " px"
+                && details[5].Text.Contains("bits/");
+        }, "thumbnail status for " + file.Name);
+        Assert(Field<Grid>(window, "_browserView").IsVisible && !Field<FrameworkElement>(window, "_filmstripSizeControls").IsVisible,
+            "thumbnail status stays in browser and hides viewer-only controls");
+        Assert(statusPath.IsVisible && (string)statusPath.ToolTip == path, "thumbnail status has full path tooltip");
+        Assert(details[0].Text == "Size: " + ImageExtensions.FormatBytes(file.Length)
+            && details[1].Text.EndsWith("(" + file.Extension.ToLowerInvariant() + ")")
+            && details[2].Text == "Name: " + file.Name
+            && details[3].Text == "Last modified: " + file.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss"),
+            "thumbnail status uses the selected file's metadata");
+    }
+
+    private static void CheckThumbnailStatusSelection(MainWindow window, AppServices services, string first, string second, string subfolder)
+    {
+        var folderCount = Field<TextBlock>(window, "_itemCountText");
+        var statusPath = Field<TextBlock>(window, "_imageStatusPath");
+        Assert(folderCount.IsVisible && folderCount.Text.StartsWith("Folder: 4 files") && !statusPath.IsVisible,
+            "browser initially shows folder count without image details");
+        var grid = Field<VirtualizedThumbnailGrid>(window, "_thumbnailGrid");
+        var items = Field<List<ImageFileItem>>(window, "_allItems");
+        var firstItem = items.Single(item => item.Path == first);
+        var secondItem = items.Single(item => item.Path == second);
+        var decoders = Field<List<IImageDecoder>>(services.Decoders, "_decoders");
+        var gate = new OverlayGatedDecoder { PathToHold = first }; decoders.Insert(0, gate);
+        try
+        {
+            grid.ApplySelection(firstItem, ModifierKeys.None);
+            Wait(delegate { return gate.Captured.IsSet; }, "hold previous thumbnail metadata");
+            grid.Focus(); PressKey(window, Key.Right);
+            CheckThumbnailStatus(window, second, 300, 200);
+            gate.Release.Set(); PumpZoomFor(300);
+            CheckThumbnailStatus(window, second, 300, 200);
+        }
+        finally { gate.Release.Set(); decoders.Remove(gate); }
+        grid.ApplySelection(firstItem, ModifierKeys.Control);
+        CheckThumbnailStatus(window, first, 2200, 1500);
+        Assert(folderCount.Text.Contains("2 selected"), "group count is shown with the active thumbnail's details");
+        grid.ApplySelection(items.Single(item => item.Path == subfolder), ModifierKeys.None);
+        Assert(!statusPath.IsVisible && folderCount.IsVisible, "folder selection clears image details");
+        grid.ApplySelection(secondItem, ModifierKeys.None);
+        var search = Field<TextBox>(window, "_searchBox");
+        search.Text = "A.png"; Invoke(window, "ApplySearch");
+        Assert(!statusPath.IsVisible && folderCount.Text.StartsWith("Folder: 4 files"), "filtered-out selection clears image details without changing the folder total");
+        search.Text = ""; Invoke(window, "ApplySearch");
     }
 
     private static void CheckOverlayBitDepth(string root)
@@ -141,6 +199,9 @@ internal static partial class ViewerRegressionTests
         string first = Path.Combine(photos, "A.png"), second = Path.Combine(photos, "B.png");
         string longName = Path.Combine(photos, new string('W', 80) + ".png");
         MakeImage(first, 2200, 1500, 96); MakeImage(second, 300, 200, 96); MakeImage(longName, 900, 600, 96);
+        File.WriteAllText(Path.Combine(photos, "Notes.txt"), "Non-image fixture");
+        string subfolder = Path.Combine(photos, "Archive"); Directory.CreateDirectory(subfolder);
+        File.WriteAllText(Path.Combine(subfolder, "Nested.txt"), "Nested fixture");
         var services = AppServices.Create(Path.Combine(root, "Profile"));
         services.Sessions.Save(new SessionState { LastFolder = photos, WindowWidth = 1240, WindowHeight = 780 });
         var window = new MainWindow(services); window.Show(); WaitScan(window);
@@ -149,8 +210,21 @@ internal static partial class ViewerRegressionTests
         Assert(!Field<bool>(window, "_imageMetadataOverlayEnabled") && overlay.Visibility == Visibility.Collapsed, "overlay defaults off");
         PressKey(window, Key.I);
         Assert(!Field<bool>(window, "_imageMetadataOverlayEnabled"), "I does not toggle in browser mode");
+        CheckThumbnailStatusSelection(window, services, first, second, subfolder);
         Invoke(window, "OpenImageTab", first, true); WaitOverlayMetadata(window, first); WaitScan(window);
         CheckImageStatusBar(window, first);
+        var folderCount = Field<TextBlock>(window, "_itemCountText");
+        Assert(folderCount.IsVisible && folderCount.Text.StartsWith("Folder: 4 files (3 images), 1 folder"),
+            "image status counts direct files of every type, excluding folders and their contents");
+        var search = Field<TextBox>(window, "_searchBox");
+        search.Text = "A.png"; Invoke(window, "ApplySearch");
+        Assert(folderCount.Text.StartsWith("Folder: 4 files"), "image status reports the whole folder while search is filtered");
+        search.Text = ""; Invoke(window, "ApplySearch");
+        string newFile = Path.Combine(photos, "More.txt"); File.WriteAllText(newFile, "Watcher fixture");
+        Wait(delegate { return folderCount.Text.StartsWith("Folder: 5 files"); }, "image status sees non-image file creation");
+        File.Delete(newFile);
+        Wait(delegate { return folderCount.Text.StartsWith("Folder: 4 files"); }, "image status sees non-image file deletion");
+        WaitOverlayMetadata(window, first);
         Assert(overlay.Visibility == Visibility.Collapsed, "status details do not enable Info overlay");
         Render((FrameworkElement)window.Content, "image-status-dark.png");
         var canvas = Field<Canvas>(window, "_imageCanvas"); canvas.Focus();
@@ -180,10 +254,12 @@ internal static partial class ViewerRegressionTests
         Assert(overlay.Visibility == Visibility.Visible, "wheel navigation retains metadata toggle");
         PressKey(window, Key.Enter); WaitScan(window);
         Assert(overlay.Visibility == Visibility.Collapsed && Field<bool>(window, "_imageMetadataOverlayEnabled"), "browser hides metadata but retains preference");
-        Assert(Field<TextBlock>(window, "_imageStatusPath").Visibility == Visibility.Collapsed
-            && Field<TextBlock[]>(window, "_imageStatusValues").All(value => value.Text == ""), "browser clears image-specific footer details");
+        CheckThumbnailStatus(window, second, 300, 200);
+        MakeImage(second, 380, 240, 96); File.SetLastWriteTimeUtc(second, DateTime.UtcNow.AddSeconds(1));
+        CheckThumbnailStatus(window, second, 380, 240);
+        Render((FrameworkElement)window.Content, "thumbnail-status-dark.png");
         PressKey(window, Key.I); Assert(Field<bool>(window, "_imageMetadataOverlayEnabled"), "browser I leaves saved toggle unchanged");
-        Invoke(window, "OpenBrowserImage", second); WaitOverlayMetadata(window, second); CheckMetadataRows(window, second, 300, 200);
+        Invoke(window, "OpenBrowserImage", second); WaitOverlayMetadata(window, second); CheckMetadataRows(window, second, 380, 240);
 
         MakeImage(second, 820, 460, 96); File.SetLastWriteTimeUtc(second, DateTime.UtcNow.AddSeconds(2));
         Wait(delegate { return values[4].Text == "820 x 460 px" && Field<FileRevision>(window, "_displayedImageRevision").Matches(second); }, "watcher updates displayed metadata");
@@ -222,6 +298,7 @@ internal static partial class ViewerRegressionTests
         Render((FrameworkElement)window.Content, "metadata-overlay-light-narrow.png");
         Invoke(window, "SetMetadataPanelVisible", false); ThemeManager.SetDarkTheme(true); canvas.Focus();
         PressKey(window, Key.U); Pump(); CheckMetadataOverlayBounds(window);
+        CheckImageStatusBar(window, longName);
         Render((FrameworkElement)window.Content, "metadata-overlay-compact.png");
         PressKey(window, Key.F11); Pump(); CheckMetadataOverlayBounds(window);
         Render((FrameworkElement)window.Content, "metadata-overlay-fullscreen.png");

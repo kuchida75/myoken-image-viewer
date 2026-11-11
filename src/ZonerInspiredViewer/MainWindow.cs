@@ -322,7 +322,12 @@ namespace ZonerInspiredViewer
             Grid.SetColumn(_metadataPanel, 4);
             body.Children.Add(_metadataPanel);
             SetMetadataPanelVisible(false);
-            _performanceBar = BuildPerformanceBar(); Grid.SetRow(_performanceBar, 2); root.Children.Add(_performanceBar);
+            _performanceBar = BuildPerformanceBar();
+            _bottomBar = new StackPanel();
+            _bottomBar.Children.Add(_performanceBar);
+            _bottomBar.Children.Add(BuildImageStatusBar());
+            Grid.SetRow(_bottomBar, 2);
+            root.Children.Add(_bottomBar);
             InitializeEdgeViewing(root);
         }
 
@@ -908,15 +913,8 @@ namespace ZonerInspiredViewer
             {
                 ActivateBrowserItem(e.Item);
             };
-            _thumbnailGrid.ItemSelected += delegate(object sender, ThumbnailActivatedEventArgs e)
+            _thumbnailGrid.ItemSelected += delegate
             {
-                if (e.Item == null) { _metadataLoadVersion++; _metadataPanel.ShowMessage(""); }
-                else if (e.Item.IsDirectory)
-                {
-                    _metadataLoadVersion++;
-                    _metadataPanel.ShowMessage("Folder: " + e.Item.Path);
-                }
-                else LoadMetadata(e.Item.Path);
                 UpdateStatus();
                 ScheduleSessionSave();
             };
@@ -1631,6 +1629,8 @@ namespace ZonerInspiredViewer
             state.QuickEnhanceEnabled = _quickEnhanceEnabled;
             state.LastAccessUtc = DateTime.UtcNow;
             _activeTabPath = state.IsBrowser ? null : state.Path;
+            _thumbnailMetadataItem = null;
+            if (state.IsBrowser) _metadataPanel.ShowMessage("");
             _displayedImagePath = null;
             _imageLoadVersion++;
             _mainImage.Source = null;
@@ -2132,7 +2132,7 @@ namespace ZonerInspiredViewer
             Task.Factory.StartNew(
                 delegate
                 {
-                    return _services.Decoders.ReadMetadata(path);
+                    return version == Volatile.Read(ref _metadataLoadVersion) ? _services.Decoders.ReadMetadata(path) : null;
                 },
                 CancellationToken.None,
                 TaskCreationOptions.None,

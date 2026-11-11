@@ -298,6 +298,8 @@ namespace ZonerInspiredViewer
                     || (key == Key.Down && current / _columnCount == (_items.Count - 1) / _columnCount))) target = current;
             }
             ApplySelection(_items[target], modifiers);
+            // Selection can resize the status bar and change the available viewport height.
+            UpdateLayout();
             BringSelectionIntoView();
             return true;
         }

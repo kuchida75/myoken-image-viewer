@@ -7,6 +7,7 @@ namespace ZonerInspiredViewer
     {
         private Grid _edgeRoot, _edgeBody, _edgeCenter, _edgeWorkspace;
         private FrameworkElement _edgeTabs, _edgeFooter;
+        private StackPanel _bottomBar;
         private CheckBox _edgeCheck;
         private bool _edgeEnabled, _edgeActive, _edgeBarsShown = true;
 
@@ -18,7 +19,7 @@ namespace ZonerInspiredViewer
         }
 
         private FrameworkElement[] EdgeBars()
-        { return new[] { (FrameworkElement)_topToolbar, _edgeTabs, _edgeFooter, _performanceBar }; }
+        { return new[] { (FrameworkElement)_topToolbar, _edgeTabs, _edgeFooter, _bottomBar }; }
 
         private void SetEdgeViewing(bool enabled)
         {
@@ -49,7 +50,7 @@ namespace ZonerInspiredViewer
                 _edgeTabs.VerticalAlignment = VerticalAlignment.Top;
                 _edgeFooter.VerticalAlignment = VerticalAlignment.Bottom;
                 _edgeBody.Visibility = Visibility.Hidden;
-                Panel.SetZIndex(_topToolbar, 10); Panel.SetZIndex(_performanceBar, 10);
+                Panel.SetZIndex(_topToolbar, 10); Panel.SetZIndex(_bottomBar, 10);
                 SetEdgeBars(false);
                 _imageCanvas.Focus();
             }
@@ -66,7 +67,7 @@ namespace ZonerInspiredViewer
                 }
                 Grid.SetRow(_edgeTabs, 0); Grid.SetRow(_edgeFooter, 2);
                 _edgeBody.Visibility = Visibility.Visible;
-                Panel.SetZIndex(_topToolbar, 0); Panel.SetZIndex(_performanceBar, 0);
+                Panel.SetZIndex(_topToolbar, 0); Panel.SetZIndex(_bottomBar, 0);
                 LayoutImageOverlays();
             }
             QueueImageView();
@@ -75,13 +76,13 @@ namespace ZonerInspiredViewer
         private double EdgeTopInset
         { get { return _edgeActive && _edgeBarsShown ? (_topToolbar.IsVisible ? ((FrameworkElement)_topToolbar).ActualHeight : 0) + _edgeTabs.ActualHeight : 0; } }
         private double EdgeBottomInset
-        { get { return _edgeActive && _edgeBarsShown ? (_performanceBar.IsVisible ? _performanceBar.ActualHeight : 0) + _edgeFooter.ActualHeight : 0; } }
+        { get { return _edgeActive && _edgeBarsShown ? _bottomBar.ActualHeight + _edgeFooter.ActualHeight : 0; } }
 
         private void PositionEdgeBars()
         {
             if (!_edgeActive) return;
             _edgeTabs.Margin = new Thickness(0, _topToolbar.IsVisible ? ((FrameworkElement)_topToolbar).ActualHeight : 0, 0, 0);
-            _edgeFooter.Margin = new Thickness(0, 0, 0, _performanceBar.IsVisible ? _performanceBar.ActualHeight : 0);
+            _edgeFooter.Margin = new Thickness(0, 0, 0, _bottomBar.ActualHeight);
             if (_zoomIndicator != null) _zoomIndicator.Margin = new Thickness(16, 16 + EdgeTopInset, 16, 16);
             LayoutImageOverlays();
         }
